@@ -105,10 +105,9 @@ app.get('/card/:id', (req, res) => {
   const id = req.params.id;
   const ua = req.headers['user-agent'] || '';
   const isAndroid = /Android/i.test(ua);
-  const isIOS = /iPhone|iPad/i.test(ua);
 
   let walletHtml = '';
-  if (isIOS) {
+  if (!isAndroid) {
     walletHtml = '<p style="margin-top:16px;font-size:13px;color:#9ca3af">🍎 Apple Wallet bientôt disponible</p>';
   } else if (isAndroid) {
     walletHtml = '<div id="wallet-btn"><script>fetch("/api/customers/' + id + '/wallet").then(r=>r.json()).then(d=>{if(d.url){document.getElementById("wallet-btn").innerHTML=\'<a href="\'+d.url+\'" target="_blank"><img src="https://pay.google.com/about/static/sample-assets/pay-with-google/add-to-wallet-button.svg" style="width:200px;margin-top:8px" alt="Ajouter à Google Wallet"><\\/a>\';}});<\\/script></div>';
