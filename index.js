@@ -123,4 +123,20 @@ app.delete('/api/shops/:id', (req, res) => {
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
+// Redirection racine vers gérant
+app.get('/', (req, res) => {
+  res.redirect('/gerant.html');
+});
+
+// Dashboard admin protégé
+const ADMIN_PASSWORD = 'fidelypass2024';
+app.get('/admin', (req, res) => {
+  const auth = req.headers['authorization'];
+  if (!auth || auth !== 'Basic ' + Buffer.from('admin:' + ADMIN_PASSWORD).toString('base64')) {
+    res.set('WWW-Authenticate', 'Basic realm="FidélyPass Admin"');
+    return res.status(401).send('Accès refusé');
+  }
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.listen(PORT, () => console.log('FidélyPass tourne sur http://localhost:' + PORT));
