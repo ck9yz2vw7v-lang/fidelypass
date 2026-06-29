@@ -1,144 +1,283 @@
-const express = require('express');
-const QRCode = require('qrcode');
-const cors = require('cors');
-const path = require('path');
-const db = require('./database');
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FidélyPass — Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;min-height:100vh}
+.header{background:#1e293b;padding:16px 32px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #334155}
+.logo{font-size:22px;font-weight:900;color:#3b82f6}
+.nav a{color:#94a3b8;text-decoration:none;margin-left:24px;font-size:14px}
+.nav a:hover{color:#f1f5f9}
+.container{max-width:1100px;margin:0 auto;padding:32px 24px}
+.page-title{font-size:28px;font-weight:800;margin-bottom:8px}
+.page-sub{color:#64748b;font-size:14px;margin-bottom:32px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.stat{background:#1e293b;border-radius:12px;padding:20px}
+.stat-val{font-size:28px;font-weight:800;color:#3b82f6}
+.stat-label{font-size:12px;color:#64748b;margin-top:4px}
+.card{background:#1e293b;border-radius:12px;padding:24px;margin-bottom:24px}
+.card-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.btn{padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.btn-primary{background:#3b82f6;color:white}
+.btn-primary:hover{background:#2563eb}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:12px;color:#94a3b8;font-weight:600}
+.form-group input{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:14px}
+.form-group input:focus{outline:none;border-color:#3b82f6}
+.form-full{grid-column:1/-1}
+.shops-list{display:flex;flex-direction:column;gap:12px}
+.shop-item{background:#0f172a;border-radius:10px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border:1px solid #1e293b}
+.shop-name{font-weight:700;font-size:15px}
+.shop-meta{font-size:12px;color:#64748b;margin-top:4px}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#dcfce7;color:#166534}
+.empty{text-align:center;color:#64748b;padding:40px}
+.msg{padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px;display:none}
+.success{background:#dcfce7;color:#166534}
+.error-msg{background:#fee2e2;color:#991b1b}
+.shop-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn-sm{padding:6px 12px;font-size:11px;border-radius:6px;cursor:pointer;border:none;font-weight:600}
+.btn-view{background:#3b82f6;color:white}
+.btn-edit{background:#f59e0b;color:white}
+.btn-delete{background:#ef4444;color:white}
+.btn-qr{background:#8b5cf6;color:white}
 
-const app = express();
-const PORT = 3000;
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#1e293b;border-radius:16px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;margin:16px}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:20px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.btn-cancel{background:#334155;color:#f1f5f9}
+.btn-cancel:hover{background:#475569}
+.btn-danger{background:#ef4444;color:white}
+.btn-danger:hover{background:#dc2626}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">🎯 FidélyPass</div>
+  <nav class="nav">
+    <a href="/admin">Dashboard</a>
+    <a href="/gerant.html">Vue gérant</a>
+  </nav>
+</div>
+<div class="container">
+  <div class="page-title">Dashboard Admin</div>
+  <div class="page-sub">Gérez tous vos clients depuis ici — Bonjour Walyd 👋</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-val" id="total-shops">0</div><div class="stat-label">Boutiques actives</div></div>
+    <div class="stat"><div class="stat-val" id="total-customers">-</div><div class="stat-label">Clients totaux</div></div>
+    <div class="stat"><div class="stat-val" id="total-scans">-</div><div class="stat-label">Scans total</div></div>
+    <div class="stat"><div class="stat-val" id="revenue">0€</div><div class="stat-label">Revenus mensuels</div></div>
+  </div>
 
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+  <div class="card">
+    <div class="card-title">➕ Ajouter une boutique</div>
+    <div class="msg success" id="success-msg">✅ Boutique créée avec succès !</div>
+    <div class="msg error-msg" id="error-msg"></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nom de la boutique</label><input type="text" id="name" placeholder="Ex: Boulangerie Martin"></div>
+      <div class="form-group"><label>Identifiant unique</label><input type="text" id="slug" placeholder="Ex: boulangerie-martin"></div>
+      <div class="form-group"><label>Mot de passe gérant</label><input type="password" id="password" placeholder="Mot de passe"></div>
+      <div class="form-group"><label>Points par euro dépensé</label><input type="number" id="points_per_euro" value="1" step="0.1"></div>
+      <div class="form-group"><label>Objectif points</label><input type="number" id="points_goal" value="100"></div>
+      <div class="form-group"><label>Couleur carte</label><input type="color" id="color" value="#b45309"></div>
+      <div class="form-group form-full"><label>Récompense offerte</label><input type="text" id="reward_text" placeholder="Ex: 1 sandwich offert"></div>
+      <div class="form-full"><button class="btn btn-primary" onclick="createShop()">Créer la boutique</button></div>
+    </div>
+  </div>
 
-app.get('/api/test', (req, res) => res.json({ message: 'FidélyPass fonctionne !' }));
+  <div class="card">
+    <div class="card-title">🏪 Mes boutiques <span id="shops-count" style="font-size:13px;color:#64748b"></span></div>
+    <div class="shops-list" id="shops-list"><div class="empty">Aucune boutique pour l'instant</div></div>
+  </div>
+</div>
 
-app.post('/api/shops', (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color } = req.body;
-  try {
-    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color) VALUES (?, ?, ?, ?, ?, ?, ?)`);
-    const result = stmt.run(name, slug, password, reward_text, points_per_euro || 1, points_goal, color);
-    res.json({ success: true, id: result.lastInsertRowid });
-  } catch (err) { res.status(400).json({ success: false, error: err.message }); }
-});
+<!-- MODAL EDIT -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal" id="modal-edit-content">
+    <div class="modal-title">✏️ Modifier la boutique</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-grid">
+      <div class="form-group"><label>Nom</label><input type="text" id="edit-name"></div>
+      <div class="form-group"><label>Identifiant</label><input type="text" id="edit-slug"></div>
+      <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="edit-password" placeholder="Laisser vide = inchangé"></div>
+      <div class="form-group"><label>Points par euro</label><input type="number" id="edit-points-per-euro" step="0.1"></div>
+      <div class="form-group"><label>Objectif points</label><input type="number" id="edit-points-goal"></div>
+      <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
+      <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal('modal-edit')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Enregistrer</button>
+    </div>
+  </div>
+</div>
 
-app.get('/api/shops', (req, res) => res.json(db.prepare('SELECT * FROM shops').all()));
+<!-- MODAL DELETE -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal">
+    <div class="modal-title">🗑️ Supprimer la boutique</div>
+    <input type="hidden" id="delete-id">
+    <p style="color:#94a3b8;font-size:14px;margin-bottom:8px">Tu vas supprimer :</p>
+    <p style="font-size:18px;font-weight:800;margin-bottom:16px" id="delete-name"></p>
+    <p style="color:#ef4444;font-size:13px">⚠️ Cette action est irréversible. Tous les clients et scans de cette boutique seront supprimés.</p>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal('modal-delete')">Annuler</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Supprimer définitivement</button>
+    </div>
+  </div>
+</div>
 
-app.post('/api/shops/login', (req, res) => {
-  const { slug, password } = req.body;
-  const shop = db.prepare('SELECT * FROM shops WHERE slug = ? AND password = ?').get(slug, password);
-  if (shop) res.json({ success: true, shop });
-  else res.status(401).json({ success: false, error: 'Identifiants incorrects' });
-});
+<script>
+async function loadShops() {
+  const res   = await fetch('/api/shops');
+  const shops = await res.json();
+  document.getElementById('total-shops').textContent = shops.length;
+  document.getElementById('revenue').textContent     = (shops.length * 29) + '€';
+  document.getElementById('shops-count').textContent = shops.length + ' boutique(s)';
+  const list = document.getElementById('shops-list');
+  if (!shops.length) { list.innerHTML = '<div class="empty">Aucune boutique pour l\'instant</div>'; return; }
+  list.innerHTML = shops.map(s => `
+    <div class="shop-item">
+      <div>
+        <div class="shop-name">${s.name}</div>
+        <div class="shop-meta">Slug: ${s.slug} · ${s.points_per_euro || 1} pts/€ · Objectif: ${s.points_goal} pts · 🎁 ${s.reward_text}</div>
+      </div>
+      <div class="shop-actions">
+        <span class="badge">Actif</span>
+        <button class="btn-sm btn-view" onclick="window.open('/gerant.html?shop=${s.slug}','_blank')">Vue gérant</button>
+        <button class="btn-sm btn-qr" onclick="showQR('${s.slug}','${s.name}',${s.id})">QR Comptoir</button>
+        <button class="btn-sm btn-edit" onclick="openEdit(${JSON.stringify(s).replace(/"/g,'&quot;')})">Modifier</button>
+        <button class="btn-sm btn-delete" onclick="openDelete(${s.id}, '${s.name.replace(/'/g,"\\'")}')">Supprimer</button>
+      </div>
+    </div>
+  `).join('');
+}
 
-app.get('/api/shops/:id/stats', (req, res) => {
-  const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
-  const customers = db.prepare('SELECT COUNT(*) as count FROM customers WHERE shop_id = ?').get(req.params.id);
-  const scans = db.prepare('SELECT COUNT(*) as count FROM scans WHERE shop_id = ?').get(req.params.id);
-  const rewards = db.prepare("SELECT COUNT(*) as count FROM scans WHERE shop_id = ? AND points_added = 0").get(req.params.id);
-  res.json({ shop, total_customers: customers.count, total_scans: scans.count, total_rewards: rewards.count });
-});
-
-app.post('/api/customers', (req, res) => {
-  const { shop_id, name } = req.body;
-  try {
-    const stmt = db.prepare('INSERT INTO customers (shop_id, name) VALUES (?, ?)');
-    const result = stmt.run(shop_id, name);
-    res.json({ success: true, id: result.lastInsertRowid });
-  } catch (err) { res.status(400).json({ success: false, error: err.message }); }
-});
-
-app.get('/api/customers/:id', (req, res) => {
-  const customer = db.prepare('SELECT * FROM customers WHERE id = ?').get(req.params.id);
-  if (customer) res.json(customer);
-  else res.status(404).json({ error: 'Client introuvable' });
-});
-
-app.post('/api/scan', (req, res) => {
-  const { customer_id, shop_id, amount } = req.body;
-  const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
-  const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(customer_id, shop_id);
-  if (!shop || !customer) return res.status(404).json({ success: false, error: 'Introuvable' });
-
-  const pointsPerEuro = shop.points_per_euro || 1;
-  const pointsEarned = Math.floor((amount || 0) * pointsPerEuro);
-  const newPoints = customer.points + pointsEarned;
-  const rewardUnlocked = newPoints >= shop.points_goal;
-
-  db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1 WHERE id = ?').run(newPoints, customer_id);
-  db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(customer_id, shop_id, pointsEarned);
-
-  res.json({
-    success: true,
-    customer_name: customer.name,
-    points_before: customer.points,
-    points_after: newPoints,
-    points_added: pointsEarned,
-    amount_paid: amount,
-    reward_unlocked: rewardUnlocked,
-    reward_text: shop.reward_text,
-    points_goal: shop.points_goal
-  });
-});
-
-app.post('/api/reward/:customer_id', (req, res) => {
-  const { shop_id } = req.body;
-  const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(req.params.customer_id, shop_id);
-  if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
-  db.prepare('UPDATE customers SET points = 0 WHERE id = ?').run(req.params.customer_id);
-  db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(req.params.customer_id, shop_id, 0);
-  res.json({ success: true });
-});
-
-app.get('/api/shops/:shop_id/customers', (req, res) => {
-  const customers = db.prepare('SELECT * FROM customers WHERE shop_id = ? ORDER BY points DESC').all(req.params.shop_id);
-  res.json(customers);
-});
-
-app.get('/api/customers/:id/qr', async (req, res) => {
-  const url = 'fidelypass:customer:' + req.params.id;
-  const qr = await QRCode.toDataURL(url);
-  res.json({ qr });
-});
-
-app.get('/card/:id', (req, res) => {
-  const id = req.params.id;
-  res.send('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}img{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}</style></head><body><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°' + id + '</div></div><script>fetch("/api/customers/' + id + '/qr").then(r=>r.json()).then(d=>document.getElementById("qr").src=d.qr);<\/script></body></html>');
-});
-
-app.put('/api/shops/:id', (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color } = req.body;
-  try {
-    const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
-    if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
-    const newPassword = password && password.trim() !== '' ? password : shop.password;
-    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=? WHERE id=?`)
-      .run(name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, req.params.id);
-    res.json({ success: true });
-  } catch (err) { res.status(400).json({ success: false, error: err.message }); }
-});
-
-app.delete('/api/shops/:id', (req, res) => {
-  try {
-    db.prepare('DELETE FROM scans WHERE shop_id = ?').run(req.params.id);
-    db.prepare('DELETE FROM customers WHERE shop_id = ?').run(req.params.id);
-    db.prepare('DELETE FROM shops WHERE id = ?').run(req.params.id);
-    res.json({ success: true });
-  } catch (err) { res.status(400).json({ success: false, error: err.message }); }
-});
-
-app.get('/', (req, res) => {
-  res.redirect('/gerant.html');
-});
-
-const ADMIN_PASSWORD = 'fidelypass2024';
-app.get('/admin', (req, res) => {
-  const auth = req.headers['authorization'];
-  if (!auth || auth !== 'Basic ' + Buffer.from('admin:' + ADMIN_PASSWORD).toString('base64')) {
-    res.set('WWW-Authenticate', 'Basic realm="FidélyPass Admin"');
-    return res.status(401).send('Accès refusé');
+async function createShop() {
+  const data = {
+    name:            document.getElementById('name').value,
+    slug:            document.getElementById('slug').value,
+    password:        document.getElementById('password').value,
+    points_per_euro: parseFloat(document.getElementById('points_per_euro').value),
+    points_goal:     parseInt(document.getElementById('points_goal').value),
+    color:           document.getElementById('color').value,
+    reward_text:     document.getElementById('reward_text').value
+  };
+  const res    = await fetch('/api/shops', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+  const result = await res.json();
+  if (result.success) {
+    document.getElementById('success-msg').style.display = 'block';
+    setTimeout(() => document.getElementById('success-msg').style.display = 'none', 3000);
+    ['name','slug','password','reward_text'].forEach(id => document.getElementById(id).value = '');
+    loadShops();
+  } else {
+    const err = document.getElementById('error-msg');
+    err.textContent = '❌ ' + result.error;
+    err.style.display = 'block';
   }
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+}
+
+// ── QR COMPTOIR ───────────────────────────────────────────────
+function showQR(slug, name, id) {
+  const url = window.location.origin + '/join/' + slug;
+  const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url);
+  const overlay = document.getElementById('modal-edit');
+  document.getElementById('modal-edit-content').innerHTML = `
+    <div class="modal-title">📱 QR Code Comptoir — ${name}</div>
+    <p style="color:#94a3b8;font-size:13px;margin-bottom:20px">Imprimez ce QR code et posez-le sur votre comptoir. Les clients le scannent pour créer leur carte de fidélité en autonomie.</p>
+    <div style="text-align:center;margin-bottom:16px;background:white;padding:20px;border-radius:16px">
+      <img src="${qrUrl}" style="width:220px;height:220px;border-radius:8px">
+    </div>
+    <p style="color:#64748b;font-size:12px;text-align:center;margin-bottom:20px;word-break:break-all">${url}</p>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-cancel" onclick="resetEditModal();closeModal('modal-edit')">Fermer</button>
+      <button class="btn btn-primary" onclick="window.open('${url}','_blank')">Tester le lien →</button>
+    </div>
+  `;
+  overlay.classList.add('show');
+}
+
+function resetEditModal() {
+  document.getElementById('modal-edit-content').innerHTML = `
+    <div class="modal-title">✏️ Modifier la boutique</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-grid">
+      <div class="form-group"><label>Nom</label><input type="text" id="edit-name"></div>
+      <div class="form-group"><label>Identifiant</label><input type="text" id="edit-slug"></div>
+      <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="edit-password" placeholder="Laisser vide = inchangé"></div>
+      <div class="form-group"><label>Points par euro</label><input type="number" id="edit-points-per-euro" step="0.1"></div>
+      <div class="form-group"><label>Objectif points</label><input type="number" id="edit-points-goal"></div>
+      <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
+      <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal('modal-edit')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Enregistrer</button>
+    </div>
+  `;
+}
+
+// ── EDIT ──────────────────────────────────────────────────────
+function openEdit(shop) {
+  resetEditModal();
+  document.getElementById('edit-id').value              = shop.id;
+  document.getElementById('edit-name').value            = shop.name;
+  document.getElementById('edit-slug').value            = shop.slug;
+  document.getElementById('edit-password').value        = '';
+  document.getElementById('edit-points-per-euro').value = shop.points_per_euro || 1;
+  document.getElementById('edit-points-goal').value     = shop.points_goal;
+  document.getElementById('edit-color').value           = shop.color;
+  document.getElementById('edit-reward').value          = shop.reward_text;
+  document.getElementById('modal-edit').classList.add('show');
+}
+
+async function saveEdit() {
+  const id   = document.getElementById('edit-id').value;
+  const data = {
+    name:            document.getElementById('edit-name').value,
+    slug:            document.getElementById('edit-slug').value,
+    password:        document.getElementById('edit-password').value,
+    points_per_euro: parseFloat(document.getElementById('edit-points-per-euro').value),
+    points_goal:     parseInt(document.getElementById('edit-points-goal').value),
+    color:           document.getElementById('edit-color').value,
+    reward_text:     document.getElementById('edit-reward').value
+  };
+  const res = await fetch('/api/shops/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+  const result = await res.json();
+  if (result.success) { closeModal('modal-edit'); loadShops(); }
+  else alert('❌ ' + result.error);
+}
+
+// ── DELETE ────────────────────────────────────────────────────
+function openDelete(id, name) {
+  document.getElementById('delete-id').value        = id;
+  document.getElementById('delete-name').textContent = name;
+  document.getElementById('modal-delete').classList.add('show');
+}
+
+async function confirmDelete() {
+  const id  = document.getElementById('delete-id').value;
+  const res = await fetch('/api/shops/' + id, {method:'DELETE'});
+  const result = await res.json();
+  if (result.success) { closeModal('modal-delete'); loadShops(); }
+  else alert('❌ ' + result.error);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
 });
 
-app.listen(PORT, () => console.log('FidélyPass tourne sur http://localhost:' + PORT));
+loadShops();
+</script>
+</body>
+</html>
