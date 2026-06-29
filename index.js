@@ -1,4 +1,5 @@
 const express = require('express');
+const QRCode = require('qrcode');
 const cors = require('cors');
 const path = require('path');
 const db = require('./database');
@@ -13,10 +14,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/test', (req, res) => res.json({ message: 'FidélyPass fonctionne !' }));
 
 app.post('/api/shops', (req, res) => {
-  const { name, slug, password, reward_text, points_per_visit, points_goal, color } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color } = req.body;
   try {
-    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_visit, points_goal, color) VALUES (?, ?, ?, ?, ?, ?, ?)`);
-    const result = stmt.run(name, slug, password, reward_text, points_per_visit, points_goal, color);
+    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color) VALUES (?, ?, ?, ?, ?, ?, ?)`);
+    const result = stmt.run(name, slug, password, reward_text, points_per_euro || 1, points_goal, color);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -54,16 +55,32 @@ app.get('/api/customers/:id', (req, res) => {
 });
 
 app.post('/api/scan', (req, res) => {
-  const { customer_id, shop_id } = req.body;
+  const { customer_id, shop_id, amount } = req.body;
   const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
   const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(customer_id, shop_id);
   if (!shop || !customer) return res.status(404).json({ success: false, error: 'Introuvable' });
-  const newPoints = customer.points + shop.points_per_visit;
+
+  const pointsPerEuro = shop.points_per_euro || 1;
+  const pointsEarned = Math.floor((amount || 0) * pointsPerEuro);
+
+  const newPoints = customer.points + pointsEarned;
   const rewardUnlocked = newPoints >= shop.points_goal;
   const finalPoints = rewardUnlocked ? 0 : newPoints;
+
   db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1 WHERE id = ?').run(finalPoints, customer_id);
-  db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(customer_id, shop_id, shop.points_per_visit);
-  res.json({ success: true, customer_name: customer.name, points_before: customer.points, points_after: finalPoints, points_added: shop.points_per_visit, reward_unlocked: rewardUnlocked, reward_text: shop.reward_text, points_goal: shop.points_goal });
+  db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(customer_id, shop_id, pointsEarned);
+
+  res.json({
+    success: true,
+    customer_name: customer.name,
+    points_before: customer.points,
+    points_after: finalPoints,
+    points_added: pointsEarned,
+    amount_paid: amount,
+    reward_unlocked: rewardUnlocked,
+    reward_text: shop.reward_text,
+    points_goal: shop.points_goal
+  });
 });
 
 app.get('/api/shops/:shop_id/customers', (req, res) => {
@@ -71,4 +88,39 @@ app.get('/api/shops/:shop_id/customers', (req, res) => {
   res.json(customers);
 });
 
-app.listen(PORT, () => console.log(`FidélyPass tourne sur http://localhost:${PORT}`));
+app.get('/api/customers/:id/qr', async (req, res) => {
+  const url = 'fidelypass:customer:' + req.params.id;
+  const qr = await QRCode.toDataURL(url);
+  res.json({ qr });
+});
+
+app.get('/card/:id', (req, res) => {
+  const id = req.params.id;
+  res.send('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}img{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}</style></head><body><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°' + id + '</div></div><script>fetch("/api/customers/' + id + '/qr").then(r=>r.json()).then(d=>document.getElementById("qr").src=d.qr);<\/script></body></html>');
+});
+
+
+// Modifier une boutique
+app.put('/api/shops/:id', (req, res) => {
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color } = req.body;
+  try {
+    const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+    if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
+    const newPassword = password && password.trim() !== '' ? password : shop.password;
+    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=? WHERE id=?`)
+      .run(name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, req.params.id);
+    res.json({ success: true });
+  } catch (err) { res.status(400).json({ success: false, error: err.message }); }
+});
+
+// Supprimer une boutique
+app.delete('/api/shops/:id', (req, res) => {
+  try {
+    db.prepare('DELETE FROM scans WHERE shop_id = ?').run(req.params.id);
+    db.prepare('DELETE FROM customers WHERE shop_id = ?').run(req.params.id);
+    db.prepare('DELETE FROM shops WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+  } catch (err) { res.status(400).json({ success: false, error: err.message }); }
+});
+
+app.listen(PORT, () => console.log('FidélyPass tourne sur http://localhost:' + PORT));
