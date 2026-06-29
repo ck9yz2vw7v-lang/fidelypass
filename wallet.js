@@ -1,4 +1,5 @@
 const { google } = require('googleapis');
+const jwt = require('jsonwebtoken');
 
 const ISSUER_ID = '3388000000023164162';
 const CLASS_ID = 'fidelypass_loyalty';
@@ -56,7 +57,7 @@ async function createWalletPass(customer) {
     payload: { loyaltyObjects: [{ id: objectId }] },
   };
 
-  const token = await client.sign(claims);
+  const token = jwt.sign(claims, credentials.private_key, { algorithm: 'RS256' });
   return `https://pay.google.com/gp/v/save/${token}`;
 }
 
