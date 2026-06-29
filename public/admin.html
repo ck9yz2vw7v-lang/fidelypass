@@ -38,11 +38,12 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 .msg{padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px;display:none}
 .success{background:#dcfce7;color:#166534}
 .error-msg{background:#fee2e2;color:#991b1b}
-.shop-actions{display:flex;gap:8px;align-items:center}
+.shop-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .btn-sm{padding:6px 12px;font-size:11px;border-radius:6px;cursor:pointer;border:none;font-weight:600}
 .btn-view{background:#3b82f6;color:white}
 .btn-edit{background:#f59e0b;color:white}
 .btn-delete{background:#ef4444;color:white}
+.btn-qr{background:#8b5cf6;color:white}
 
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:none;align-items:center;justify-content:center}
@@ -60,7 +61,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 <div class="header">
   <div class="logo">🎯 FidélyPass</div>
   <nav class="nav">
-    <a href="/">Dashboard</a>
+    <a href="/admin">Dashboard</a>
     <a href="/gerant.html">Vue gérant</a>
   </nav>
 </div>
@@ -74,7 +75,6 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
     <div class="stat"><div class="stat-val" id="revenue">0€</div><div class="stat-label">Revenus mensuels</div></div>
   </div>
 
-  <!-- CRÉER -->
   <div class="card">
     <div class="card-title">➕ Ajouter une boutique</div>
     <div class="msg success" id="success-msg">✅ Boutique créée avec succès !</div>
@@ -91,7 +91,6 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
     </div>
   </div>
 
-  <!-- LISTE -->
   <div class="card">
     <div class="card-title">🏪 Mes boutiques <span id="shops-count" style="font-size:13px;color:#64748b"></span></div>
     <div class="shops-list" id="shops-list"><div class="empty">Aucune boutique pour l'instant</div></div>
@@ -100,7 +99,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 
 <!-- MODAL EDIT -->
 <div class="modal-overlay" id="modal-edit">
-  <div class="modal">
+  <div class="modal" id="modal-edit-content">
     <div class="modal-title">✏️ Modifier la boutique</div>
     <input type="hidden" id="edit-id">
     <div class="form-grid">
@@ -151,8 +150,9 @@ async function loadShops() {
       </div>
       <div class="shop-actions">
         <span class="badge">Actif</span>
-        <button class="btn-sm btn-view"   onclick="window.open('/gerant.html?shop=${s.slug}','_blank')">Vue gérant</button>
-        <button class="btn-sm btn-edit"   onclick="openEdit(${JSON.stringify(s).replace(/"/g,'&quot;')})">Modifier</button>
+        <button class="btn-sm btn-view" onclick="window.open('/gerant.html?shop=${s.slug}','_blank')">Vue gérant</button>
+        <button class="btn-sm btn-qr" onclick="showQR('${s.slug}','${s.name}',${s.id})">QR Comptoir</button>
+        <button class="btn-sm btn-edit" onclick="openEdit(${JSON.stringify(s).replace(/"/g,'&quot;')})">Modifier</button>
         <button class="btn-sm btn-delete" onclick="openDelete(${s.id}, '${s.name.replace(/'/g,"\\'")}')">Supprimer</button>
       </div>
     </div>
@@ -183,16 +183,57 @@ async function createShop() {
   }
 }
 
+// ── QR COMPTOIR ───────────────────────────────────────────────
+function showQR(slug, name, id) {
+  const url = window.location.origin + '/join/' + slug;
+  const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url);
+  const overlay = document.getElementById('modal-edit');
+  document.getElementById('modal-edit-content').innerHTML = `
+    <div class="modal-title">📱 QR Code Comptoir — ${name}</div>
+    <p style="color:#94a3b8;font-size:13px;margin-bottom:20px">Imprimez ce QR code et posez-le sur votre comptoir. Les clients le scannent pour créer leur carte de fidélité en autonomie.</p>
+    <div style="text-align:center;margin-bottom:16px;background:white;padding:20px;border-radius:16px">
+      <img src="${qrUrl}" style="width:220px;height:220px;border-radius:8px">
+    </div>
+    <p style="color:#64748b;font-size:12px;text-align:center;margin-bottom:20px;word-break:break-all">${url}</p>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-cancel" onclick="resetEditModal();closeModal('modal-edit')">Fermer</button>
+      <button class="btn btn-primary" onclick="window.open('${url}','_blank')">Tester le lien →</button>
+    </div>
+  `;
+  overlay.classList.add('show');
+}
+
+function resetEditModal() {
+  document.getElementById('modal-edit-content').innerHTML = `
+    <div class="modal-title">✏️ Modifier la boutique</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-grid">
+      <div class="form-group"><label>Nom</label><input type="text" id="edit-name"></div>
+      <div class="form-group"><label>Identifiant</label><input type="text" id="edit-slug"></div>
+      <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="edit-password" placeholder="Laisser vide = inchangé"></div>
+      <div class="form-group"><label>Points par euro</label><input type="number" id="edit-points-per-euro" step="0.1"></div>
+      <div class="form-group"><label>Objectif points</label><input type="number" id="edit-points-goal"></div>
+      <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
+      <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal('modal-edit')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Enregistrer</button>
+    </div>
+  `;
+}
+
 // ── EDIT ──────────────────────────────────────────────────────
 function openEdit(shop) {
-  document.getElementById('edit-id').value             = shop.id;
-  document.getElementById('edit-name').value           = shop.name;
-  document.getElementById('edit-slug').value           = shop.slug;
-  document.getElementById('edit-password').value       = '';
+  resetEditModal();
+  document.getElementById('edit-id').value              = shop.id;
+  document.getElementById('edit-name').value            = shop.name;
+  document.getElementById('edit-slug').value            = shop.slug;
+  document.getElementById('edit-password').value        = '';
   document.getElementById('edit-points-per-euro').value = shop.points_per_euro || 1;
-  document.getElementById('edit-points-goal').value    = shop.points_goal;
-  document.getElementById('edit-color').value          = shop.color;
-  document.getElementById('edit-reward').value         = shop.reward_text;
+  document.getElementById('edit-points-goal').value     = shop.points_goal;
+  document.getElementById('edit-color').value           = shop.color;
+  document.getElementById('edit-reward').value          = shop.reward_text;
   document.getElementById('modal-edit').classList.add('show');
 }
 
@@ -209,17 +250,13 @@ async function saveEdit() {
   };
   const res = await fetch('/api/shops/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
   const result = await res.json();
-  if (result.success) {
-    closeModal('modal-edit');
-    loadShops();
-  } else {
-    alert('❌ ' + result.error);
-  }
+  if (result.success) { closeModal('modal-edit'); loadShops(); }
+  else alert('❌ ' + result.error);
 }
 
 // ── DELETE ────────────────────────────────────────────────────
 function openDelete(id, name) {
-  document.getElementById('delete-id').value   = id;
+  document.getElementById('delete-id').value        = id;
   document.getElementById('delete-name').textContent = name;
   document.getElementById('modal-delete').classList.add('show');
 }
@@ -228,19 +265,14 @@ async function confirmDelete() {
   const id  = document.getElementById('delete-id').value;
   const res = await fetch('/api/shops/' + id, {method:'DELETE'});
   const result = await res.json();
-  if (result.success) {
-    closeModal('modal-delete');
-    loadShops();
-  } else {
-    alert('❌ ' + result.error);
-  }
+  if (result.success) { closeModal('modal-delete'); loadShops(); }
+  else alert('❌ ' + result.error);
 }
 
 function closeModal(id) {
   document.getElementById(id).classList.remove('show');
 }
 
-// Fermer modal en cliquant dehors
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
 });
