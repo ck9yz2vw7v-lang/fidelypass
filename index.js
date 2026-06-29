@@ -136,7 +136,6 @@ app.get('/admin', (req, res) => {
     res.set('WWW-Authenticate', 'Basic realm="FidélyPass Admin"');
     return res.status(401).send('Accès refusé');
   }
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+res.sendFile(path.join(__dirname, 'public', 'admin.html'));});
 
 app.listen(PORT, () => console.log('FidélyPass tourne sur http://localhost:' + PORT));
