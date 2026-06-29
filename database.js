@@ -8,7 +8,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS shops (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL, slug TEXT UNIQUE NOT NULL, password TEXT NOT NULL,
-    reward_text TEXT NOT NULL, points_per_visit INTEGER DEFAULT 10,
+    reward_text TEXT NOT NULL, points_per_euro REAL DEFAULT 1,
     points_goal INTEGER DEFAULT 100, color TEXT DEFAULT '#b45309',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
@@ -24,5 +24,6 @@ db.exec(`
     scanned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id)
   );
+  try { db.exec('ALTER TABLE shops ADD COLUMN points_per_euro REAL DEFAULT 1'); } catch(e) {}
 `);
 module.exports = db;
