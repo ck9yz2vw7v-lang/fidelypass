@@ -1,9 +1,12 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+
 const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH 
   ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'fidelypass.db')
   : path.join(__dirname, 'fidelypass.db');
+
 const db = new Database(dbPath);
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS shops (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,6 +27,8 @@ db.exec(`
     scanned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id)
   );
-  try { db.exec('ALTER TABLE shops ADD COLUMN points_per_euro REAL DEFAULT 1'); } catch(e) {}
 `);
+
+try { db.exec('ALTER TABLE shops ADD COLUMN points_per_euro REAL DEFAULT 1'); } catch(e) {}
+
 module.exports = db;
