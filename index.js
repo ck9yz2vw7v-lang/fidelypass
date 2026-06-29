@@ -59,26 +59,13 @@ app.post('/api/scan', (req, res) => {
   const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
   const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(customer_id, shop_id);
   if (!shop || !customer) return res.status(404).json({ success: false, error: 'Introuvable' });
-
   const pointsPerEuro = shop.points_per_euro || 1;
   const pointsEarned = Math.floor((amount || 0) * pointsPerEuro);
   const newPoints = customer.points + pointsEarned;
   const rewardUnlocked = newPoints >= shop.points_goal;
-
   db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1 WHERE id = ?').run(newPoints, customer_id);
   db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(customer_id, shop_id, pointsEarned);
-
-  res.json({
-    success: true,
-    customer_name: customer.name,
-    points_before: customer.points,
-    points_after: newPoints,
-    points_added: pointsEarned,
-    amount_paid: amount,
-    reward_unlocked: rewardUnlocked,
-    reward_text: shop.reward_text,
-    points_goal: shop.points_goal
-  });
+  res.json({ success: true, customer_name: customer.name, points_before: customer.points, points_after: newPoints, points_added: pointsEarned, amount_paid: amount, reward_unlocked: rewardUnlocked, reward_text: shop.reward_text, points_goal: shop.points_goal });
 });
 
 app.post('/api/reward/:customer_id', (req, res) => {
@@ -125,6 +112,18 @@ app.delete('/api/shops/:id', (req, res) => {
     db.prepare('DELETE FROM shops WHERE id = ?').run(req.params.id);
     res.json({ success: true });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
+});
+
+app.get('/join/:slug', (req, res) => {
+  const shop = db.prepare('SELECT * FROM shops WHERE slug = ?').get(req.params.slug);
+  if (!shop) return res.status(404).send('Boutique introuvable');
+  const id = shop.id;
+  const name = shop.name;
+  const color = shop.color;
+  const goal = shop.points_goal;
+  const reward = shop.reward_text;
+  const initials = shop.name.slice(0,2).toUpperCase();
+  res.send('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Rejoindre ' + name + '</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:380px}.logo{width:64px;height:64px;border-radius:16px;background:' + color + ';display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:white;margin:0 auto 16px}h1{font-size:22px;font-weight:800;color:#1a1a1a;margin-bottom:4px}p{color:#6b7280;font-size:14px;margin-bottom:24px}.info{background:#f8fafc;border-radius:12px;padding:14px;margin-bottom:24px;font-size:13px;color:#374151}input{width:100%;padding:16px;border:2px solid #e5e7eb;border-radius:14px;font-size:18px;text-align:center;font-weight:700;color:#1a1a1a;outline:none;margin-bottom:12px}input:focus{border-color:#3b82f6}button{width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;font-size:17px;font-weight:700;border:none;cursor:pointer}.error{color:#ef4444;font-size:13px;margin-bottom:12px;display:none}</style></head><body><div class="card"><div class="logo">' + initials + '</div><h1>' + name + '</h1><p>Créez votre carte de fidélité gratuite</p><div class="info">🎁 Objectif : <strong>' + goal + ' points</strong><br>Récompense : <strong>' + reward + '</strong></div><div class="error" id="e">Veuillez entrer votre prénom</div><input type="text" id="n" placeholder="Votre prénom"><button onclick="j()">Obtenir ma carte 🎯</button></div><script>async function j(){const n=document.getElementById("n").value.trim();if(!n){document.getElementById("e").style.display="block";return;}const r=await fetch("/api/customers",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({shop_id:' + id + ',name:n})});const d=await r.json();if(d.success)window.location.href="/card/"+d.id;}document.getElementById("n").addEventListener("keypress",e=>{if(e.key==="Enter")j();});<\/script></body></html>');
 });
 
 app.get('/', (req, res) => {
