@@ -88,6 +88,19 @@ app.get('/api/customers/:id/qr', async (req, res) => {
   res.json({ qr });
 });
 
+app.get('/api/customers/:id/wallet', async (req, res) => {
+  try {
+    const customer = db.prepare('SELECT * FROM customers WHERE id = ?').get(req.params.id);
+    if (!customer) return res.status(404).json({ error: 'Client introuvable' });
+    const { createWalletPass } = require('./wallet');
+    const url = await createWalletPass(customer);
+    res.json({ url });
+  } catch (err) {
+    console.error('Wallet error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/card/:id', (req, res) => {
   const id = req.params.id;
   res.send('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}img{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}</style></head><body><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°' + id + '</div></div><script>fetch("/api/customers/' + id + '/qr").then(r=>r.json()).then(d=>document.getElementById("qr").src=d.qr);<\/script></body></html>');
