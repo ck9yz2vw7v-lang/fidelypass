@@ -1,6 +1,9 @@
 const Database = require('better-sqlite3');
 const path = require('path');
-const db = new Database(path.join(__dirname, 'fidelypass.db'));
+const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH 
+  ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'fidelypass.db')
+  : path.join(__dirname, 'fidelypass.db');
+const db = new Database(dbPath);
 db.exec(`
   CREATE TABLE IF NOT EXISTS shops (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
