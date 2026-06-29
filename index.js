@@ -62,25 +62,32 @@ app.post('/api/scan', (req, res) => {
 
   const pointsPerEuro = shop.points_per_euro || 1;
   const pointsEarned = Math.floor((amount || 0) * pointsPerEuro);
-
   const newPoints = customer.points + pointsEarned;
   const rewardUnlocked = newPoints >= shop.points_goal;
-  const finalPoints = rewardUnlocked ? 0 : newPoints;
 
-  db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1 WHERE id = ?').run(finalPoints, customer_id);
+  db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1 WHERE id = ?').run(newPoints, customer_id);
   db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(customer_id, shop_id, pointsEarned);
 
   res.json({
     success: true,
     customer_name: customer.name,
     points_before: customer.points,
-    points_after: finalPoints,
+    points_after: newPoints,
     points_added: pointsEarned,
     amount_paid: amount,
     reward_unlocked: rewardUnlocked,
     reward_text: shop.reward_text,
     points_goal: shop.points_goal
   });
+});
+
+app.post('/api/reward/:customer_id', (req, res) => {
+  const { shop_id } = req.body;
+  const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(req.params.customer_id, shop_id);
+  if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
+  db.prepare('UPDATE customers SET points = 0 WHERE id = ?').run(req.params.customer_id);
+  db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(req.params.customer_id, shop_id, 0);
+  res.json({ success: true });
 });
 
 app.get('/api/shops/:shop_id/customers', (req, res) => {
@@ -99,8 +106,6 @@ app.get('/card/:id', (req, res) => {
   res.send('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}img{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}</style></head><body><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°' + id + '</div></div><script>fetch("/api/customers/' + id + '/qr").then(r=>r.json()).then(d=>document.getElementById("qr").src=d.qr);<\/script></body></html>');
 });
 
-
-// Modifier une boutique
 app.put('/api/shops/:id', (req, res) => {
   const { name, slug, password, reward_text, points_per_euro, points_goal, color } = req.body;
   try {
@@ -113,7 +118,6 @@ app.put('/api/shops/:id', (req, res) => {
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
-// Supprimer une boutique
 app.delete('/api/shops/:id', (req, res) => {
   try {
     db.prepare('DELETE FROM scans WHERE shop_id = ?').run(req.params.id);
@@ -123,12 +127,10 @@ app.delete('/api/shops/:id', (req, res) => {
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
-// Redirection racine vers gérant
 app.get('/', (req, res) => {
   res.redirect('/gerant.html');
 });
 
-// Dashboard admin protégé
 const ADMIN_PASSWORD = 'fidelypass2024';
 app.get('/admin', (req, res) => {
   const auth = req.headers['authorization'];
@@ -136,6 +138,7 @@ app.get('/admin', (req, res) => {
     res.set('WWW-Authenticate', 'Basic realm="FidélyPass Admin"');
     return res.status(401).send('Accès refusé');
   }
-res.sendFile(path.join(__dirname, 'public', 'admin.html'));});
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
 
 app.listen(PORT, () => console.log('FidélyPass tourne sur http://localhost:' + PORT));

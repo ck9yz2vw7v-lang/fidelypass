@@ -104,6 +104,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .reward-banner{background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:14px;padding:16px;color:white;text-align:center;margin-bottom:16px}
 .reward-banner-title{font-size:18px;font-weight:800;margin-bottom:4px}
 .reward-banner-sub{font-size:13px;opacity:0.9}
+.btn-reward{width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:16px;font-weight:700;border:none;cursor:pointer;margin-bottom:8px;box-shadow:0 4px 16px rgba(245,158,11,0.4)}
 .btn-next{width:100%;padding:16px;border-radius:14px;background:#1a1a1a;color:white;font-size:16px;font-weight:700;border:none;cursor:pointer}
 .btn-logout{background:none;border:none;color:#9ca3af;font-size:12px;cursor:pointer;padding:8px;margin-top:8px}
 </style>
@@ -222,6 +223,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
       <div class="reward-banner-sub" id="reward-text-display"></div>
     </div>
   </div>
+  <button class="btn-reward" id="btn-reward" onclick="confirmReward()" style="display:none">🎁 Récompense remise au client ✓</button>
   <button class="btn-next" onclick="showScreen('scan')">Scanner le prochain client</button>
   <br><button class="btn-logout" onclick="logout()">Se déconnecter</button>
 </div>
@@ -266,7 +268,6 @@ async function loadStats() {
   document.getElementById('stat-scans').textContent     = data.total_scans;
 }
 
-// ── CAMERA ──────────────────────────────────────────────────
 async function startCamera() {
   scanLocked = false;
   showScreen('camera');
@@ -329,7 +330,6 @@ async function onQRDetected(qrData) {
     return;
   }
 
-  // Récupérer les infos du client puis afficher l'écran montant
   const res  = await fetch('/api/customers/' + customerId);
   const data = await res.json();
   if (data.error) {
@@ -376,18 +376,34 @@ async function validateAmount() {
       document.getElementById('reward-banner').style.display      = 'block';
       document.getElementById('reward-text-display').textContent  = data.reward_text;
       document.getElementById('progress-section').style.display   = 'none';
+      document.getElementById('btn-reward').style.display         = 'block';
     } else {
       document.getElementById('result-icon').textContent = '✓';
       document.getElementById('result-icon').classList.remove('reward');
       document.getElementById('result-sub').textContent          = '+' + data.points_added + ' points pour ' + amount.toFixed(2) + '€';
       document.getElementById('reward-banner').style.display     = 'none';
       document.getElementById('progress-section').style.display  = 'block';
+      document.getElementById('btn-reward').style.display        = 'none';
       const remaining = data.points_goal - data.points_after;
       document.getElementById('prog-hint').textContent = 'Encore ' + remaining + ' pts pour : ' + data.reward_text + ' 🎁';
     }
     showScreen('result');
   } else {
     alert('❌ ' + data.error);
+    showScreen('scan');
+  }
+}
+
+async function confirmReward() {
+  const res = await fetch('/api/reward/' + pendingCustomerId, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ shop_id: currentShop.id })
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('btn-reward').style.display = 'none';
+    alert('✅ Récompense confirmée ! Points remis à zéro.');
     showScreen('scan');
   }
 }
