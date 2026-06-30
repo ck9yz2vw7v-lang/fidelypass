@@ -121,6 +121,10 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .customer-meta{font-size:12px;color:#9ca3af}
 .customer-points{font-size:18px;font-weight:800;color:#3b82f6;white-space:nowrap}
 .empty-list{text-align:center;color:#9ca3af;font-size:14px;padding:40px 20px}
+.btn-edit-pts{background:#f3f4f6;border:none;border-radius:8px;width:32px;height:32px;font-size:14px;cursor:pointer;flex-shrink:0;margin-left:6px}
+.edit-pts-wrap{display:flex;align-items:center;gap:6px}
+.edit-pts-input{width:60px;padding:6px 8px;border:1.5px solid #3b82f6;border-radius:8px;font-size:15px;font-weight:700;text-align:center;outline:none}
+.btn-save-pts{background:#22c55e;border:none;border-radius:8px;width:32px;height:32px;font-size:14px;color:white;cursor:pointer;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -310,15 +314,46 @@ async function showCustomersList() {
   }
   listEl.innerHTML = customers.map(c => {
     const initials = c.name.slice(0,2).toUpperCase();
-    return '<div class="customer-row">' +
+    return '<div class="customer-row" id="row-' + c.id + '">' +
       '<div class="customer-avatar">' + initials + '</div>' +
       '<div class="customer-info">' +
         '<div class="customer-name">' + c.name + '</div>' +
         '<div class="customer-meta">' + (c.total_visits || 0) + ' visite' + ((c.total_visits || 0) > 1 ? 's' : '') + '</div>' +
       '</div>' +
-      '<div class="customer-points">' + c.points + ' pts</div>' +
+      '<div class="customer-points" id="pts-display-' + c.id + '">' + c.points + ' pts</div>' +
+      '<button class="btn-edit-pts" onclick="editPoints(' + c.id + ', ' + c.points + ')">✏️</button>' +
     '</div>';
   }).join('');
+}
+
+function editPoints(customerId, currentPoints) {
+  const ptsDisplay = document.getElementById('pts-display-' + customerId);
+  const row = document.getElementById('row-' + customerId);
+  const editBtn = row.querySelector('.btn-edit-pts');
+  ptsDisplay.outerHTML = '<div class="edit-pts-wrap" id="pts-display-' + customerId + '">' +
+    '<input class="edit-pts-input" type="number" id="edit-input-' + customerId + '" value="' + currentPoints + '">' +
+    '<button class="btn-save-pts" onclick="savePoints(' + customerId + ')">✓</button>' +
+  '</div>';
+  editBtn.style.display = 'none';
+}
+
+async function savePoints(customerId) {
+  const newPoints = parseInt(document.getElementById('edit-input-' + customerId).value);
+  if (isNaN(newPoints) || newPoints < 0) {
+    alert('Entrez un nombre de points valide');
+    return;
+  }
+  const res = await fetch('/api/customers/' + customerId + '/points', {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json', 'x-shop-token': shopToken},
+    body: JSON.stringify({ points: newPoints, shop_id: currentShop.id })
+  });
+  const data = await res.json();
+  if (data.success) {
+    showCustomersList();
+  } else {
+    alert('❌ ' + data.error);
+  }
 }
 
 async function startCamera() {
@@ -489,4 +524,4 @@ const shopSlug = new URLSearchParams(window.location.search).get('shop');
 if (shopSlug) document.getElementById('login-slug').value = shopSlug;
 </script>
 </body>
-</html> 
+</html>

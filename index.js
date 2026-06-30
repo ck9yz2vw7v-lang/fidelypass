@@ -75,6 +75,14 @@ app.get('/api/customers/:id', (req, res) => {
   else res.status(404).json({ error: 'Client introuvable' });
 });
 
+app.put('/api/customers/:id/points', requireShopAuth, (req, res) => {
+  const { points, shop_id } = req.body;
+  const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(req.params.id, shop_id);
+  if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
+  db.prepare('UPDATE customers SET points = ? WHERE id = ?').run(points, req.params.id);
+  res.json({ success: true });
+});
+
 app.post('/api/scan', requireShopAuth, (req, res) => {
   const { customer_id, shop_id, amount } = req.body;
   const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
