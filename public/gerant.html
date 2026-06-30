@@ -33,6 +33,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .scan-title{font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:8px}
 .scan-sub{font-size:13px;color:#6b7280;margin-bottom:24px;line-height:1.5}
 .btn-scan{width:100%;padding:18px;border-radius:16px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;font-size:17px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(59,130,246,0.4)}
+.btn-list{width:100%;padding:16px;border-radius:16px;background:#1a1a1a;color:white;font-size:16px;font-weight:700;border:none;cursor:pointer;margin-bottom:16px}
 .add-client-card{background:white;border-radius:16px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .add-client-title{font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px}
 .add-row{display:flex;gap:10px}
@@ -107,6 +108,19 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .btn-reward{width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:16px;font-weight:700;border:none;cursor:pointer;margin-bottom:8px;box-shadow:0 4px 16px rgba(245,158,11,0.4)}
 .btn-next{width:100%;padding:16px;border-radius:14px;background:#1a1a1a;color:white;font-size:16px;font-weight:700;border:none;cursor:pointer}
 .btn-logout{background:none;border:none;color:#9ca3af;font-size:12px;cursor:pointer;padding:8px;margin-top:8px}
+
+/* CUSTOMERS LIST */
+#customers-screen{display:none}
+.list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.list-title{font-size:20px;font-weight:800;color:#1a1a1a}
+.btn-back{background:#f3f4f6;border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;color:#374151;cursor:pointer}
+.customer-row{background:white;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.customer-avatar{width:42px;height:42px;border-radius:50%;background:#3b82f6;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0}
+.customer-info{flex:1;min-width:0}
+.customer-name{font-size:15px;font-weight:700;color:#1a1a1a}
+.customer-meta{font-size:12px;color:#9ca3af}
+.customer-points{font-size:18px;font-weight:800;color:#3b82f6;white-space:nowrap}
+.empty-list{text-align:center;color:#9ca3af;font-size:14px;padding:40px 20px}
 </style>
 </head>
 <body>
@@ -142,6 +156,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
     <div class="scan-sub">Pointez la caméra vers le QR code du client pour créditer ses points</div>
     <button class="btn-scan" onclick="startCamera()">📷 Ouvrir la caméra</button>
   </div>
+  <button class="btn-list" onclick="showCustomersList()">👥 Voir mes clients</button>
   <div class="add-client-card">
     <div class="add-client-title">➕ Nouveau client</div>
     <div class="add-row">
@@ -149,6 +164,15 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
       <button class="btn-add" onclick="addCustomer()">Ajouter</button>
     </div>
   </div>
+</div>
+
+<!-- CUSTOMERS LIST -->
+<div class="container" id="customers-screen">
+  <div class="list-header">
+    <div class="list-title">👥 Mes clients</div>
+    <button class="btn-back" onclick="showScreen('scan')">← Retour</button>
+  </div>
+  <div id="customers-list"></div>
 </div>
 
 <!-- CAMERA -->
@@ -237,7 +261,7 @@ let scanLocked = false;
 let pendingCustomerId = null;
 
 function showScreen(id) {
-  ['login','scan','camera','amount','result'].forEach(s => {
+  ['login','scan','customers','camera','amount','result'].forEach(s => {
     document.getElementById(s + '-screen').style.display = 'none';
   });
   document.getElementById(id + '-screen').style.display = 'block';
@@ -270,6 +294,31 @@ async function loadStats() {
   const data = await res.json();
   document.getElementById('stat-customers').textContent = data.total_customers;
   document.getElementById('stat-scans').textContent     = data.total_scans;
+}
+
+async function showCustomersList() {
+  showScreen('customers');
+  const listEl = document.getElementById('customers-list');
+  listEl.innerHTML = '<div class="empty-list">Chargement…</div>';
+  const res  = await fetch('/api/shops/' + currentShop.id + '/customers', {
+    headers: {'x-shop-token': shopToken}
+  });
+  const customers = await res.json();
+  if (!customers.length) {
+    listEl.innerHTML = '<div class="empty-list">Aucun client pour le moment</div>';
+    return;
+  }
+  listEl.innerHTML = customers.map(c => {
+    const initials = c.name.slice(0,2).toUpperCase();
+    return '<div class="customer-row">' +
+      '<div class="customer-avatar">' + initials + '</div>' +
+      '<div class="customer-info">' +
+        '<div class="customer-name">' + c.name + '</div>' +
+        '<div class="customer-meta">' + (c.total_visits || 0) + ' visite' + ((c.total_visits || 0) > 1 ? 's' : '') + '</div>' +
+      '</div>' +
+      '<div class="customer-points">' + c.points + ' pts</div>' +
+    '</div>';
+  }).join('');
 }
 
 async function startCamera() {
@@ -440,4 +489,4 @@ const shopSlug = new URLSearchParams(window.location.search).get('shop');
 if (shopSlug) document.getElementById('login-slug').value = shopSlug;
 </script>
 </body>
-</html>
+</html> 
