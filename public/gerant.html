@@ -230,6 +230,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 
 <script>
 let currentShop = null;
+let shopToken = null;
 let videoStream = null;
 let scanLoop = null;
 let scanLocked = false;
@@ -250,6 +251,7 @@ async function login() {
   const data = await res.json();
   if (data.success) {
     currentShop = data.shop;
+    shopToken = data.token;
     document.getElementById('header-logo').textContent     = currentShop.name.slice(0,2).toUpperCase();
     document.getElementById('header-logo').style.background = currentShop.color;
     document.getElementById('header-name').textContent     = currentShop.name;
@@ -262,7 +264,9 @@ async function login() {
 
 async function loadStats() {
   if (!currentShop) return;
-  const res  = await fetch('/api/shops/' + currentShop.id + '/stats');
+  const res  = await fetch('/api/shops/' + currentShop.id + '/stats', {
+    headers: {'x-shop-token': shopToken}
+  });
   const data = await res.json();
   document.getElementById('stat-customers').textContent = data.total_customers;
   document.getElementById('stat-scans').textContent     = data.total_scans;
@@ -356,7 +360,7 @@ async function validateAmount() {
 
   const res  = await fetch('/api/scan', {
     method: 'POST',
-    headers: {'Content-Type':'application/json'},
+    headers: {'Content-Type':'application/json', 'x-shop-token': shopToken},
     body: JSON.stringify({ customer_id: pendingCustomerId, shop_id: currentShop.id, amount })
   });
   const data = await res.json();
@@ -397,7 +401,7 @@ async function validateAmount() {
 async function confirmReward() {
   const res = await fetch('/api/reward/' + pendingCustomerId, {
     method: 'POST',
-    headers: {'Content-Type':'application/json'},
+    headers: {'Content-Type':'application/json', 'x-shop-token': shopToken},
     body: JSON.stringify({ shop_id: currentShop.id })
   });
   const data = await res.json();
@@ -426,6 +430,7 @@ async function addCustomer() {
 
 function logout() {
   currentShop = null;
+  shopToken = null;
   stopCamera();
   document.getElementById('main-header').style.display = 'none';
   showScreen('login');
