@@ -2,10 +2,26 @@ const express = require('express');
 const QRCode = require('qrcode');
 const cors = require('cors');
 const path = require('path');
+const crypto = require('crypto');
 const db = require('./database');
 
 const app = express();
 const PORT = 3000;
+
+const sessions = {};
+
+function generateToken() {
+  return crypto.randomBytes(24).toString('hex');
+}
+
+function requireShopAuth(req, res, next) {
+  const token = req.headers['x-shop-token'];
+  const shopId = req.params.id || req.params.shop_id || req.body.shop_id;
+  if (!token || !sessions[token] || String(sessions[token]) !== String(shopId)) {
+    return res.status(403).json({ success: false, error: 'Non autorisé' });
+  }
+  next();
+}
 
 app.use(cors());
 app.use(express.json());
@@ -27,11 +43,16 @@ app.get('/api/shops', (req, res) => res.json(db.prepare('SELECT * FROM shops').a
 app.post('/api/shops/login', (req, res) => {
   const { slug, password } = req.body;
   const shop = db.prepare('SELECT * FROM shops WHERE slug = ? AND password = ?').get(slug, password);
-  if (shop) res.json({ success: true, shop });
-  else res.status(401).json({ success: false, error: 'Identifiants incorrects' });
+  if (shop) {
+    const token = generateToken();
+    sessions[token] = shop.id;
+    res.json({ success: true, shop, token });
+  } else {
+    res.status(401).json({ success: false, error: 'Identifiants incorrects' });
+  }
 });
 
-app.get('/api/shops/:id/stats', (req, res) => {
+app.get('/api/shops/:id/stats', requireShopAuth, (req, res) => {
   const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
   const customers = db.prepare('SELECT COUNT(*) as count FROM customers WHERE shop_id = ?').get(req.params.id);
   const scans = db.prepare('SELECT COUNT(*) as count FROM scans WHERE shop_id = ?').get(req.params.id);
@@ -54,7 +75,7 @@ app.get('/api/customers/:id', (req, res) => {
   else res.status(404).json({ error: 'Client introuvable' });
 });
 
-app.post('/api/scan', (req, res) => {
+app.post('/api/scan', requireShopAuth, (req, res) => {
   const { customer_id, shop_id, amount } = req.body;
   const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
   const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(customer_id, shop_id);
@@ -68,7 +89,7 @@ app.post('/api/scan', (req, res) => {
   res.json({ success: true, customer_name: customer.name, points_before: customer.points, points_after: newPoints, points_added: pointsEarned, amount_paid: amount, reward_unlocked: rewardUnlocked, reward_text: shop.reward_text, points_goal: shop.points_goal });
 });
 
-app.post('/api/reward/:customer_id', (req, res) => {
+app.post('/api/reward/:customer_id', requireShopAuth, (req, res) => {
   const { shop_id } = req.body;
   const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(req.params.customer_id, shop_id);
   if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
@@ -77,7 +98,7 @@ app.post('/api/reward/:customer_id', (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/api/shops/:shop_id/customers', (req, res) => {
+app.get('/api/shops/:shop_id/customers', requireShopAuth, (req, res) => {
   const customers = db.prepare('SELECT * FROM customers WHERE shop_id = ? ORDER BY points DESC').all(req.params.shop_id);
   res.json(customers);
 });
