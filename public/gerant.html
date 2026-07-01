@@ -362,8 +362,7 @@ async function startCamera() {
   const video = document.getElementById('camera-video');
   try {
     videoStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
+video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 }, height: { ideal: 640 } }    });
     video.srcObject = videoStream;
     await video.play();
     startScanLoop();
