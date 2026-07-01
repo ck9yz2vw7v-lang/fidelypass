@@ -321,8 +321,8 @@ async function showCustomersList() {
         '<div class="customer-meta">' + (c.total_visits || 0) + ' visite' + ((c.total_visits || 0) > 1 ? 's' : '') + '</div>' +
       '</div>' +
       '<div class="customer-points" id="pts-display-' + c.id + '">' + c.points + ' pts</div>' +
-      '<button class="btn-edit-pts" onclick="editPoints(' + c.id + ', ' + c.points + ')">✏️</button>' +
-    '</div>';
+'<button class="btn-edit-pts" onclick="window.open(\'/card/' + c.id + '\',\'_blank\')" style="background:#6B21A8;color:white;margin-left:6px">📱</button>' +
+'<button class="btn-edit-pts" onclick="editPoints(' + c.id + ', ' + c.points + ')">✏️</button>' +    '</div>';
   }).join('');
 }
 
