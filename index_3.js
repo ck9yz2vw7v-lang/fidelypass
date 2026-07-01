@@ -6,8 +6,13 @@ const crypto = require('crypto');
 const db = require('./database');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
+// Stripe
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || '');
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
+
+// Sessions
 const sessions = {};
 
 function generateToken() {
@@ -23,17 +28,38 @@ function requireShopAuth(req, res, next) {
   next();
 }
 
+// Webhook Stripe doit recevoir le body brut
+app.use('/webhook', express.raw({ type: 'application/json' }));
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Migration DB : ajouter colonnes Stripe si elles n'existent pas
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN stripe_customer_id TEXT").run();
+} catch(e) {}
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN stripe_subscription_id TEXT").run();
+} catch(e) {}
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN active INTEGER DEFAULT 0").run();
+} catch(e) {}
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN email TEXT").run();
+} catch(e) {}
+
+// ─────────────────────────────────────────────
+// ROUTES EXISTANTES
+// ─────────────────────────────────────────────
+
 app.get('/api/test', (req, res) => res.json({ message: 'FidélyPass fonctionne !' }));
 
 app.post('/api/shops', (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email } = req.body;
   try {
-    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
-    const result = stmt.run(name, slug, password, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null);
+    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
+    const result = stmt.run(name, slug, password, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -44,6 +70,9 @@ app.post('/api/shops/login', (req, res) => {
   const { slug, password } = req.body;
   const shop = db.prepare('SELECT * FROM shops WHERE slug = ? AND password = ?').get(slug, password);
   if (shop) {
+    if (shop.active === 0) {
+      return res.status(403).json({ success: false, error: 'Boutique suspendue — paiement en attente' });
+    }
     const token = generateToken();
     sessions[token] = shop.id;
     res.json({ success: true, shop, token });
@@ -139,7 +168,7 @@ app.get('/card/:id', (req, res) => {
   let walletHtml = '';
   if (!isAndroid) {
     walletHtml = '<p style="margin-top:16px;font-size:13px;color:#9ca3af">🍎 Apple Wallet bientôt disponible</p>';
-  } else if (isAndroid) {
+  } else {
     walletHtml = '<div id="wallet-btn"><script>fetch("/api/customers/' + id + '/wallet").then(r=>r.json()).then(d=>{if(d.url){document.getElementById("wallet-btn").innerHTML=\'<a href="\'+d.url+\'" target="_blank"><img src="https://pay.google.com/about/static/sample-assets/pay-with-google/add-to-wallet-button.svg" style="width:200px;margin-top:8px" alt="Ajouter à Google Wallet"><\\/a>\';}});<\\/script></div>';
   }
 
@@ -147,13 +176,13 @@ app.get('/card/:id', (req, res) => {
 });
 
 app.put('/api/shops/:id', (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email } = req.body;
   try {
     const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
     const newPassword = password && password.trim() !== '' ? password : shop.password;
-    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=? WHERE id=?`)
-      .run(name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, req.params.id);
+    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=? WHERE id=?`)
+      .run(name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || shop.email || null, req.params.id);
     res.json({ success: true });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -183,21 +212,26 @@ app.get('/', (req, res) => {
   res.redirect('/gerant.html');
 });
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'fidelypass2024';
-app.get('/admin', (req, res) => {
+// ─────────────────────────────────────────────
+// ADMIN
+// ─────────────────────────────────────────────
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+
+function requireAdmin(req, res, next) {
   const auth = req.headers['authorization'];
   if (!auth || auth !== 'Basic ' + Buffer.from('admin:' + ADMIN_PASSWORD).toString('base64')) {
-    res.set('WWW-Authenticate', 'Basic realm="FidélyPass Admin"');
-    return res.status(401).send('Accès refusé');
+    res.set('WWW-Authenticate', 'Basic realm="FidelyPass Admin"');
+    return res.status(401).send('Acces refuse');
   }
+  next();
+}
+
+app.get('/admin', requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-app.get('/api/admin/shops/:id/stats', (req, res) => {
-  const auth = req.headers['authorization'];
-  if (!auth || auth !== 'Basic ' + Buffer.from('admin:' + ADMIN_PASSWORD).toString('base64')) {
-    return res.status(403).json({ error: 'Non autorisé' });
-  }
+app.get('/api/admin/shops/:id/stats', requireAdmin, (req, res) => {
   const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
   const customers = db.prepare('SELECT COUNT(*) as count FROM customers WHERE shop_id = ?').get(req.params.id);
   const scans = db.prepare('SELECT COUNT(*) as count FROM scans WHERE shop_id = ?').get(req.params.id);
@@ -205,4 +239,102 @@ app.get('/api/admin/shops/:id/stats', (req, res) => {
   res.json({ shop, total_customers: customers.count, total_scans: scans.count, total_rewards: rewards.count });
 });
 
-app.listen(PORT, () => console.log('FidélyPass tourne sur http://localhost:' + PORT));
+// ─────────────────────────────────────────────
+// STRIPE — Créer lien de paiement pour une boutique
+// ─────────────────────────────────────────────
+
+app.post('/api/shops/:id/create-payment', requireAdmin, async (req, res) => {
+  try {
+    const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+    if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
+
+    const email = shop.email || req.body.email;
+    if (!email) return res.status(400).json({ success: false, error: 'Email gérant requis' });
+
+    // Compter les boutiques actives de ce gérant (même email) pour remise multi-boutiques
+    const shopCount = db.prepare("SELECT COUNT(*) as count FROM shops WHERE email = ? AND active = 1 AND id != ?").get(email, shop.id);
+    const isMulti = shopCount.count >= 1;
+    const monthlyPrice = isMulti ? 2400 : 2900; // centimes : 24€ ou 29€
+
+    // Créer ou récupérer le client Stripe
+    let stripeCustomerId = shop.stripe_customer_id;
+    if (!stripeCustomerId) {
+      const customer = await stripe.customers.create({ email, name: shop.name, metadata: { shop_id: String(shop.id) } });
+      stripeCustomerId = customer.id;
+      db.prepare('UPDATE shops SET stripe_customer_id = ?, email = ? WHERE id = ?').run(stripeCustomerId, email, shop.id);
+    }
+
+    // Créer session Stripe Checkout : 80€ installation + 29€/mois abonnement
+    const session = await stripe.checkout.sessions.create({
+      customer: stripeCustomerId,
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'eur',
+            product_data: { name: 'Installation FidélyPass — ' + shop.name },
+            unit_amount: 8000, // 80€
+          },
+          quantity: 1,
+        },
+        {
+          price_data: {
+            currency: 'eur',
+            product_data: { name: 'Abonnement FidélyPass mensuel' + (isMulti ? ' (tarif multi-boutiques)' : '') },
+            unit_amount: monthlyPrice,
+            recurring: { interval: 'month' },
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: 'https://fidelypass-production.up.railway.app/admin?payment=success',
+      cancel_url: 'https://fidelypass-production.up.railway.app/admin?payment=cancel',
+      metadata: { shop_id: String(shop.id) },
+    });
+
+    res.json({ success: true, payment_url: session.url, is_multi: isMulti, monthly_price: monthlyPrice / 100 });
+  } catch (err) {
+    console.error('Stripe error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────
+// STRIPE — Webhook
+// ─────────────────────────────────────────────
+
+app.post('/webhook', (req, res) => {
+  let event;
+  try {
+    event = STRIPE_WEBHOOK_SECRET
+      ? stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET)
+      : JSON.parse(req.body);
+  } catch (err) {
+    console.error('Webhook error:', err.message);
+    return res.status(400).send('Webhook Error: ' + err.message);
+  }
+
+  const session = event.data.object;
+
+  if (event.type === 'checkout.session.completed') {
+    const shopId = session.metadata && session.metadata.shop_id;
+    if (shopId) {
+      const subId = session.subscription;
+      db.prepare('UPDATE shops SET active = 1, stripe_subscription_id = ? WHERE id = ?').run(subId || null, shopId);
+      console.log('Boutique activée:', shopId);
+    }
+  }
+
+  if (event.type === 'invoice.payment_failed' || event.type === 'customer.subscription.deleted') {
+    const subId = session.id || (session.subscription);
+    if (subId) {
+      db.prepare('UPDATE shops SET active = 0 WHERE stripe_subscription_id = ?').run(subId);
+      console.log('Boutique suspendue pour subscription:', subId);
+    }
+  }
+
+  res.json({ received: true });
+});
+
+app.listen(PORT, () => console.log('FidelyPass tourne sur http://localhost:' + PORT));
