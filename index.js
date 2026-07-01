@@ -192,4 +192,17 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+app.get('/api/admin/shops/:id/stats', (req, res) => {
+  const auth = req.headers['authorization'];
+  if (!auth || auth !== 'Basic ' + Buffer.from('admin:' + ADMIN_PASSWORD).toString('base64')) {
+    return res.status(403).json({ error: 'Non autorisé' });
+  }
+  const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+  const customers = db.prepare('SELECT COUNT(*) as count FROM customers WHERE shop_id = ?').get(req.params.id);
+  const scans = db.prepare('SELECT COUNT(*) as count FROM scans WHERE shop_id = ?').get(req.params.id);
+  const rewards = db.prepare("SELECT COUNT(*) as count FROM scans WHERE shop_id = ? AND points_added = 0").get(req.params.id);
+  res.json({ shop, total_customers: customers.count, total_scans: scans.count, total_rewards: rewards.count });
+});
+
+
 app.listen(PORT, () => console.log('FidélyPass tourne sur http://localhost:' + PORT));

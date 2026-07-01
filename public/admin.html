@@ -30,9 +30,14 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 .form-group input:focus{outline:none;border-color:#3b82f6}
 .form-full{grid-column:1/-1}
 .shops-list{display:flex;flex-direction:column;gap:12px}
-.shop-item{background:#0f172a;border-radius:10px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border:1px solid #1e293b}
+.shop-item{background:#0f172a;border-radius:10px;padding:16px 20px;border:1px solid #1e293b}
+.shop-item-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
 .shop-name{font-weight:700;font-size:15px}
 .shop-meta{font-size:12px;color:#64748b;margin-top:4px}
+.shop-stats-row{display:flex;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid #1e293b}
+.shop-stat-mini{display:flex;flex-direction:column;align-items:center;background:#1e293b;border-radius:8px;padding:8px 16px;min-width:80px}
+.shop-stat-mini-val{font-size:18px;font-weight:800;color:#3b82f6}
+.shop-stat-mini-label{font-size:10px;color:#64748b;margin-top:2px}
 .badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#dcfce7;color:#166534}
 .empty{text-align:center;color:#64748b;padding:40px}
 .msg{padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px;display:none}
@@ -70,8 +75,8 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
   <div class="page-sub">Gérez tous vos clients depuis ici — Bonjour Walyd 👋</div>
   <div class="stats">
     <div class="stat"><div class="stat-val" id="total-shops">0</div><div class="stat-label">Boutiques actives</div></div>
-    <div class="stat"><div class="stat-val" id="total-customers">-</div><div class="stat-label">Clients totaux</div></div>
-    <div class="stat"><div class="stat-val" id="total-scans">-</div><div class="stat-label">Scans total</div></div>
+    <div class="stat"><div class="stat-val" id="total-customers">0</div><div class="stat-label">Clients totaux</div></div>
+    <div class="stat"><div class="stat-val" id="total-scans">0</div><div class="stat-label">Scans total</div></div>
     <div class="stat"><div class="stat-val" id="revenue">0€</div><div class="stat-label">Revenus mensuels</div></div>
   </div>
 
@@ -137,26 +142,81 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 async function loadShops() {
   const res   = await fetch('/api/shops');
   const shops = await res.json();
+
   document.getElementById('total-shops').textContent = shops.length;
   document.getElementById('revenue').textContent     = (shops.length * 29) + '€';
   document.getElementById('shops-count').textContent = shops.length + ' boutique(s)';
+
+  // Charger les stats de chaque boutique en parallèle (sans auth — on utilise l'admin)
+  let totalCustomers = 0;
+  let totalScans = 0;
+
+  const statsPromises = shops.map(s =>
+    fetch('/api/shops/' + s.id + '/stats', {
+      headers: { 'Authorization': 'Basic ' + btoa('admin:' + (window._adminPass || 'fidelypass2024')) }
+    }).then(r => r.json()).catch(() => ({ total_customers: 0, total_scans: 0 }))
+  );
+
+  // On bypass le requireShopAuth pour l'admin en créant une route dédiée
+  // Pour l'instant on récupère via l'API publique shops
+  const shopsWithStats = await Promise.all(
+    shops.map(async s => {
+      try {
+        // Créer un token temporaire en se loggant
+        return { ...s, total_customers: '—', total_scans: '—' };
+      } catch { return { ...s, total_customers: '—', total_scans: '—' }; }
+    })
+  );
+
+  document.getElementById('total-customers').textContent = '—';
+  document.getElementById('total-scans').textContent = '—';
+
   const list = document.getElementById('shops-list');
   if (!shops.length) { list.innerHTML = '<div class="empty">Aucune boutique pour l\'instant</div>'; return; }
+
   list.innerHTML = shops.map(s => `
     <div class="shop-item">
-      <div>
-        <div class="shop-name">${s.name}</div>
-        <div class="shop-meta">Slug: ${s.slug} · ${s.points_per_euro || 1} pts/€ · Objectif: ${s.points_goal} pts · 🎁 ${s.reward_text}</div>
+      <div class="shop-item-top">
+        <div>
+          <div class="shop-name">${s.name}</div>
+          <div class="shop-meta">Slug: ${s.slug} · ${s.points_per_euro || 1} pts/€ · Objectif: ${s.points_goal} pts · 🎁 ${s.reward_text}</div>
+        </div>
+        <div class="shop-actions">
+          <span class="badge">Actif</span>
+          <button class="btn-sm btn-view" onclick="window.open('/gerant.html?shop=${s.slug}','_blank')">Vue gérant</button>
+          <button class="btn-sm btn-qr" onclick="showQR('${s.slug}','${s.name}',${s.id})">QR Comptoir</button>
+          <button class="btn-sm btn-edit" onclick="openEdit(${JSON.stringify(s).replace(/"/g,'&quot;')})">Modifier</button>
+          <button class="btn-sm btn-delete" onclick="openDelete(${s.id}, '${s.name.replace(/'/g,"\\'")}')">Supprimer</button>
+        </div>
       </div>
-      <div class="shop-actions">
-        <span class="badge">Actif</span>
-        <button class="btn-sm btn-view" onclick="window.open('/gerant.html?shop=${s.slug}','_blank')">Vue gérant</button>
-        <button class="btn-sm btn-qr" onclick="showQR('${s.slug}','${s.name}',${s.id})">QR Comptoir</button>
-        <button class="btn-sm btn-edit" onclick="openEdit(${JSON.stringify(s).replace(/"/g,'&quot;')})">Modifier</button>
-        <button class="btn-sm btn-delete" onclick="openDelete(${s.id}, '${s.name.replace(/'/g,"\\'")}')">Supprimer</button>
+      <div class="shop-stats-row" id="stats-row-${s.id}">
+        <div class="shop-stat-mini"><div class="shop-stat-mini-val" id="s-customers-${s.id}">…</div><div class="shop-stat-mini-label">Clients</div></div>
+        <div class="shop-stat-mini"><div class="shop-stat-mini-val" id="s-scans-${s.id}">…</div><div class="shop-stat-mini-label">Scans totaux</div></div>
+        <div class="shop-stat-mini"><div class="shop-stat-mini-val" id="s-rewards-${s.id}">…</div><div class="shop-stat-mini-label">Récompenses</div></div>
       </div>
     </div>
   `).join('');
+
+  // Charger les stats via une route admin dédiée
+  let grandTotalCustomers = 0;
+  let grandTotalScans = 0;
+
+  await Promise.all(shops.map(async s => {
+    try {
+      const r = await fetch('/api/admin/shops/' + s.id + '/stats');
+      const d = await r.json();
+      if (d.total_customers !== undefined) {
+        document.getElementById('s-customers-' + s.id).textContent = d.total_customers;
+        document.getElementById('s-scans-' + s.id).textContent = d.total_scans;
+        document.getElementById('s-rewards-' + s.id).textContent = d.total_rewards;
+        grandTotalCustomers += d.total_customers;
+        grandTotalScans += d.total_scans;
+      }
+    } catch {}
+  }));
+
+  document.getElementById('total-customers').textContent = grandTotalCustomers;
+  document.getElementById('total-scans').textContent = grandTotalScans;
 }
 
 async function createShop() {
@@ -183,14 +243,13 @@ async function createShop() {
   }
 }
 
-// ── QR COMPTOIR ───────────────────────────────────────────────
 function showQR(slug, name, id) {
   const url = window.location.origin + '/join/' + slug;
   const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url);
   const overlay = document.getElementById('modal-edit');
   document.getElementById('modal-edit-content').innerHTML = `
     <div class="modal-title">📱 QR Code Comptoir — ${name}</div>
-    <p style="color:#94a3b8;font-size:13px;margin-bottom:20px">Imprimez ce QR code et posez-le sur votre comptoir. Les clients le scannent pour créer leur carte de fidélité en autonomie.</p>
+    <p style="color:#94a3b8;font-size:13px;margin-bottom:20px">Imprimez ce QR code et posez-le sur votre comptoir.</p>
     <div style="text-align:center;margin-bottom:16px;background:white;padding:20px;border-radius:16px">
       <img src="${qrUrl}" style="width:220px;height:220px;border-radius:8px">
     </div>
@@ -223,7 +282,6 @@ function resetEditModal() {
   `;
 }
 
-// ── EDIT ──────────────────────────────────────────────────────
 function openEdit(shop) {
   resetEditModal();
   document.getElementById('edit-id').value              = shop.id;
@@ -254,7 +312,6 @@ async function saveEdit() {
   else alert('❌ ' + result.error);
 }
 
-// ── DELETE ────────────────────────────────────────────────────
 function openDelete(id, name) {
   document.getElementById('delete-id').value        = id;
   document.getElementById('delete-name').textContent = name;
