@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FidélyPass — La carte de fidélité digitale pour vos clients</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --violet: #6B21A8;
+  --violet-light: #7C3AED;
+  --violet-pale: #F3E8FF;
+  --noir: #0F0F0F;
+  --gris: #6B7280;
+  --gris-light: #F9FAFB;
+  --blanc: #FFFFFF;
+  --vert: #22C55E;
+  --border: #E5E7EB;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--blanc);
+  color: var(--noir);
+  overflow-x: hidden;
+}
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 100%;
+}
+
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--violet);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-logo span { color: var(--noir); }
+
+.nav-cta {
+  background: var(--violet);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.nav-cta:hover { background: var(--violet-light); }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 24px 80px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, #F3E8FF 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--violet-pale);
+  color: var(--violet);
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 32px;
+}
+
+.hero-badge::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--violet);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(40px, 7vw, 72px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -2px;
+  max-width: 820px;
+  margin-bottom: 24px;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--violet);
+}
+
+.hero p {
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--gris);
+  max-width: 560px;
+  line-height: 1.6;
+  margin-bottom: 48px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 64px;
+}
+
+.btn-primary {
+  background: var(--violet);
+  color: white;
+  padding: 16px 32px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-shadow: 0 8px 24px rgba(107,33,168,0.35);
+}
+
+.btn-primary:hover {
+  background: var(--violet-light);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(107,33,168,0.45);
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--noir);
+  padding: 16px 32px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1.5px solid var(--border);
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  border-color: var(--violet);
+  color: var(--violet);
+}
+
+/* MOCKUP */
+.hero-mockup {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.phones-wrap {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 24px;
+}
+
+.phone {
+  background: white;
+  border-radius: 32px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.15);
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.phone-main {
+  width: 260px;
+  height: 480px;
+  display: flex;
+  flex-direction: column;
+}
+
+.phone-secondary {
+  width: 220px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(40px);
+}
+
+.phone-bar {
+  background: var(--noir);
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.phone-notch {
+  width: 80px;
+  height: 14px;
+  background: black;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Phone 1 - Carte client */
+.phone-content-card {
+  flex: 1;
+  background: #f2f2f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px;
+  gap: 12px;
+}
+
+.mock-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px 16px;
+  text-align: center;
+  width: 100%;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.mock-card-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--noir);
+  margin-bottom: 2px;
+}
+
+.mock-card-sub {
+  font-size: 10px;
+  color: var(--gris);
+  margin-bottom: 12px;
+}
+
+.mock-qr {
+  width: 100px;
+  height: 100px;
+  background: var(--noir);
+  border-radius: 8px;
+  margin: 0 auto 10px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(7, 1fr);
+  padding: 8px;
+  gap: 2px;
+}
+
+.qr-cell {
+  border-radius: 1px;
+}
+
+.mock-wallet-btn {
+  background: #1a73e8;
+  color: white;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* Phone 2 - Interface gérant */
+.phone-content-gerant {
+  flex: 1;
+  background: #f2f2f7;
+  display: flex;
+  flex-direction: column;
+}
+
+.mock-header {
+  background: white;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mock-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--violet);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.mock-shop-name {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mock-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.mock-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.mock-stat {
+  background: white;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+
+.mock-stat-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--noir);
+}
+
+.mock-stat-label {
+  font-size: 8px;
+  color: var(--gris);
+}
+
+.mock-scan-btn {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mock-client-row {
+  background: white;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mock-client-av {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.mock-client-info { flex: 1; }
+.mock-client-name { font-size: 11px; font-weight: 700; }
+.mock-client-pts { font-size: 9px; color: var(--gris); }
+.mock-client-badge {
+  background: var(--violet-pale);
+  color: var(--violet);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+/* STATS SECTION */
+.stats-section {
+  background: var(--noir);
+  padding: 80px 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  max-width: 800px;
+  width: 100%;
+}
+
+.stat-block {
+  padding: 48px 32px;
+  text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+.stat-block:last-child { border-right: none; }
+
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(40px, 5vw, 56px);
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.stat-num span { color: var(--violet-light); }
+
+.stat-label {
+  font-size: 14px;
+  color: rgba(255,255,255,0.45);
+  font-weight: 500;
+}
+
+/* FEATURES */
+.features {
+  padding: 100px 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--violet);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  max-width: 600px;
+  margin-bottom: 64px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.feature-card {
+  background: var(--gris-light);
+  border-radius: 20px;
+  padding: 32px;
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+
+.feature-card:hover {
+  border-color: var(--violet);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(107,33,168,0.12);
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--violet-pale);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+.feature-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--noir);
+}
+
+.feature-desc {
+  font-size: 14px;
+  color: var(--gris);
+  line-height: 1.6;
+}
+
+/* HOW IT WORKS */
+.how {
+  background: var(--gris-light);
+  padding: 100px 24px;
+}
+
+.how-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  margin-top: 64px;
+  position: relative;
+}
+
+.steps::before {
+  content: '';
+  position: absolute;
+  top: 28px;
+  left: 5%;
+  right: 5%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--violet), var(--violet-light));
+  opacity: 0.2;
+}
+
+.step {
+  text-align: center;
+  position: relative;
+}
+
+.step-num {
+  width: 56px;
+  height: 56px;
+  background: white;
+  border: 2px solid var(--violet);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--violet);
+  margin: 0 auto 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.step-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.step-desc {
+  font-size: 13px;
+  color: var(--gris);
+  line-height: 1.5;
+}
+
+/* PRICING */
+.pricing {
+  padding: 100px 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.pricing-card {
+  background: white;
+  border: 2px solid var(--violet);
+  border-radius: 28px;
+  padding: 56px 48px;
+  margin-top: 64px;
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--violet), var(--violet-light));
+}
+
+.pricing-badge {
+  display: inline-block;
+  background: var(--violet-pale);
+  color: var(--violet);
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.pricing-price {
+  font-family: 'Syne', sans-serif;
+  font-size: 64px;
+  font-weight: 800;
+  color: var(--noir);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.pricing-price span {
+  font-size: 24px;
+  color: var(--gris);
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+
+.pricing-sub {
+  font-size: 14px;
+  color: var(--gris);
+  margin-bottom: 40px;
+}
+
+.pricing-setup {
+  font-size: 15px;
+  color: var(--gris);
+  margin-bottom: 40px;
+  padding: 16px;
+  background: var(--gris-light);
+  border-radius: 12px;
+}
+
+.pricing-setup strong { color: var(--noir); }
+
+.pricing-features {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  text-align: left;
+  margin-bottom: 48px;
+}
+
+.pricing-features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--noir);
+}
+
+.pricing-features li::before {
+  content: '✓';
+  width: 22px;
+  height: 22px;
+  background: var(--vert);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* CTA FINAL */
+.cta-section {
+  background: var(--noir);
+  padding: 100px 24px;
+  text-align: center;
+}
+
+.cta-section h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(28px, 5vw, 52px);
+  font-weight: 800;
+  color: white;
+  letter-spacing: -1px;
+  margin-bottom: 20px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cta-section p {
+  color: rgba(255,255,255,0.5);
+  font-size: 16px;
+  margin-bottom: 48px;
+}
+
+.cta-form {
+  display: flex;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.cta-input {
+  flex: 1;
+  min-width: 220px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  font-size: 15px;
+  outline: none;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.cta-input::placeholder { color: rgba(255,255,255,0.35); }
+
+.cta-input:focus { border-color: var(--violet-light); }
+
+.cta-submit {
+  background: var(--violet);
+  color: white;
+  padding: 16px 28px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.cta-submit:hover { background: var(--violet-light); }
+
+/* FOOTER */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.footer-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--violet);
+}
+
+.footer-copy {
+  font-size: 13px;
+  color: var(--gris);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .features-grid { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: repeat(2, 1fr); }
+  .steps::before { display: none; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .stat-block { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .pricing-features { grid-template-columns: 1fr; }
+  .phones-wrap { flex-direction: column; align-items: center; }
+  .phone-secondary { transform: none; }
+  footer { flex-direction: column; gap: 12px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">🎯 Fidély<span>Pass</span></div>
+  <a href="#contact" class="nav-cta">Demander une démo</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-badge">Nouveau · Carte de fidélité digitale</div>
+  <h1>Fidélisez vos clients.<br><em>Sans papier.</em> Sans app.</h1>
+  <p>FidélyPass remplace les cartes tampons par un QR code sur smartphone. Simple à utiliser, rapide à installer, efficace dès le premier jour.</p>
+  <div class="hero-actions">
+    <a href="#contact" class="btn-primary">🚀 Démarrer gratuitement</a>
+    <a href="#comment" class="btn-secondary">Voir comment ça marche</a>
+  </div>
+
+  <!-- Mockup -->
+  <div class="hero-mockup">
+    <div class="phones-wrap">
+      <!-- Phone client -->
+      <div class="phone phone-secondary">
+        <div class="phone-bar"><div class="phone-notch"></div></div>
+        <div class="phone-content-card">
+          <div class="mock-card">
+            <div class="mock-card-title">🎯 FidélyPass</div>
+            <div class="mock-card-sub">Présentez ce QR code au gérant</div>
+            <div class="mock-qr">
+              <!-- QR code stylisé -->
+              <div class="qr-cell" style="background:#000;grid-column:1/4;grid-row:1/4;border-radius:4px"></div>
+              <div class="qr-cell" style="background:#000;grid-column:5/8;grid-row:1/4;border-radius:4px"></div>
+              <div class="qr-cell" style="background:#000;grid-column:1/4;grid-row:5/8;border-radius:4px"></div>
+              <div class="qr-cell" style="background:#000;grid-column:5;grid-row:5"></div>
+              <div class="qr-cell" style="background:#000;grid-column:7;grid-row:6"></div>
+              <div class="qr-cell" style="background:#000;grid-column:6;grid-row:7"></div>
+            </div>
+            <div style="font-size:10px;color:#9ca3af;margin-bottom:8px">Carte n°42</div>
+            <div class="mock-wallet-btn">📱 Ajouter à Google Wallet</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phone gérant -->
+      <div class="phone phone-main">
+        <div class="phone-bar"><div class="phone-notch"></div></div>
+        <div class="phone-content-gerant">
+          <div class="mock-header">
+            <div class="mock-avatar">BM</div>
+            <div class="mock-shop-name">Big M Snack</div>
+          </div>
+          <div class="mock-body">
+            <div class="mock-stats">
+              <div class="mock-stat">
+                <div class="mock-stat-val">24</div>
+                <div class="mock-stat-label">Scans aujourd'hui</div>
+              </div>
+              <div class="mock-stat">
+                <div class="mock-stat-val">87</div>
+                <div class="mock-stat-label">Clients actifs</div>
+              </div>
+            </div>
+            <div class="mock-scan-btn">📷 Ouvrir la caméra</div>
+            <div class="mock-client-row">
+              <div class="mock-client-av">WA</div>
+              <div class="mock-client-info">
+                <div class="mock-client-name">Walyd</div>
+                <div class="mock-client-pts">8 visites</div>
+              </div>
+              <div class="mock-client-badge">42 pts</div>
+            </div>
+            <div class="mock-client-row">
+              <div class="mock-client-av" style="background:#22c55e">FA</div>
+              <div class="mock-client-info">
+                <div class="mock-client-name">Farouk</div>
+                <div class="mock-client-pts">3 visites</div>
+              </div>
+              <div class="mock-client-badge">15 pts</div>
+            </div>
+            <div class="mock-client-row">
+              <div class="mock-client-av" style="background:#f59e0b">AM</div>
+              <div class="mock-client-info">
+                <div class="mock-client-name">Ambrine</div>
+                <div class="mock-client-pts">12 visites</div>
+              </div>
+              <div class="mock-client-badge" style="background:#fef3c7;color:#d97706">🎉 Récompense</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-section">
+  <div class="stats-grid">
+    <div class="stat-block">
+      <div class="stat-num">2<span>min</span></div>
+      <div class="stat-label">Pour installer FidélyPass dans votre commerce</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num">0<span>€</span></div>
+      <div class="stat-label">Pour vos clients — aucune app à télécharger</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num">+<span style="color:white">30</span><span>%</span></div>
+      <div class="stat-label">De retours en moyenne avec un programme de fidélité</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="fonctionnalites">
+  <div class="section-label">Fonctionnalités</div>
+  <div class="section-title">Tout ce qu'il faut.<br>Rien de superflu.</div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📷</div>
+      <div class="feature-title">Scan QR instantané</div>
+      <div class="feature-desc">Le gérant scanne la carte du client en 2 secondes. Les points sont crédités automatiquement selon le montant dépensé.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎯</div>
+      <div class="feature-title">Objectifs & récompenses</div>
+      <div class="feature-desc">Définissez votre propre objectif de points et votre récompense. FidélyPass vous alerte quand un client l'atteint.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <div class="feature-title">Google & Apple Wallet</div>
+      <div class="feature-desc">La carte s'ajoute directement au portefeuille du client — Android ou iPhone. Toujours disponible, même sans connexion.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <div class="feature-title">Inscription autonome</div>
+      <div class="feature-desc">Un QR code posé au comptoir permet à vos clients de créer leur carte eux-mêmes, en 10 secondes, sans app.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👥</div>
+      <div class="feature-title">Gestion des clients</div>
+      <div class="feature-desc">Visualisez tous vos clients, leurs points, leurs visites. Corrigez un solde en cas d'erreur en un clic.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title">Statistiques en temps réel</div>
+      <div class="feature-desc">Scans du jour, clients actifs, récompenses remises. Tout ce qui compte pour piloter votre fidélisation.</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="comment">
+  <div class="how-inner">
+    <div class="section-label">Comment ça marche</div>
+    <div class="section-title">Opérationnel en moins de 5 minutes.</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">On installe votre boutique</div>
+        <div class="step-desc">Nom, couleur, objectif de points, récompense. Votre programme de fidélité est prêt.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">Vos clients s'inscrivent</div>
+        <div class="step-desc">Ils scannent le QR code posé au comptoir, tapent leur prénom, et reçoivent leur carte.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">Vous scannez à chaque achat</div>
+        <div class="step-desc">Le gérant scanne la carte du client et entre le montant. Les points sont crédités instantanément.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-title">La récompense est débloquée</div>
+        <div class="step-desc">FidélyPass vous alerte quand un client atteint son objectif. Vous validez la récompense en un tap.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="tarifs">
+  <div class="section-label">Tarifs</div>
+  <div class="section-title">Un prix simple.<br>Pas de surprise.</div>
+  <div class="pricing-card">
+    <div class="pricing-badge">✦ Tout inclus</div>
+    <div class="pricing-price">29<span>€/mois</span></div>
+    <div class="pricing-sub">par boutique, sans engagement</div>
+    <div class="pricing-setup"><strong>+ 80€</strong> d'installation unique (configuration, QR codes, formation)</div>
+    <ul class="pricing-features">
+      <li>Cartes de fidélité digitales illimitées</li>
+      <li>Google Wallet & Apple Wallet</li>
+      <li>Scan QR par caméra</li>
+      <li>Inscription autonome au comptoir</li>
+      <li>Tableau de bord gérant</li>
+      <li>Statistiques en temps réel</li>
+      <li>Gestion et correction des points</li>
+      <li>Support inclus</li>
+    </ul>
+    <a href="#contact" class="btn-primary" style="display:inline-block;font-size:16px">Démarrer maintenant →</a>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-section" id="contact">
+  <h2>Prêt à fidéliser vos clients ?</h2>
+  <p>Laissez-nous votre contact — on vous installe FidélyPass dans la semaine.</p>
+  <div class="cta-form">
+    <input class="cta-input" type="text" placeholder="Nom de votre commerce">
+    <input class="cta-input" type="tel" placeholder="Votre numéro">
+    <button class="cta-submit" onclick="handleContact()">Être contacté →</button>
+  </div>
+  <p style="margin-top:16px;font-size:12px;color:rgba(255,255,255,0.25)">Réponse sous 24h · Aucun engagement</p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">🎯 FidélyPass</div>
+  <div class="footer-copy">© 2024 FidélyPass · Lyon · Tous droits réservés</div>
+</footer>
+
+<script>
+function handleContact() {
+  const inputs = document.querySelectorAll('.cta-input');
+  const nom = inputs[0].value.trim();
+  const tel = inputs[1].value.trim();
+  if (!nom || !tel) {
+    alert('Merci de renseigner votre commerce et votre numéro.');
+    return;
+  }
+  inputs[0].value = '';
+  inputs[1].value = '';
+  alert('✅ Merci ' + nom + ' ! On vous contacte sous 24h.');
+}
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const el = document.querySelector(a.getAttribute('href'));
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+</script>
+
+</body>
+</html>
