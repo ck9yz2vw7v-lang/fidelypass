@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FidélyPass — Gérant</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-serif;min-height:100vh}
@@ -45,22 +45,11 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .camera-header{padding:20px 24px 0;text-align:center}
 .camera-title{font-size:18px;font-weight:800;color:#1a1a1a;margin-bottom:4px}
 .camera-sub{font-size:13px;color:#6b7280;margin-bottom:16px}
-.viewfinder-wrap{position:relative;width:100%;background:#000;aspect-ratio:1}
-#camera-video{width:100%;height:100%;object-fit:cover;display:block}
-#camera-canvas{display:none}
-.vf-overlay{position:absolute;inset:0;pointer-events:none}
-.vf-corner{position:absolute;width:44px;height:44px;border-color:#3b82f6;border-style:solid;border-width:0}
-.vf-corner.tl{top:20px;left:20px;border-top-width:4px;border-left-width:4px;border-radius:6px 0 0 0}
-.vf-corner.tr{top:20px;right:20px;border-top-width:4px;border-right-width:4px;border-radius:0 6px 0 0}
-.vf-corner.bl{bottom:20px;left:20px;border-bottom-width:4px;border-left-width:4px;border-radius:0 0 0 6px}
-.vf-corner.br{bottom:20px;right:20px;border-bottom-width:4px;border-right-width:4px;border-radius:0 0 6px 0}
-.vf-line{position:absolute;left:50%;top:25%;transform:translateX(-50%);width:60%;height:2px;background:rgba(59,130,246,0.6);border-radius:2px;animation:scan-line 2s ease-in-out infinite}
-@keyframes scan-line{0%,100%{top:25%}50%{top:75%}}
+.viewfinder-wrap{position:relative;width:100%;background:#000}
+#camera-video{width:100%}
 .cam-status{padding:12px 24px 16px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:600}
 .cam-status-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-.qr-found{position:absolute;inset:0;background:rgba(34,197,94,0.25);border:3px solid #22c55e;display:none;align-items:center;justify-content:center;font-size:40px}
-.qr-found.show{display:flex}
 .manual-fallback{padding:0 24px 20px}
 .fallback-divider{display:flex;align-items:center;gap:10px;margin-bottom:14px;color:#9ca3af;font-size:12px}
 .fallback-divider::before,.fallback-divider::after{content:'';flex:1;height:1px;background:#e5e7eb}
@@ -187,16 +176,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
       <div class="camera-sub">Pointez vers la carte du client</div>
     </div>
     <div class="viewfinder-wrap">
-      <video id="camera-video" autoplay playsinline muted></video>
-      <canvas id="camera-canvas"></canvas>
-      <div class="vf-overlay">
-        <div class="vf-corner tl"></div>
-        <div class="vf-corner tr"></div>
-        <div class="vf-corner bl"></div>
-        <div class="vf-corner br"></div>
-        <div class="vf-line"></div>
-      </div>
-      <div class="qr-found" id="qr-found">✓</div>
+      <div id="camera-video" style="width:100%"></div>
     </div>
     <div class="cam-status" id="cam-status">
       <div class="cam-status-dot"></div>
@@ -259,8 +239,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 <script>
 let currentShop = null;
 let shopToken = null;
-let videoStream = null;
-let scanLoop = null;
+let html5QrCode = null;
 let scanLocked = false;
 let pendingCustomerId = null;
 
@@ -321,8 +300,9 @@ async function showCustomersList() {
         '<div class="customer-meta">' + (c.total_visits || 0) + ' visite' + ((c.total_visits || 0) > 1 ? 's' : '') + '</div>' +
       '</div>' +
       '<div class="customer-points" id="pts-display-' + c.id + '">' + c.points + ' pts</div>' +
-'<button class="btn-edit-pts" onclick="window.open(\'/card/' + c.id + '\',\'_blank\')" style="background:#6B21A8;color:white;margin-left:6px">📱</button>' +
-'<button class="btn-edit-pts" onclick="editPoints(' + c.id + ', ' + c.points + ')">✏️</button>' +    '</div>';
+      '<button class="btn-edit-pts" onclick="window.open(\'/card/' + c.id + '\',\'_blank\')" style="background:#6B21A8;color:white;margin-left:6px">📱</button>' +
+      '<button class="btn-edit-pts" onclick="editPoints(' + c.id + ', ' + c.points + ')">✏️</button>' +
+    '</div>';
   }).join('');
 }
 
@@ -359,56 +339,37 @@ async function savePoints(customerId) {
 async function startCamera() {
   scanLocked = false;
   showScreen('camera');
-  const video = document.getElementById('camera-video');
   try {
-    videoStream = await navigator.mediaDevices.getUserMedia({
-video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 }, height: { ideal: 640 } }    });
-    video.srcObject = videoStream;
-    await video.play();
-    startScanLoop();
+    html5QrCode = new Html5Qrcode('camera-video');
+    await html5QrCode.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      (decodedText) => {
+        if (!scanLocked) {
+          scanLocked = true;
+          onQRDetected(decodedText);
+        }
+      },
+      () => {}
+    );
   } catch (err) {
     document.getElementById('cam-status-text').textContent = 'Caméra non disponible — utilisez l\'ID manuel';
   }
 }
 
-function startScanLoop() {
-  const video  = document.getElementById('camera-video');
-  const canvas = document.getElementById('camera-canvas');
-  const ctx    = canvas.getContext('2d');
-  function tick() {
-    if (!videoStream) return;
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-      canvas.width  = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height, {inversionAttempts: 'dontInvert'});
-      if (code && !scanLocked) {
-        scanLocked = true;
-        onQRDetected(code.data);
-        return;
-      }
-    }
-    scanLoop = requestAnimationFrame(tick);
-  }
-  scanLoop = requestAnimationFrame(tick);
-}
+function startScanLoop() {}
 
 function stopCamera() {
-  if (scanLoop) cancelAnimationFrame(scanLoop);
-  if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+  if (html5QrCode) {
+    html5QrCode.stop().catch(() => {});
+    html5QrCode = null;
+  }
 }
 
 async function onQRDetected(qrData) {
-  const flash = document.getElementById('qr-found');
-  flash.classList.add('show');
-  if (navigator.vibrate) navigator.vibrate(100);
-
   const match = qrData.match(/(?:fidelypass:customer:)?(\d+)/);
   let customerId = match ? parseInt(match[1]) : null;
 
-  await new Promise(r => setTimeout(r, 500));
-  flash.classList.remove('show');
   stopCamera();
 
   if (!customerId) {
