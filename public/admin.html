@@ -49,8 +49,6 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 .btn-edit{background:#f59e0b;color:white}
 .btn-delete{background:#ef4444;color:white}
 .btn-qr{background:#8b5cf6;color:white}
-
-/* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:none;align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal{background:#1e293b;border-radius:16px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;margin:16px}
@@ -92,6 +90,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>Objectif points</label><input type="number" id="points_goal" value="100"></div>
       <div class="form-group"><label>Couleur carte</label><input type="color" id="color" value="#b45309"></div>
       <div class="form-group form-full"><label>Récompense offerte</label><input type="text" id="reward_text" placeholder="Ex: 1 sandwich offert"></div>
+      <div class="form-group form-full"><label>⭐ Lien Google Avis (optionnel)</label><input type="url" id="google_review_url" placeholder="https://g.page/r/..."></div>
       <div class="form-full"><button class="btn btn-primary" onclick="createShop()">Créer la boutique</button></div>
     </div>
   </div>
@@ -115,6 +114,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>Objectif points</label><input type="number" id="edit-points-goal"></div>
       <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
+      <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal('modal-edit')">Annuler</button>
@@ -142,44 +142,17 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 async function loadShops() {
   const res   = await fetch('/api/shops');
   const shops = await res.json();
-
   document.getElementById('total-shops').textContent = shops.length;
   document.getElementById('revenue').textContent     = (shops.length * 29) + '€';
   document.getElementById('shops-count').textContent = shops.length + ' boutique(s)';
-
-  // Charger les stats de chaque boutique en parallèle (sans auth — on utilise l'admin)
-  let totalCustomers = 0;
-  let totalScans = 0;
-
-  const statsPromises = shops.map(s =>
-    fetch('/api/shops/' + s.id + '/stats', {
-      headers: { 'Authorization': 'Basic ' + btoa('admin:' + (window._adminPass || 'fidelypass2024')) }
-    }).then(r => r.json()).catch(() => ({ total_customers: 0, total_scans: 0 }))
-  );
-
-  // On bypass le requireShopAuth pour l'admin en créant une route dédiée
-  // Pour l'instant on récupère via l'API publique shops
-  const shopsWithStats = await Promise.all(
-    shops.map(async s => {
-      try {
-        // Créer un token temporaire en se loggant
-        return { ...s, total_customers: '—', total_scans: '—' };
-      } catch { return { ...s, total_customers: '—', total_scans: '—' }; }
-    })
-  );
-
-  document.getElementById('total-customers').textContent = '—';
-  document.getElementById('total-scans').textContent = '—';
-
   const list = document.getElementById('shops-list');
   if (!shops.length) { list.innerHTML = '<div class="empty">Aucune boutique pour l\'instant</div>'; return; }
-
   list.innerHTML = shops.map(s => `
     <div class="shop-item">
       <div class="shop-item-top">
         <div>
           <div class="shop-name">${s.name}</div>
-          <div class="shop-meta">Slug: ${s.slug} · ${s.points_per_euro || 1} pts/€ · Objectif: ${s.points_goal} pts · 🎁 ${s.reward_text}</div>
+          <div class="shop-meta">Slug: ${s.slug} · ${s.points_per_euro || 1} pts/€ · Objectif: ${s.points_goal} pts · 🎁 ${s.reward_text}${s.google_review_url ? ' · ⭐ Avis Google configuré' : ''}</div>
         </div>
         <div class="shop-actions">
           <span class="badge">Actif</span>
@@ -197,10 +170,8 @@ async function loadShops() {
     </div>
   `).join('');
 
-  // Charger les stats via une route admin dédiée
   let grandTotalCustomers = 0;
   let grandTotalScans = 0;
-
   await Promise.all(shops.map(async s => {
     try {
       const r = await fetch('/api/admin/shops/' + s.id + '/stats');
@@ -214,27 +185,27 @@ async function loadShops() {
       }
     } catch {}
   }));
-
   document.getElementById('total-customers').textContent = grandTotalCustomers;
   document.getElementById('total-scans').textContent = grandTotalScans;
 }
 
 async function createShop() {
   const data = {
-    name:            document.getElementById('name').value,
-    slug:            document.getElementById('slug').value,
-    password:        document.getElementById('password').value,
-    points_per_euro: parseFloat(document.getElementById('points_per_euro').value),
-    points_goal:     parseInt(document.getElementById('points_goal').value),
-    color:           document.getElementById('color').value,
-    reward_text:     document.getElementById('reward_text').value
+    name:               document.getElementById('name').value,
+    slug:               document.getElementById('slug').value,
+    password:           document.getElementById('password').value,
+    points_per_euro:    parseFloat(document.getElementById('points_per_euro').value),
+    points_goal:        parseInt(document.getElementById('points_goal').value),
+    color:              document.getElementById('color').value,
+    reward_text:        document.getElementById('reward_text').value,
+    google_review_url:  document.getElementById('google_review_url').value || null
   };
   const res    = await fetch('/api/shops', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
   const result = await res.json();
   if (result.success) {
     document.getElementById('success-msg').style.display = 'block';
     setTimeout(() => document.getElementById('success-msg').style.display = 'none', 3000);
-    ['name','slug','password','reward_text'].forEach(id => document.getElementById(id).value = '');
+    ['name','slug','password','reward_text','google_review_url'].forEach(id => document.getElementById(id).value = '');
     loadShops();
   } else {
     const err = document.getElementById('error-msg');
@@ -274,6 +245,7 @@ function resetEditModal() {
       <div class="form-group"><label>Objectif points</label><input type="number" id="edit-points-goal"></div>
       <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
+      <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal('modal-edit')">Annuler</button>
@@ -292,19 +264,21 @@ function openEdit(shop) {
   document.getElementById('edit-points-goal').value     = shop.points_goal;
   document.getElementById('edit-color').value           = shop.color;
   document.getElementById('edit-reward').value          = shop.reward_text;
+  document.getElementById('edit-google-review').value   = shop.google_review_url || '';
   document.getElementById('modal-edit').classList.add('show');
 }
 
 async function saveEdit() {
   const id   = document.getElementById('edit-id').value;
   const data = {
-    name:            document.getElementById('edit-name').value,
-    slug:            document.getElementById('edit-slug').value,
-    password:        document.getElementById('edit-password').value,
-    points_per_euro: parseFloat(document.getElementById('edit-points-per-euro').value),
-    points_goal:     parseInt(document.getElementById('edit-points-goal').value),
-    color:           document.getElementById('edit-color').value,
-    reward_text:     document.getElementById('edit-reward').value
+    name:              document.getElementById('edit-name').value,
+    slug:              document.getElementById('edit-slug').value,
+    password:          document.getElementById('edit-password').value,
+    points_per_euro:   parseFloat(document.getElementById('edit-points-per-euro').value),
+    points_goal:       parseInt(document.getElementById('edit-points-goal').value),
+    color:             document.getElementById('edit-color').value,
+    reward_text:       document.getElementById('edit-reward').value,
+    google_review_url: document.getElementById('edit-google-review').value || null
   };
   const res = await fetch('/api/shops/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
   const result = await res.json();
@@ -313,7 +287,7 @@ async function saveEdit() {
 }
 
 function openDelete(id, name) {
-  document.getElementById('delete-id').value        = id;
+  document.getElementById('delete-id').value         = id;
   document.getElementById('delete-name').textContent = name;
   document.getElementById('modal-delete').classList.add('show');
 }
