@@ -345,4 +345,4 @@ app.post('/webhook', (req, res) => {
   res.json({ received: true });
 });
 
-app.listen(PORT, () => console.log('FidelyPass tourne sur http://localhost:' + PORT));
+app.listen(PORT, '0.0.0.0', () => console.log('FidelyPass tourne sur http://localhost:' + PORT));
