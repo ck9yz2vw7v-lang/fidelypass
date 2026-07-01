@@ -182,7 +182,7 @@ app.get('/', (req, res) => {
   res.redirect('/gerant.html');
 });
 
-const ADMIN_PASSWORD = 'fidelypass2024';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'fidelypass2024';
 app.get('/admin', (req, res) => {
   const auth = req.headers['authorization'];
   if (!auth || auth !== 'Basic ' + Buffer.from('admin:' + ADMIN_PASSWORD).toString('base64')) {
