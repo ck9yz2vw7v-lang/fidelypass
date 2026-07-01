@@ -9,7 +9,15 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Stripe
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || '');
+let stripeClient = null;
+function getStripe() {
+  if (!stripeClient) {
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) throw new Error('STRIPE_SECRET_KEY non définie');
+    stripeClient = require('stripe')(key);
+  }
+  return stripeClient;
+}
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 
 // Sessions
@@ -259,13 +267,13 @@ app.post('/api/shops/:id/create-payment', requireAdmin, async (req, res) => {
     // Créer ou récupérer le client Stripe
     let stripeCustomerId = shop.stripe_customer_id;
     if (!stripeCustomerId) {
-      const customer = await stripe.customers.create({ email, name: shop.name, metadata: { shop_id: String(shop.id) } });
+      const customer = await getStripe().customers.create({ email, name: shop.name, metadata: { shop_id: String(shop.id) } });
       stripeCustomerId = customer.id;
       db.prepare('UPDATE shops SET stripe_customer_id = ?, email = ? WHERE id = ?').run(stripeCustomerId, email, shop.id);
     }
 
     // Créer session Stripe Checkout : 80€ installation + 29€/mois abonnement
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       customer: stripeCustomerId,
       payment_method_types: ['card'],
       line_items: [
@@ -308,7 +316,7 @@ app.post('/webhook', (req, res) => {
   let event;
   try {
     event = STRIPE_WEBHOOK_SECRET
-      ? stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET)
+      ? getStripe().webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET)
       : JSON.parse(req.body);
   } catch (err) {
     console.error('Webhook error:', err.message);
