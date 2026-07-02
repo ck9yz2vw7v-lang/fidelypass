@@ -33,6 +33,15 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
 // Sessions
 const sessions = {};
 
+// Recharge les sessions existantes depuis la DB au démarrage (survit aux redéploiements)
+try {
+  const rows = db.prepare('SELECT token, shop_id FROM sessions_store').all();
+  rows.forEach(r => { sessions[r.token] = r.shop_id; });
+  console.log('Sessions rechargées:', rows.length);
+} catch (e) {
+  console.log('Aucune session à recharger:', e.message);
+}
+
 function generateToken() {
   return crypto.randomBytes(24).toString('hex');
 }
@@ -236,6 +245,20 @@ app.post('/api/customers/:id/subscribe', (req, res) => {
   }
 });
 
+app.post('/api/customers/:id/unsubscribe', (req, res) => {
+  const { endpoint } = req.body;
+  try {
+    if (endpoint) {
+      db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ? AND endpoint = ?').run(req.params.id, endpoint);
+    } else {
+      db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ?').run(req.params.id);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 app.post('/api/shops/:id/notify', requireShopAuth, async (req, res) => {
   const { message } = req.body;
   if (!message || !message.trim()) return res.status(400).json({ success: false, error: 'Message vide' });
@@ -277,6 +300,7 @@ app.get('/card/:id', (req, res) => {
   const id = req.params.id;
   const ua = req.headers['user-agent'] || '';
   const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
 
   let walletHtml = '';
   if (!isAndroid) {
@@ -285,7 +309,10 @@ app.get('/card/:id', (req, res) => {
     walletHtml = '<div id="wallet-btn"><script>fetch("/api/customers/' + id + '/wallet").then(r=>r.json()).then(d=>{if(d.url){document.getElementById("wallet-btn").innerHTML=\'<a href="\'+d.url+\'" target="_blank"><img src="https://pay.google.com/about/static/sample-assets/pay-with-google/add-to-wallet-button.svg" style="width:200px;margin-top:8px" alt="Ajouter à Google Wallet"><\\/a>\';}});<\\/script></div>';
   }
 
-  res.send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}#qr{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}.review-banner{margin-top:20px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:16px;color:white;text-align:center;display:none}.review-banner h3{font-size:16px;font-weight:800;margin-bottom:6px}.review-banner p{color:rgba(255,255,255,0.9);font-size:13px;margin-bottom:12px}.review-btn{display:inline-block;background:white;color:#d97706;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none}.notif-btn{margin-top:16px;background:#f3f4f6;color:#374151;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}.notif-btn.on{background:#dcfce7;color:#16a34a}</style></head><body><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°${id}</div>${walletHtml}<button class="notif-btn" id="notif-btn" onclick="enableNotifs()">🔔 Activer les notifications</button><div class="review-banner" id="review-banner"><h3>🎉 Merci pour votre fidélité !</h3><p>Votre avis compte beaucoup pour nous</p><a id="review-link" class="review-btn" href="#" target="_blank">⭐ Laisser un avis Google</a></div></div><script>
+  res.send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}#qr{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}.review-banner{margin-top:20px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:16px;color:white;text-align:center;display:none}.review-banner h3{font-size:16px;font-weight:800;margin-bottom:6px}.review-banner p{color:rgba(255,255,255,0.9);font-size:13px;margin-bottom:12px}.review-btn{display:inline-block;background:white;color:#d97706;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none}.notif-btn{margin-top:16px;background:#f3f4f6;color:#374151;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}.notif-btn.on{background:#dcfce7;color:#16a34a}.unsub-link{display:block;margin-top:8px;font-size:11px;color:#9ca3af;text-decoration:underline;cursor:pointer;background:none;border:none}.ios-hint{margin-top:12px;background:#fef3c7;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e;text-align:left;line-height:1.5;display:none}</style></head><body><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°${id}</div>${walletHtml}<button class="notif-btn" id="notif-btn" onclick="enableNotifs()">🔔 Activer les notifications</button><button class="unsub-link" id="unsub-link" onclick="disableNotifs()" style="display:none">Se désabonner des notifications</button><div class="ios-hint" id="ios-hint">📲 Sur iPhone : pour recevoir les notifications, ajoutez d'abord cette page à votre écran d'accueil (bouton partager <strong>⬆️</strong> puis "Sur l'écran d'accueil"), ouvrez l'app depuis l'icône, puis réessayez.</div><div class="review-banner" id="review-banner"><h3>🎉 Merci pour votre fidélité !</h3><p>Votre avis compte beaucoup pour nous</p><a id="review-link" class="review-btn" href="#" target="_blank">⭐ Laisser un avis Google</a></div></div><script>
+const IS_IOS = ${isIOS};
+const IS_STANDALONE = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
 fetch("/api/customers/${id}/qr").then(r=>r.json()).then(d=>document.getElementById("qr").src=d.qr);
 const urlParams=new URLSearchParams(window.location.search);
 if(urlParams.get("reward")==="1"&&urlParams.get("review")){const b=document.getElementById("review-banner");const l=document.getElementById("review-link");l.href=decodeURIComponent(urlParams.get("review"));b.style.display="block";}
@@ -299,6 +326,10 @@ function urlBase64ToUint8Array(base64String) {
 
 async function enableNotifs() {
   const btn = document.getElementById('notif-btn');
+  if (IS_IOS && !IS_STANDALONE) {
+    document.getElementById('ios-hint').style.display = 'block';
+    return;
+  }
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
     alert('Notifications non supportées sur ce navigateur.');
     return;
@@ -320,15 +351,48 @@ async function enableNotifs() {
     });
     btn.textContent = '🔔 Notifications activées';
     btn.classList.add('on');
+    document.getElementById('unsub-link').style.display = 'block';
+    document.getElementById('ios-hint').style.display = 'none';
   } catch (err) {
     console.error(err);
     alert('Impossible d\\'activer les notifications.');
   }
 }
 
+async function disableNotifs() {
+  try {
+    const reg = await navigator.serviceWorker.getRegistration('/sw.js');
+    if (reg) {
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await fetch('/api/customers/${id}/unsubscribe', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ endpoint: sub.endpoint })
+        });
+        await sub.unsubscribe();
+      }
+    }
+    const btn = document.getElementById('notif-btn');
+    btn.textContent = '🔔 Activer les notifications';
+    btn.classList.remove('on');
+    document.getElementById('unsub-link').style.display = 'none';
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 if ('serviceWorker' in navigator && Notification.permission === 'granted') {
   navigator.serviceWorker.getRegistration('/sw.js').then(reg => {
-    if (reg) { document.getElementById('notif-btn').textContent = '🔔 Notifications activées'; document.getElementById('notif-btn').classList.add('on'); }
+    if (reg) {
+      reg.pushManager.getSubscription().then(sub => {
+        if (sub) {
+          document.getElementById('notif-btn').textContent = '🔔 Notifications activées';
+          document.getElementById('notif-btn').classList.add('on');
+          document.getElementById('unsub-link').style.display = 'block';
+        }
+      });
+    }
   });
 }
 <\/script></body></html>`);

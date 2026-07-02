@@ -33,6 +33,10 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id)
   );
+  CREATE TABLE IF NOT EXISTS sessions_store (
+    token TEXT PRIMARY KEY, shop_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 try { db.exec('ALTER TABLE shops ADD COLUMN points_per_euro REAL DEFAULT 1'); } catch(e) {}

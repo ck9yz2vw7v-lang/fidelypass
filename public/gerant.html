@@ -107,6 +107,14 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .edit-pts-wrap{display:flex;align-items:center;gap:6px}
 .edit-pts-input{width:60px;padding:6px 8px;border:1.5px solid #3b82f6;border-radius:8px;font-size:15px;font-weight:700;text-align:center;outline:none}
 .btn-save-pts{background:#22c55e;border:none;border-radius:8px;width:32px;height:32px;font-size:14px;color:white;cursor:pointer;flex-shrink:0}
+.link-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;padding:24px}
+.link-modal{background:white;border-radius:20px;padding:24px;max-width:340px;width:100%;text-align:center}
+.link-modal h3{font-size:17px;font-weight:800;margin-bottom:12px}
+.link-modal-url{background:#f8fafc;border-radius:10px;padding:12px;font-size:12px;color:#374151;word-break:break-all;margin-bottom:16px}
+.link-modal-copy{width:100%;padding:14px;border-radius:12px;background:#3b82f6;color:white;font-size:15px;font-weight:700;border:none;cursor:pointer;margin-bottom:8px}
+.link-modal-close{width:100%;padding:12px;border-radius:12px;background:#f3f4f6;color:#6b7280;font-size:14px;font-weight:600;border:none;cursor:pointer}
+.search-input{width:100%;padding:12px 14px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;margin-bottom:14px;outline:none}
+.search-input:focus{border-color:#3b82f6}
 </style>
 </head>
 <body>
@@ -168,7 +176,18 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
     <div class="list-title">👥 Mes clients</div>
     <button class="btn-back" onclick="showScreen('scan')">← Retour</button>
   </div>
+  <input class="search-input" type="text" id="customer-search" placeholder="🔍 Rechercher un client…" oninput="filterCustomers()">
   <div id="customers-list"></div>
+</div>
+
+<!-- LINK MODAL -->
+<div class="link-modal-overlay" id="link-modal-overlay">
+  <div class="link-modal">
+    <h3>✅ Client ajouté !</h3>
+    <div class="link-modal-url" id="link-modal-url"></div>
+    <button class="link-modal-copy" onclick="copyClientLink()">📋 Copier le lien</button>
+    <button class="link-modal-close" onclick="closeLinkModal()">Fermer</button>
+  </div>
 </div>
 
 <!-- CAMERA -->
@@ -245,6 +264,7 @@ let shopToken = null;
 let html5QrCode = null;
 let scanLocked = false;
 let pendingCustomerId = null;
+let allCustomers = [];
 
 function showScreen(id) {
   ['login','scan','customers','camera','amount','result'].forEach(s => {
@@ -316,14 +336,20 @@ async function loadStats() {
 
 async function showCustomersList() {
   showScreen('customers');
+  document.getElementById('customer-search').value = '';
   const listEl = document.getElementById('customers-list');
   listEl.innerHTML = '<div class="empty-list">Chargement…</div>';
   const res  = await fetch('/api/shops/' + currentShop.id + '/customers', {
     headers: {'x-shop-token': shopToken}
   });
-  const customers = await res.json();
+  allCustomers = await res.json();
+  renderCustomersList(allCustomers);
+}
+
+function renderCustomersList(customers) {
+  const listEl = document.getElementById('customers-list');
   if (!customers.length) {
-    listEl.innerHTML = '<div class="empty-list">Aucun client pour le moment</div>';
+    listEl.innerHTML = '<div class="empty-list">Aucun client trouvé</div>';
     return;
   }
   listEl.innerHTML = customers.map(c => {
@@ -339,6 +365,12 @@ async function showCustomersList() {
       '<button class="btn-edit-pts" onclick="editPoints(' + c.id + ', ' + c.points + ')">✏️</button>' +
     '</div>';
   }).join('');
+}
+
+function filterCustomers() {
+  const q = document.getElementById('customer-search').value.trim().toLowerCase();
+  if (!q) { renderCustomersList(allCustomers); return; }
+  renderCustomersList(allCustomers.filter(c => c.name.toLowerCase().includes(q)));
 }
 
 function editPoints(customerId, currentPoints) {
@@ -459,6 +491,8 @@ async function confirmReward() {
   }
 }
 
+let pendingClientLink = '';
+
 async function addCustomer() {
   const name = document.getElementById('new-customer-name').value;
   if (!name || !currentShop) return;
@@ -469,9 +503,26 @@ async function addCustomer() {
   });
   const data = await res.json();
   if (data.success) {
-    alert('✅ Client ajouté !\nSon lien carte : ' + window.location.origin + '/card/' + data.id);
+    pendingClientLink = window.location.origin + '/card/' + data.id;
+    document.getElementById('link-modal-url').textContent = pendingClientLink;
+    document.getElementById('link-modal-overlay').style.display = 'flex';
     document.getElementById('new-customer-name').value = '';
     loadStats();
+  }
+}
+
+function closeLinkModal() {
+  document.getElementById('link-modal-overlay').style.display = 'none';
+}
+
+async function copyClientLink() {
+  try {
+    await navigator.clipboard.writeText(pendingClientLink);
+    const btn = document.querySelector('.link-modal-copy');
+    btn.textContent = '✓ Copié !';
+    setTimeout(() => { btn.textContent = '📋 Copier le lien'; }, 1500);
+  } catch (e) {
+    alert('Lien : ' + pendingClientLink);
   }
 }
 
