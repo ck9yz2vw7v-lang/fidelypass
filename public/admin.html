@@ -156,6 +156,10 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
     <div id="stripe-result" style="display:none">
       <p style="color:#22c55e;font-size:13px;margin-bottom:8px">✅ Lien généré ! Copie-le et envoie-le au gérant :</p>
       <div class="payment-link-box"><a id="stripe-link" href="#" target="_blank">—</a></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="copyStripeLink()" style="flex:1;padding:10px;border-radius:8px;background:#334155;color:white;border:none;cursor:pointer;font-size:13px;font-weight:600">📋 Copier le lien</button>
+        <button onclick="emailStripeLink()" style="flex:1;padding:10px;border-radius:8px;background:#3b82f6;color:white;border:none;cursor:pointer;font-size:13px;font-weight:600">📧 Envoyer par email</button>
+      </div>
       <p style="color:#64748b;font-size:11px;margin-top:8px">💡 En mode test : carte <strong>4242 4242 4242 4242</strong>, date future, CVC quelconque</p>
     </div>
     <div id="stripe-error" style="display:none;color:#ef4444;font-size:13px;margin-top:12px"></div>
@@ -167,6 +171,32 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 </div>
 
 <script>
+function copyStripeLink() {
+  const url = document.getElementById('stripe-link').href;
+  navigator.clipboard.writeText(url).then(() => {
+    alert('✅ Lien copié !');
+  }).catch(() => {
+    alert('Copiez manuellement : ' + url);
+  });
+}
+
+function emailStripeLink() {
+  const url   = document.getElementById('stripe-link').href;
+  const email = document.getElementById('stripe-email').value;
+  const subject = encodeURIComponent('Votre accès FidélyPass — Paiement installation');
+  const body    = encodeURIComponent(
+    'Bonjour,\n\n' +
+    'Voici votre lien pour activer votre carte de fidélité FidélyPass :\n\n' +
+    url + '\n\n' +
+    'Ce lien vous permet de régler :\n' +
+    '- 80€ d\'installation (one-shot)\n' +
+    '- 29€/mois d\'abonnement\n\n' +
+    'Une fois le paiement effectué, votre boutique sera activée automatiquement.\n\n' +
+    'Bonne journée,\nWalyd — FidélyPass'
+  );
+  window.location.href = 'mailto:' + email + '?subject=' + subject + '&body=' + body;
+}
+
 async function loadShops() {
   const res   = await fetch('/api/shops');
   const shops = await res.json();
@@ -273,6 +303,7 @@ async function generatePaymentLink() {
       document.getElementById('stripe-link').textContent = data.payment_url;
       document.getElementById('stripe-result').style.display = 'block';
       document.getElementById('stripe-btn').textContent = '✅ Lien copié !';
+      // auto-copy
       navigator.clipboard.writeText(data.payment_url).catch(()=>{});
     } else {
       document.getElementById('stripe-error').textContent = '❌ ' + data.error;
