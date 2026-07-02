@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
+const rateLimit = require('express-rate-limit');
 const db = require('./database');
 
 const app = express();
@@ -28,6 +29,16 @@ function generateToken() {
   return crypto.randomBytes(24).toString('hex');
 }
 
+function saveSession(token, shopId) {
+  sessions[token] = shopId;
+  try { db.prepare('INSERT OR REPLACE INTO sessions_store (token, shop_id) VALUES (?, ?)').run(token, shopId); } catch(e) {}
+}
+
+function deleteSession(token) {
+  delete sessions[token];
+  try { db.prepare('DELETE FROM sessions_store WHERE token = ?').run(token); } catch(e) {}
+}
+
 function requireShopAuth(req, res, next) {
   const token = req.headers['x-shop-token'];
   const shopId = req.params.id || req.params.shop_id || req.body.shop_id;
@@ -43,6 +54,15 @@ app.use('/webhook', express.raw({ type: 'application/json' }));
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Rate limiter sur le login
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // max 10 tentatives
+  message: { success: false, error: 'Trop de tentatives. Réessayez dans 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Migration DB : ajouter colonnes Stripe si elles n'existent pas
 try {
@@ -76,7 +96,7 @@ app.post('/api/shops', async (req, res) => {
 
 app.get('/api/shops', (req, res) => res.json(db.prepare('SELECT * FROM shops').all()));
 
-app.post('/api/shops/login', async (req, res) => {
+app.post('/api/shops/login', loginLimiter, async (req, res) => {
   const { slug, password } = req.body;
   const shop = db.prepare('SELECT * FROM shops WHERE slug = ?').get(slug);
   if (!shop) return res.status(401).json({ success: false, error: 'Identifiants incorrects' });
@@ -98,7 +118,7 @@ app.post('/api/shops/login', async (req, res) => {
   if (shop.active === 0) return res.status(403).json({ success: false, error: 'Boutique suspendue — paiement en attente' });
 
   const token = generateToken();
-  sessions[token] = shop.id;
+  saveSession(token, shop.id);
   res.json({ success: true, shop, token });
 });
 
