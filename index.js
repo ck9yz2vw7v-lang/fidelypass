@@ -4,22 +4,13 @@ const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
-const rateLimit = require('express-rate-limit');
 const db = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Stripe
-let stripeClient = null;
-function getStripe() {
-  if (!stripeClient) {
-    const key = process.env.STRIPE_SECRET_KEY;
-    if (!key) throw new Error('STRIPE_SECRET_KEY non definie');
-    stripeClient = require('stripe')(key);
-  }
-  return stripeClient;
-}
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || '');
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 
 // Sessions
@@ -27,16 +18,6 @@ const sessions = {};
 
 function generateToken() {
   return crypto.randomBytes(24).toString('hex');
-}
-
-function saveSession(token, shopId) {
-  sessions[token] = shopId;
-  try { db.prepare('INSERT OR REPLACE INTO sessions_store (token, shop_id) VALUES (?, ?)').run(token, shopId); } catch(e) {}
-}
-
-function deleteSession(token) {
-  delete sessions[token];
-  try { db.prepare('DELETE FROM sessions_store WHERE token = ?').run(token); } catch(e) {}
 }
 
 function requireShopAuth(req, res, next) {
@@ -54,15 +35,6 @@ app.use('/webhook', express.raw({ type: 'application/json' }));
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Rate limiter sur le login
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // max 10 tentatives
-  message: { success: false, error: 'Trop de tentatives. Réessayez dans 15 minutes.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 
 // Migration DB : ajouter colonnes Stripe si elles n'existent pas
 try {
@@ -96,7 +68,7 @@ app.post('/api/shops', async (req, res) => {
 
 app.get('/api/shops', (req, res) => res.json(db.prepare('SELECT * FROM shops').all()));
 
-app.post('/api/shops/login', loginLimiter, async (req, res) => {
+app.post('/api/shops/login', async (req, res) => {
   const { slug, password } = req.body;
   const shop = db.prepare('SELECT * FROM shops WHERE slug = ?').get(slug);
   if (!shop) return res.status(401).json({ success: false, error: 'Identifiants incorrects' });
@@ -118,7 +90,7 @@ app.post('/api/shops/login', loginLimiter, async (req, res) => {
   if (shop.active === 0) return res.status(403).json({ success: false, error: 'Boutique suspendue — paiement en attente' });
 
   const token = generateToken();
-  saveSession(token, shop.id);
+  sessions[token] = shop.id;
   res.json({ success: true, shop, token });
 });
 
@@ -303,13 +275,13 @@ app.post('/api/shops/:id/create-payment', requireAdmin, async (req, res) => {
     // Créer ou récupérer le client Stripe
     let stripeCustomerId = shop.stripe_customer_id;
     if (!stripeCustomerId) {
-      const customer = await getStripe().customers.create({ email, name: shop.name, metadata: { shop_id: String(shop.id) } });
+      const customer = await stripe.customers.create({ email, name: shop.name, metadata: { shop_id: String(shop.id) } });
       stripeCustomerId = customer.id;
       db.prepare('UPDATE shops SET stripe_customer_id = ?, email = ? WHERE id = ?').run(stripeCustomerId, email, shop.id);
     }
 
     // Créer session Stripe Checkout : 80€ installation + 29€/mois abonnement
-    const session = await getStripe().checkout.sessions.create({
+    const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       payment_method_types: ['card'],
       line_items: [
@@ -352,7 +324,7 @@ app.post('/webhook', (req, res) => {
   let event;
   try {
     event = STRIPE_WEBHOOK_SECRET
-      ? getStripe().webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET)
+      ? stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET)
       : JSON.parse(req.body);
   } catch (err) {
     console.error('Webhook error:', err.message);

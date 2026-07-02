@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FidélyPass — Gérant</title>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-serif;min-height:100vh}
@@ -13,6 +13,8 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .shop-info h2{font-size:15px;font-weight:700;color:#1a1a1a}
 .shop-info p{font-size:11px;color:#9ca3af}
 .container{max-width:480px;margin:0 auto;padding:20px 16px}
+
+/* LOGIN */
 #login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:16px}
 .login-logo{font-size:48px;margin-bottom:8px}
 .login-title{font-size:24px;font-weight:800;color:#1a1a1a}
@@ -20,10 +22,10 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .input{width:100%;padding:14px 16px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:15px;background:white;color:#1a1a1a;outline:none}
 .input:focus{border-color:#3b82f6}
 .btn-login{width:100%;padding:16px;border-radius:14px;background:#3b82f6;color:white;font-size:16px;font-weight:700;border:none;cursor:pointer}
+.btn-login:hover{background:#2563eb}
 .login-error{color:#ef4444;font-size:13px;display:none}
-.remember-row{display:flex;align-items:center;gap:8px;width:100%}
-.remember-row input{width:18px;height:18px;cursor:pointer;accent-color:#3b82f6}
-.remember-row label{font-size:14px;color:#374151;cursor:pointer}
+
+/* SCAN */
 #scan-screen{display:none}
 .stats-mini{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
 .stat-mini{background:white;border-radius:12px;padding:14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
@@ -34,21 +36,47 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .scan-title{font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:8px}
 .scan-sub{font-size:13px;color:#6b7280;margin-bottom:24px;line-height:1.5}
 .btn-scan{width:100%;padding:18px;border-radius:16px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;font-size:17px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(59,130,246,0.4)}
-.btn-list{width:100%;padding:16px;border-radius:16px;background:#1a1a1a;color:white;font-size:16px;font-weight:700;border:none;cursor:pointer;margin-bottom:16px}
+
+/* Ajout manuel client */
 .add-client-card{background:white;border-radius:16px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .add-client-title{font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px}
 .add-row{display:flex;gap:10px}
 .btn-add{padding:14px 18px;border-radius:12px;background:#22c55e;color:white;font-size:14px;font-weight:700;border:none;cursor:pointer;white-space:nowrap}
+
+/* ── CAMERA SCAN SCREEN ── */
 #camera-screen{display:none}
 .camera-card{background:white;border-radius:20px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);margin-bottom:16px}
 .camera-header{padding:20px 24px 0;text-align:center}
 .camera-title{font-size:18px;font-weight:800;color:#1a1a1a;margin-bottom:4px}
 .camera-sub{font-size:13px;color:#6b7280;margin-bottom:16px}
-.viewfinder-wrap{position:relative;width:100%;background:#000}
-#camera-video{width:100%}
+
+/* Viewfinder */
+.viewfinder-wrap{position:relative;width:100%;background:#000;aspect-ratio:1}
+#camera-video{width:100%;height:100%;object-fit:cover;display:block}
+#camera-canvas{display:none}
+
+/* Animated corner brackets */
+.vf-overlay{position:absolute;inset:0;pointer-events:none}
+.vf-corner{position:absolute;width:44px;height:44px;border-color:#3b82f6;border-style:solid;border-width:0}
+.vf-corner.tl{top:20px;left:20px;border-top-width:4px;border-left-width:4px;border-radius:6px 0 0 0}
+.vf-corner.tr{top:20px;right:20px;border-top-width:4px;border-right-width:4px;border-radius:0 6px 0 0}
+.vf-corner.bl{bottom:20px;left:20px;border-bottom-width:4px;border-left-width:4px;border-radius:0 0 0 6px}
+.vf-corner.br{bottom:20px;right:20px;border-bottom-width:4px;border-right-width:4px;border-radius:0 0 6px 0}
+.vf-line{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:60%;height:2px;background:rgba(59,130,246,0.6);border-radius:2px;animation:scan-line 2s ease-in-out infinite}
+@keyframes scan-line{0%,100%{top:25%}50%{top:75%}}
+
+/* Status badge */
 .cam-status{padding:12px 24px 16px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:13px;font-weight:600}
 .cam-status-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.cam-status.error .cam-status-dot{background:#ef4444;animation:none}
+.cam-status.success-state .cam-status-dot{background:#22c55e;animation:none}
+
+/* QR detected flash */
+.qr-found{position:absolute;inset:0;background:rgba(34,197,94,0.25);border:3px solid #22c55e;border-radius:4px;display:none;align-items:center;justify-content:center;font-size:40px}
+.qr-found.show{display:flex}
+
+/* Manual fallback inside camera screen */
 .manual-fallback{padding:0 24px 20px}
 .fallback-divider{display:flex;align-items:center;gap:10px;margin-bottom:14px;color:#9ca3af;font-size:12px}
 .fallback-divider::before,.fallback-divider::after{content:'';flex:1;height:1px;background:#e5e7eb}
@@ -56,18 +84,11 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .manual-input{flex:1;padding:12px 14px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:22px;font-weight:800;text-align:center;color:#1a1a1a;background:white;outline:none}
 .manual-input:focus{border-color:#3b82f6}
 .btn-manual-go{padding:12px 16px;border-radius:12px;background:#1a1a1a;color:white;font-size:14px;font-weight:700;border:none;cursor:pointer}
+
 .btn-stop{width:calc(100% - 48px);margin:0 24px 20px;padding:14px;border-radius:14px;background:#f3f4f6;color:#6b7280;font-size:15px;font-weight:600;border:none;cursor:pointer}
-#amount-screen{display:none}
-.amount-card{background:white;border-radius:20px;padding:28px 24px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.08);margin-bottom:16px}
-.amount-client-name{font-size:22px;font-weight:800;color:#1a1a1a;margin-bottom:4px}
-.amount-sub{font-size:13px;color:#6b7280;margin-bottom:24px}
-.amount-label{font-size:13px;font-weight:600;color:#6b7280;margin-bottom:8px;text-align:left}
-.amount-input-wrap{position:relative;margin-bottom:8px}
-.amount-input{width:100%;padding:18px 48px 18px 20px;border:2px solid #e5e7eb;border-radius:16px;font-size:32px;font-weight:800;color:#1a1a1a;background:white;outline:none;text-align:center}
-.amount-input:focus{border-color:#3b82f6}
-.amount-euro{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:24px;color:#9ca3af;font-weight:700}
-.amount-hint{font-size:12px;color:#9ca3af;margin-bottom:24px}
-.btn-validate{width:100%;padding:18px;border-radius:16px;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;font-size:17px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,0.4)}
+.btn-stop:hover{background:#e5e7eb}
+
+/* RESULT */
 #result-screen{display:none}
 .result-card{background:white;border-radius:20px;padding:28px 24px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.08);margin-bottom:16px}
 .result-check{width:70px;height:70px;border-radius:50%;background:#22c55e;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 14px;box-shadow:0 4px 16px rgba(34,197,94,0.35)}
@@ -89,24 +110,8 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .reward-banner{background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:14px;padding:16px;color:white;text-align:center;margin-bottom:16px}
 .reward-banner-title{font-size:18px;font-weight:800;margin-bottom:4px}
 .reward-banner-sub{font-size:13px;opacity:0.9}
-.btn-reward{width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:16px;font-weight:700;border:none;cursor:pointer;margin-bottom:8px;box-shadow:0 4px 16px rgba(245,158,11,0.4)}
 .btn-next{width:100%;padding:16px;border-radius:14px;background:#1a1a1a;color:white;font-size:16px;font-weight:700;border:none;cursor:pointer}
 .btn-logout{background:none;border:none;color:#9ca3af;font-size:12px;cursor:pointer;padding:8px;margin-top:8px}
-#customers-screen{display:none}
-.list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.list-title{font-size:20px;font-weight:800;color:#1a1a1a}
-.btn-back{background:#f3f4f6;border:none;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;color:#374151;cursor:pointer}
-.customer-row{background:white;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
-.customer-avatar{width:42px;height:42px;border-radius:50%;background:#3b82f6;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0}
-.customer-info{flex:1;min-width:0}
-.customer-name{font-size:15px;font-weight:700;color:#1a1a1a}
-.customer-meta{font-size:12px;color:#9ca3af}
-.customer-points{font-size:18px;font-weight:800;color:#3b82f6;white-space:nowrap}
-.empty-list{text-align:center;color:#9ca3af;font-size:14px;padding:40px 20px}
-.btn-edit-pts{background:#f3f4f6;border:none;border-radius:8px;width:32px;height:32px;font-size:14px;cursor:pointer;flex-shrink:0;margin-left:6px}
-.edit-pts-wrap{display:flex;align-items:center;gap:6px}
-.edit-pts-input{width:60px;padding:6px 8px;border:1.5px solid #3b82f6;border-radius:8px;font-size:15px;font-weight:700;text-align:center;outline:none}
-.btn-save-pts{background:#22c55e;border:none;border-radius:8px;width:32px;height:32px;font-size:14px;color:white;cursor:pointer;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -126,10 +131,6 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
   <div class="login-sub">Connectez-vous pour accéder à votre espace gérant</div>
   <input class="input" type="text" id="login-slug" placeholder="Identifiant boutique">
   <input class="input" type="password" id="login-password" placeholder="Mot de passe">
-  <div class="remember-row">
-    <input type="checkbox" id="remember-me" checked>
-    <label for="remember-me">Rester connecté</label>
-  </div>
   <div class="login-error" id="login-error">❌ Identifiants incorrects</div>
   <button class="btn-login" onclick="login()">Se connecter</button>
 </div>
@@ -143,10 +144,9 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
   <div class="scan-card">
     <div class="scan-icon">📷</div>
     <div class="scan-title">Scanner une carte</div>
-    <div class="scan-sub">Pointez la caméra vers le QR code du client pour créditer ses points</div>
+    <div class="scan-sub">Pointez la caméra vers le QR code du client pour créditer ses points instantanément</div>
     <button class="btn-scan" onclick="startCamera()">📷 Ouvrir la caméra</button>
   </div>
-  <button class="btn-list" onclick="showCustomersList()">👥 Voir mes clients</button>
   <div class="add-client-card">
     <div class="add-client-title">➕ Nouveau client</div>
     <div class="add-row">
@@ -156,55 +156,42 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
   </div>
 </div>
 
-<!-- CUSTOMERS LIST -->
-<div class="container" id="customers-screen">
-  <div class="list-header">
-    <div class="list-title">👥 Mes clients</div>
-    <button class="btn-back" onclick="showScreen('scan')">← Retour</button>
-  </div>
-  <div id="customers-list"></div>
-</div>
-
-<!-- CAMERA -->
+<!-- CAMERA SCREEN -->
 <div class="container" id="camera-screen">
   <div class="camera-card">
     <div class="camera-header">
       <div class="camera-title">📷 Scan QR Code</div>
       <div class="camera-sub">Pointez vers la carte du client</div>
     </div>
+
     <div class="viewfinder-wrap">
-      <div id="camera-video" style="width:100%"></div>
+      <video id="camera-video" autoplay playsinline muted></video>
+      <canvas id="camera-canvas"></canvas>
+      <div class="vf-overlay">
+        <div class="vf-corner tl"></div>
+        <div class="vf-corner tr"></div>
+        <div class="vf-corner bl"></div>
+        <div class="vf-corner br"></div>
+        <div class="vf-line"></div>
+      </div>
+      <div class="qr-found" id="qr-found">✓</div>
     </div>
+
     <div class="cam-status" id="cam-status">
       <div class="cam-status-dot"></div>
       <span id="cam-status-text">Recherche d'un QR code…</span>
     </div>
+
     <div class="manual-fallback">
       <div class="fallback-divider">ou entrer l'ID manuellement</div>
       <div class="manual-row">
         <input class="manual-input" type="number" id="manual-id" placeholder="ID">
-        <button class="btn-manual-go" onclick="onQRDetected('fidelypass:customer:' + document.getElementById('manual-id').value)">→</button>
+        <button class="btn-manual-go" onclick="doScanById(document.getElementById('manual-id').value)">→</button>
       </div>
     </div>
   </div>
-  <button class="btn-stop" onclick="stopCamera()">✕ Annuler</button>
-</div>
 
-<!-- MONTANT COMMANDE -->
-<div class="container" id="amount-screen">
-  <div class="amount-card">
-    <div class="result-check" style="margin:0 auto 16px">👤</div>
-    <div class="amount-client-name" id="amount-client-name">Client</div>
-    <div class="amount-sub" id="amount-client-sub">Entrez le montant de la commande</div>
-    <div class="amount-label">Montant de la commande</div>
-    <div class="amount-input-wrap">
-      <input class="amount-input" type="number" id="amount-input" placeholder="0" min="0" step="0.01">
-      <span class="amount-euro">€</span>
-    </div>
-    <div class="amount-hint" id="amount-hint">1€ = 1 point</div>
-    <button class="btn-validate" onclick="validateAmount()">✓ Valider et créditer les points</button>
-  </div>
-  <button class="btn-stop" style="width:100%;margin:0 0 8px" onclick="showScreen('scan')">✕ Annuler</button>
+  <button class="btn-stop" onclick="stopCamera()">✕ Annuler</button>
 </div>
 
 <!-- RESULT -->
@@ -228,210 +215,170 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
       <div class="reward-banner-sub" id="reward-text-display"></div>
     </div>
   </div>
-  <button class="btn-reward" id="btn-reward" onclick="confirmReward()" style="display:none">🎁 Récompense remise au client ✓</button>
   <button class="btn-next" onclick="showScreen('scan')">Scanner le prochain client</button>
   <br><button class="btn-logout" onclick="logout()">Se déconnecter</button>
 </div>
 
 <script>
 let currentShop = null;
-let shopToken = null;
-let html5QrCode = null;
-let scanLocked = false;
-let pendingCustomerId = null;
+let videoStream = null;
+let scanLoop = null;
+let scanLocked = false; // évite les doubles scans
 
+// ─── Navigation ───────────────────────────────────────────────
 function showScreen(id) {
-  ['login','scan','customers','camera','amount','result'].forEach(s => {
-    document.getElementById(s + '-screen').style.display = 'none';
+  ['login-screen','scan-screen','camera-screen','result-screen'].forEach(s => {
+    document.getElementById(s).style.display = 'none';
   });
   document.getElementById(id + '-screen').style.display = 'block';
   if (id === 'scan') loadStats();
 }
 
-function saveSession(shop, token) {
-  try {
-    localStorage.setItem('fp_shop', JSON.stringify(shop));
-    localStorage.setItem('fp_token', token);
-  } catch(e) {}
-}
-
-function clearSession() {
-  try {
-    localStorage.removeItem('fp_shop');
-    localStorage.removeItem('fp_token');
-  } catch(e) {}
-}
-
-function loadSession() {
-  try {
-    const shop  = JSON.parse(localStorage.getItem('fp_shop'));
-    const token = localStorage.getItem('fp_token');
-    return shop && token ? { shop, token } : null;
-  } catch(e) { return null; }
-}
-
-function applyShop(shop, token) {
-  currentShop = shop;
-  shopToken   = token;
-  document.getElementById('header-logo').textContent      = shop.name.slice(0,2).toUpperCase();
-  document.getElementById('header-logo').style.background = shop.color;
-  document.getElementById('header-name').textContent      = shop.name;
-  document.getElementById('main-header').style.display    = 'flex';
-  showScreen('scan');
-}
-
+// ─── Login ────────────────────────────────────────────────────
 async function login() {
-  const slug     = document.getElementById('login-slug').value.trim();
+  const slug     = document.getElementById('login-slug').value;
   const password = document.getElementById('login-password').value;
-  const remember = document.getElementById('remember-me').checked;
   const res  = await fetch('/api/shops/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({slug, password})});
   const data = await res.json();
   if (data.success) {
-    if (remember) saveSession(data.shop, data.token);
-    else clearSession();
-    applyShop(data.shop, data.token);
+    currentShop = data.shop;
+    document.getElementById('header-logo').textContent    = currentShop.name.slice(0,2).toUpperCase();
+    document.getElementById('header-logo').style.background = currentShop.color;
+    document.getElementById('header-name').textContent    = currentShop.name;
+    document.getElementById('main-header').style.display  = 'flex';
+    showScreen('scan');
   } else {
     document.getElementById('login-error').style.display = 'block';
-    document.getElementById('login-error').textContent = data.error === 'Boutique suspendue — paiement en attente'
-      ? '⚠️ Boutique suspendue — paiement en attente'
-      : '❌ Identifiants incorrects';
   }
 }
 
+// ─── Stats ────────────────────────────────────────────────────
 async function loadStats() {
   if (!currentShop) return;
-  const res  = await fetch('/api/shops/' + currentShop.id + '/stats', {
-    headers: {'x-shop-token': shopToken}
-  });
+  const res  = await fetch('/api/shops/' + currentShop.id + '/stats');
   const data = await res.json();
   document.getElementById('stat-customers').textContent = data.total_customers;
   document.getElementById('stat-scans').textContent     = data.total_scans;
 }
 
-async function showCustomersList() {
-  showScreen('customers');
-  const listEl = document.getElementById('customers-list');
-  listEl.innerHTML = '<div class="empty-list">Chargement…</div>';
-  const res  = await fetch('/api/shops/' + currentShop.id + '/customers', {
-    headers: {'x-shop-token': shopToken}
-  });
-  const customers = await res.json();
-  if (!customers.length) {
-    listEl.innerHTML = '<div class="empty-list">Aucun client pour le moment</div>';
-    return;
-  }
-  listEl.innerHTML = customers.map(c => {
-    const initials = c.name.slice(0,2).toUpperCase();
-    return '<div class="customer-row" id="row-' + c.id + '">' +
-      '<div class="customer-avatar">' + initials + '</div>' +
-      '<div class="customer-info">' +
-        '<div class="customer-name">' + c.name + '</div>' +
-        '<div class="customer-meta">' + (c.total_visits || 0) + ' visite' + ((c.total_visits || 0) > 1 ? 's' : '') + '</div>' +
-      '</div>' +
-      '<div class="customer-points" id="pts-display-' + c.id + '">' + c.points + ' pts</div>' +
-      '<button class="btn-edit-pts" onclick="window.open(\'/card/' + c.id + '\',\'_blank\')" style="background:#6B21A8;color:white;margin-left:6px">📱</button>' +
-      '<button class="btn-edit-pts" onclick="editPoints(' + c.id + ', ' + c.points + ')">✏️</button>' +
-    '</div>';
-  }).join('');
-}
-
-function editPoints(customerId, currentPoints) {
-  const ptsDisplay = document.getElementById('pts-display-' + customerId);
-  const row = document.getElementById('row-' + customerId);
-  const editBtn = row.querySelector('.btn-edit-pts');
-  ptsDisplay.outerHTML = '<div class="edit-pts-wrap" id="pts-display-' + customerId + '">' +
-    '<input class="edit-pts-input" type="number" id="edit-input-' + customerId + '" value="' + currentPoints + '">' +
-    '<button class="btn-save-pts" onclick="savePoints(' + customerId + ')">✓</button>' +
-  '</div>';
-  editBtn.style.display = 'none';
-}
-
-async function savePoints(customerId) {
-  const newPoints = parseInt(document.getElementById('edit-input-' + customerId).value);
-  if (isNaN(newPoints) || newPoints < 0) { alert('Entrez un nombre de points valide'); return; }
-  const res = await fetch('/api/customers/' + customerId + '/points', {
-    method: 'PUT',
-    headers: {'Content-Type':'application/json', 'x-shop-token': shopToken},
-    body: JSON.stringify({ points: newPoints, shop_id: currentShop.id })
-  });
-  const data = await res.json();
-  if (data.success) showCustomersList();
-  else alert('❌ ' + data.error);
-}
-
+// ─── CAMERA ──────────────────────────────────────────────────
 async function startCamera() {
   scanLocked = false;
   showScreen('camera');
+
+  const video  = document.getElementById('camera-video');
+  const status = document.getElementById('cam-status');
+  const statusTxt = document.getElementById('cam-status-text');
+
   try {
-    html5QrCode = new Html5Qrcode('camera-video');
-    await html5QrCode.start(
-      { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      (decodedText) => {
-        if (!scanLocked) { scanLocked = true; onQRDetected(decodedText); }
-      },
-      () => {}
-    );
+    // Préférer la caméra arrière sur mobile
+    videoStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    video.srcObject = videoStream;
+    await video.play();
+    startScanLoop();
   } catch (err) {
-    document.getElementById('cam-status-text').textContent = 'Caméra non disponible — utilisez l\'ID manuel';
+    status.classList.add('error');
+    statusTxt.textContent = 'Caméra non disponible — utilisez l\'ID manuel';
+    console.warn('Camera error:', err);
   }
 }
 
+function startScanLoop() {
+  const video  = document.getElementById('camera-video');
+  const canvas = document.getElementById('camera-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  function tick() {
+    if (!videoStream) return;
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {inversionAttempts: 'dontInvert'});
+
+      if (code && !scanLocked) {
+        scanLocked = true;
+        onQRDetected(code.data);
+        return; // stop loop, onQRDetected prend la main
+      }
+    }
+    scanLoop = requestAnimationFrame(tick);
+  }
+  scanLoop = requestAnimationFrame(tick);
+}
+
 function stopCamera() {
-  if (html5QrCode) { html5QrCode.stop().catch(() => {}); html5QrCode = null; }
+  if (scanLoop) cancelAnimationFrame(scanLoop);
+  if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+  showScreen('scan');
 }
 
+// QR détecté → flash visuel puis scan API
 async function onQRDetected(qrData) {
+  // Flash vert
+  const flash = document.getElementById('qr-found');
+  flash.classList.add('show');
+
+  // Vibration si supportée
+  if (navigator.vibrate) navigator.vibrate(100);
+
+  // Extraire l'ID client du QR (format attendu : "fidelypass:customer:42" ou juste "42")
+  let customerId = null;
   const match = qrData.match(/(?:fidelypass:customer:)?(\d+)/);
-  let customerId = match ? parseInt(match[1]) : null;
+  if (match) customerId = parseInt(match[1]);
+
+  await new Promise(r => setTimeout(r, 500)); // laisser le flash visible
+  flash.classList.remove('show');
   stopCamera();
-  if (!customerId) { alert('QR invalide'); showScreen('scan'); return; }
-  const res  = await fetch('/api/customers/' + customerId);
-  const data = await res.json();
-  if (data.error) { alert('❌ Client introuvable dans cette boutique'); showScreen('scan'); return; }
-  pendingCustomerId = customerId;
-  document.getElementById('amount-client-name').textContent = data.name;
-  document.getElementById('amount-client-sub').textContent  = data.points + ' pts actuellement';
-  const ratio = currentShop.points_per_euro || 1;
-  document.getElementById('amount-hint').textContent = ratio + ' pt' + (ratio > 1 ? 's' : '') + ' par euro dépensé';
-  document.getElementById('amount-input').value = '';
-  showScreen('amount');
+
+  if (customerId) {
+    await doScanById(customerId);
+  } else {
+    alert('QR invalide : ' + qrData);
+    showScreen('scan');
+  }
 }
 
-async function validateAmount() {
-  const amount = parseFloat(document.getElementById('amount-input').value);
-  if (!amount || amount <= 0) { alert('Entrez un montant valide'); return; }
+// ─── Scan API ─────────────────────────────────────────────────
+async function doScanById(customerId) {
+  if (!customerId) return;
   const res  = await fetch('/api/scan', {
     method: 'POST',
-    headers: {'Content-Type':'application/json', 'x-shop-token': shopToken},
-    body: JSON.stringify({ customer_id: pendingCustomerId, shop_id: currentShop.id, amount })
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({customer_id: parseInt(customerId), shop_id: currentShop.id})
   });
   const data = await res.json();
+
   if (data.success) {
     document.getElementById('result-name').textContent  = data.customer_name;
     document.getElementById('pts-before').textContent   = data.points_before;
     document.getElementById('pts-after').textContent    = data.points_after;
+
     const pct = Math.min(100, Math.round((data.points_after / data.points_goal) * 100));
     document.getElementById('prog-fill').style.width = pct + '%';
     document.getElementById('prog-text').textContent  = data.points_after + '/' + data.points_goal;
+
     if (data.reward_unlocked) {
       document.getElementById('result-icon').textContent = '🎉';
       document.getElementById('result-icon').classList.add('reward');
-      document.getElementById('result-sub').textContent          = 'Récompense débloquée !';
-      document.getElementById('reward-banner').style.display     = 'block';
+      document.getElementById('result-sub').textContent  = 'Récompense débloquée !';
+      document.getElementById('reward-banner').style.display    = 'block';
       document.getElementById('reward-text-display').textContent = data.reward_text;
+      document.getElementById('prog-hint').textContent           = 'Points remis à zéro';
       document.getElementById('progress-section').style.display  = 'none';
-      document.getElementById('btn-reward').style.display        = 'block';
     } else {
       document.getElementById('result-icon').textContent = '✓';
       document.getElementById('result-icon').classList.remove('reward');
-      document.getElementById('result-sub').textContent          = '+' + data.points_added + ' points pour ' + amount.toFixed(2) + '€';
-      document.getElementById('reward-banner').style.display     = 'none';
-      document.getElementById('progress-section').style.display  = 'block';
-      document.getElementById('btn-reward').style.display        = 'none';
+      document.getElementById('result-sub').textContent         = '+' + data.points_added + ' points gagnés !';
+      document.getElementById('reward-banner').style.display    = 'none';
+      document.getElementById('progress-section').style.display = 'block';
       const remaining = data.points_goal - data.points_after;
       document.getElementById('prog-hint').textContent = 'Encore ' + remaining + ' pts pour : ' + data.reward_text + ' 🎁';
     }
+    document.getElementById('manual-id') && (document.getElementById('manual-id').value = '');
     showScreen('result');
   } else {
     alert('❌ ' + data.error);
@@ -439,20 +386,7 @@ async function validateAmount() {
   }
 }
 
-async function confirmReward() {
-  const res = await fetch('/api/reward/' + pendingCustomerId, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json', 'x-shop-token': shopToken},
-    body: JSON.stringify({ shop_id: currentShop.id })
-  });
-  const data = await res.json();
-  if (data.success) {
-    document.getElementById('btn-reward').style.display = 'none';
-    alert('✅ Récompense confirmée ! Points remis à zéro.');
-    showScreen('scan');
-  }
-}
-
+// ─── Ajout client ─────────────────────────────────────────────
 async function addCustomer() {
   const name = document.getElementById('new-customer-name').value;
   if (!name || !currentShop) return;
@@ -463,29 +397,24 @@ async function addCustomer() {
   });
   const data = await res.json();
   if (data.success) {
-    alert('✅ Client ajouté !\nSon lien carte : ' + window.location.origin + '/card/' + data.id);
+    // Afficher le QR code du nouveau client
+    alert('✅ Client ajouté !\nSon numéro client : #' + data.id + '\n\nQR Code généré — donnez-lui l\'URL :\n' + window.location.origin + '/card/' + data.id);
     document.getElementById('new-customer-name').value = '';
     loadStats();
   }
 }
 
+// ─── Logout ───────────────────────────────────────────────────
 function logout() {
-  clearSession();
   currentShop = null;
-  shopToken = null;
   stopCamera();
   document.getElementById('main-header').style.display = 'none';
   showScreen('login');
 }
 
-// Auto-login si session sauvegardée
-const saved = loadSession();
-if (saved) {
-  applyShop(saved.shop, saved.token);
-} else {
-  const shopSlug = new URLSearchParams(window.location.search).get('shop');
-  if (shopSlug) document.getElementById('login-slug').value = shopSlug;
-}
+// Auto-fill slug depuis URL
+const shopSlug = new URLSearchParams(window.location.search).get('shop');
+if (shopSlug) document.getElementById('login-slug').value = shopSlug;
 </script>
 </body>
 </html>
