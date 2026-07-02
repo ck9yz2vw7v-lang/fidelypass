@@ -3,6 +3,7 @@ const QRCode = require('qrcode');
 const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const db = require('./database');
 
 const app = express();
@@ -13,7 +14,7 @@ let stripeClient = null;
 function getStripe() {
   if (!stripeClient) {
     const key = process.env.STRIPE_SECRET_KEY;
-    if (!key) throw new Error('STRIPE_SECRET_KEY non définie');
+    if (!key) throw new Error('STRIPE_SECRET_KEY non definie');
     stripeClient = require('stripe')(key);
   }
   return stripeClient;
@@ -63,30 +64,42 @@ try {
 
 app.get('/api/test', (req, res) => res.json({ message: 'FidélyPass fonctionne !' }));
 
-app.post('/api/shops', (req, res) => {
+app.post('/api/shops', async (req, res) => {
   const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email } = req.body;
   try {
+    const hashedPassword = await bcrypt.hash(password, 10);
     const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
-    const result = stmt.run(name, slug, password, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null);
+    const result = stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
 app.get('/api/shops', (req, res) => res.json(db.prepare('SELECT * FROM shops').all()));
 
-app.post('/api/shops/login', (req, res) => {
+app.post('/api/shops/login', async (req, res) => {
   const { slug, password } = req.body;
-  const shop = db.prepare('SELECT * FROM shops WHERE slug = ? AND password = ?').get(slug, password);
-  if (shop) {
-    if (shop.active === 0) {
-      return res.status(403).json({ success: false, error: 'Boutique suspendue — paiement en attente' });
-    }
-    const token = generateToken();
-    sessions[token] = shop.id;
-    res.json({ success: true, shop, token });
+  const shop = db.prepare('SELECT * FROM shops WHERE slug = ?').get(slug);
+  if (!shop) return res.status(401).json({ success: false, error: 'Identifiants incorrects' });
+
+  // Support anciens mots de passe en clair (migration progressive)
+  let valid = false;
+  if (shop.password.startsWith('$2')) {
+    valid = await bcrypt.compare(password, shop.password);
   } else {
-    res.status(401).json({ success: false, error: 'Identifiants incorrects' });
+    // Mot de passe en clair — on vérifie puis on migre
+    valid = (password === shop.password);
+    if (valid) {
+      const hashed = await bcrypt.hash(password, 10);
+      db.prepare('UPDATE shops SET password = ? WHERE id = ?').run(hashed, shop.id);
+    }
   }
+
+  if (!valid) return res.status(401).json({ success: false, error: 'Identifiants incorrects' });
+  if (shop.active === 0) return res.status(403).json({ success: false, error: 'Boutique suspendue — paiement en attente' });
+
+  const token = generateToken();
+  sessions[token] = shop.id;
+  res.json({ success: true, shop, token });
 });
 
 app.get('/api/shops/:id/stats', requireShopAuth, (req, res) => {
@@ -183,12 +196,15 @@ app.get('/card/:id', (req, res) => {
   res.send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}#qr{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}.review-banner{margin-top:20px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:16px;color:white;text-align:center;display:none}.review-banner h3{font-size:16px;font-weight:800;margin-bottom:6px}.review-banner p{color:rgba(255,255,255,0.9);font-size:13px;margin-bottom:12px}.review-btn{display:inline-block;background:white;color:#d97706;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none}</style></head><body><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°${id}</div>${walletHtml}<div class="review-banner" id="review-banner"><h3>🎉 Merci pour votre fidélité !</h3><p>Votre avis compte beaucoup pour nous</p><a id="review-link" class="review-btn" href="#" target="_blank">⭐ Laisser un avis Google</a></div></div><script>fetch("/api/customers/${id}/qr").then(r=>r.json()).then(d=>document.getElementById("qr").src=d.qr);const urlParams=new URLSearchParams(window.location.search);if(urlParams.get("reward")==="1"&&urlParams.get("review")){const b=document.getElementById("review-banner");const l=document.getElementById("review-link");l.href=decodeURIComponent(urlParams.get("review"));b.style.display="block";}<\/script></body></html>`);
 });
 
-app.put('/api/shops/:id', (req, res) => {
+app.put('/api/shops/:id', async (req, res) => {
   const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email } = req.body;
   try {
     const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
-    const newPassword = password && password.trim() !== '' ? password : shop.password;
+    let newPassword = shop.password;
+    if (password && password.trim() !== '') {
+      newPassword = await bcrypt.hash(password, 10);
+    }
     db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=? WHERE id=?`)
       .run(name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || shop.email || null, req.params.id);
     res.json({ success: true });
@@ -345,4 +361,4 @@ app.post('/webhook', (req, res) => {
   res.json({ received: true });
 });
 
-app.listen(PORT, '0.0.0.0', () => console.log('FidelyPass tourne sur http://localhost:' + PORT));
+app.listen(PORT, () => console.log('FidelyPass tourne sur http://localhost:' + PORT));
