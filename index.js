@@ -4,20 +4,47 @@ const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
+const rateLimit = require('express-rate-limit');
 const db = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Stripe
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || '');
+let stripeClient = null;
+function getStripe() {
+  if (!stripeClient) {
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) throw new Error('STRIPE_SECRET_KEY non definie');
+    stripeClient = require('stripe')(key);
+  }
+  return stripeClient;
+}
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
+
+// Web Push (VAPID)
+const webpush = require('web-push');
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails('mailto:contact@fidelypass.fr', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+}
 
 // Sessions
 const sessions = {};
 
 function generateToken() {
   return crypto.randomBytes(24).toString('hex');
+}
+
+function saveSession(token, shopId) {
+  sessions[token] = shopId;
+  try { db.prepare('INSERT OR REPLACE INTO sessions_store (token, shop_id) VALUES (?, ?)').run(token, shopId); } catch(e) {}
+}
+
+function deleteSession(token) {
+  delete sessions[token];
+  try { db.prepare('DELETE FROM sessions_store WHERE token = ?').run(token); } catch(e) {}
 }
 
 function requireShopAuth(req, res, next) {
@@ -35,6 +62,15 @@ app.use('/webhook', express.raw({ type: 'application/json' }));
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Rate limiter sur le login
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // max 10 tentatives
+  message: { success: false, error: 'Trop de tentatives. Réessayez dans 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Migration DB : ajouter colonnes Stripe si elles n'existent pas
 try {
@@ -68,7 +104,7 @@ app.post('/api/shops', async (req, res) => {
 
 app.get('/api/shops', (req, res) => res.json(db.prepare('SELECT * FROM shops').all()));
 
-app.post('/api/shops/login', async (req, res) => {
+app.post('/api/shops/login', loginLimiter, async (req, res) => {
   const { slug, password } = req.body;
   const shop = db.prepare('SELECT * FROM shops WHERE slug = ?').get(slug);
   if (!shop) return res.status(401).json({ success: false, error: 'Identifiants incorrects' });
@@ -90,7 +126,7 @@ app.post('/api/shops/login', async (req, res) => {
   if (shop.active === 0) return res.status(403).json({ success: false, error: 'Boutique suspendue — paiement en attente' });
 
   const token = generateToken();
-  sessions[token] = shop.id;
+  saveSession(token, shop.id);
   res.json({ success: true, shop, token });
 });
 
@@ -173,6 +209,70 @@ app.get('/api/customers/:id/wallet', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────
+// WEB PUSH
+// ─────────────────────────────────────────────
+
+app.get('/api/vapid-public-key', (req, res) => {
+  res.json({ key: VAPID_PUBLIC_KEY });
+});
+
+app.post('/api/customers/:id/subscribe', (req, res) => {
+  const { subscription } = req.body;
+  const customer = db.prepare('SELECT * FROM customers WHERE id = ?').get(req.params.id);
+  if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
+  if (!subscription || !subscription.endpoint || !subscription.keys) {
+    return res.status(400).json({ success: false, error: 'Abonnement invalide' });
+  }
+  try {
+    // Évite les doublons pour le même endpoint
+    db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ? AND endpoint = ?')
+      .run(req.params.id, subscription.endpoint);
+    db.prepare('INSERT INTO push_subscriptions (customer_id, endpoint, p256dh, auth) VALUES (?, ?, ?, ?)')
+      .run(req.params.id, subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/shops/:id/notify', requireShopAuth, async (req, res) => {
+  const { message } = req.body;
+  if (!message || !message.trim()) return res.status(400).json({ success: false, error: 'Message vide' });
+  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+    return res.status(500).json({ success: false, error: 'Clés VAPID non configurées côté serveur' });
+  }
+  const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+  if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
+
+  const subs = db.prepare(`
+    SELECT ps.* FROM push_subscriptions ps
+    JOIN customers c ON c.id = ps.customer_id
+    WHERE c.shop_id = ?
+  `).all(req.params.id);
+
+  const payload = JSON.stringify({ title: shop.name, body: message.trim() });
+  let sent = 0, failed = 0;
+
+  for (const sub of subs) {
+    try {
+      await webpush.sendNotification(
+        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+        payload
+      );
+      sent++;
+    } catch (err) {
+      failed++;
+      // Abonnement expiré ou invalide → on le supprime
+      if (err.statusCode === 404 || err.statusCode === 410) {
+        db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
+      }
+    }
+  }
+
+  res.json({ success: true, sent, failed, total: subs.length });
+});
+
 app.get('/card/:id', (req, res) => {
   const id = req.params.id;
   const ua = req.headers['user-agent'] || '';
@@ -185,7 +285,53 @@ app.get('/card/:id', (req, res) => {
     walletHtml = '<div id="wallet-btn"><script>fetch("/api/customers/' + id + '/wallet").then(r=>r.json()).then(d=>{if(d.url){document.getElementById("wallet-btn").innerHTML=\'<a href="\'+d.url+\'" target="_blank"><img src="https://pay.google.com/about/static/sample-assets/pay-with-google/add-to-wallet-button.svg" style="width:200px;margin-top:8px" alt="Ajouter à Google Wallet"><\\/a>\';}});<\\/script></div>';
   }
 
-  res.send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}#qr{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}.review-banner{margin-top:20px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:16px;color:white;text-align:center;display:none}.review-banner h3{font-size:16px;font-weight:800;margin-bottom:6px}.review-banner p{color:rgba(255,255,255,0.9);font-size:13px;margin-bottom:12px}.review-btn{display:inline-block;background:white;color:#d97706;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none}</style></head><body><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°${id}</div>${walletHtml}<div class="review-banner" id="review-banner"><h3>🎉 Merci pour votre fidélité !</h3><p>Votre avis compte beaucoup pour nous</p><a id="review-link" class="review-btn" href="#" target="_blank">⭐ Laisser un avis Google</a></div></div><script>fetch("/api/customers/${id}/qr").then(r=>r.json()).then(d=>document.getElementById("qr").src=d.qr);const urlParams=new URLSearchParams(window.location.search);if(urlParams.get("reward")==="1"&&urlParams.get("review")){const b=document.getElementById("review-banner");const l=document.getElementById("review-link");l.href=decodeURIComponent(urlParams.get("review"));b.style.display="block";}<\/script></body></html>`);
+  res.send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}#qr{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}.review-banner{margin-top:20px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:16px;color:white;text-align:center;display:none}.review-banner h3{font-size:16px;font-weight:800;margin-bottom:6px}.review-banner p{color:rgba(255,255,255,0.9);font-size:13px;margin-bottom:12px}.review-btn{display:inline-block;background:white;color:#d97706;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none}.notif-btn{margin-top:16px;background:#f3f4f6;color:#374151;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}.notif-btn.on{background:#dcfce7;color:#16a34a}</style></head><body><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°${id}</div>${walletHtml}<button class="notif-btn" id="notif-btn" onclick="enableNotifs()">🔔 Activer les notifications</button><div class="review-banner" id="review-banner"><h3>🎉 Merci pour votre fidélité !</h3><p>Votre avis compte beaucoup pour nous</p><a id="review-link" class="review-btn" href="#" target="_blank">⭐ Laisser un avis Google</a></div></div><script>
+fetch("/api/customers/${id}/qr").then(r=>r.json()).then(d=>document.getElementById("qr").src=d.qr);
+const urlParams=new URLSearchParams(window.location.search);
+if(urlParams.get("reward")==="1"&&urlParams.get("review")){const b=document.getElementById("review-banner");const l=document.getElementById("review-link");l.href=decodeURIComponent(urlParams.get("review"));b.style.display="block";}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+async function enableNotifs() {
+  const btn = document.getElementById('notif-btn');
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    alert('Notifications non supportées sur ce navigateur.');
+    return;
+  }
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { alert('Notifications refusées.'); return; }
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
+    const { key } = await fetch('/api/vapid-public-key').then(r => r.json());
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(key)
+    });
+    await fetch('/api/customers/${id}/subscribe', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ subscription: sub })
+    });
+    btn.textContent = '🔔 Notifications activées';
+    btn.classList.add('on');
+  } catch (err) {
+    console.error(err);
+    alert('Impossible d\\'activer les notifications.');
+  }
+}
+
+if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+  navigator.serviceWorker.getRegistration('/sw.js').then(reg => {
+    if (reg) { document.getElementById('notif-btn').textContent = '🔔 Notifications activées'; document.getElementById('notif-btn').classList.add('on'); }
+  });
+}
+<\/script></body></html>`);
 });
 
 app.put('/api/shops/:id', async (req, res) => {
@@ -275,13 +421,13 @@ app.post('/api/shops/:id/create-payment', requireAdmin, async (req, res) => {
     // Créer ou récupérer le client Stripe
     let stripeCustomerId = shop.stripe_customer_id;
     if (!stripeCustomerId) {
-      const customer = await stripe.customers.create({ email, name: shop.name, metadata: { shop_id: String(shop.id) } });
+      const customer = await getStripe().customers.create({ email, name: shop.name, metadata: { shop_id: String(shop.id) } });
       stripeCustomerId = customer.id;
       db.prepare('UPDATE shops SET stripe_customer_id = ?, email = ? WHERE id = ?').run(stripeCustomerId, email, shop.id);
     }
 
     // Créer session Stripe Checkout : 80€ installation + 29€/mois abonnement
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       customer: stripeCustomerId,
       payment_method_types: ['card'],
       line_items: [
@@ -324,7 +470,7 @@ app.post('/webhook', (req, res) => {
   let event;
   try {
     event = STRIPE_WEBHOOK_SECRET
-      ? stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET)
+      ? getStripe().webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET)
       : JSON.parse(req.body);
   } catch (err) {
     console.error('Webhook error:', err.message);
