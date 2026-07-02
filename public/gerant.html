@@ -13,7 +13,6 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .shop-info h2{font-size:15px;font-weight:700;color:#1a1a1a}
 .shop-info p{font-size:11px;color:#9ca3af}
 .container{max-width:480px;margin:0 auto;padding:20px 16px}
-
 #login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:16px}
 .login-logo{font-size:48px;margin-bottom:8px}
 .login-title{font-size:24px;font-weight:800;color:#1a1a1a}
@@ -22,7 +21,9 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .input:focus{border-color:#3b82f6}
 .btn-login{width:100%;padding:16px;border-radius:14px;background:#3b82f6;color:white;font-size:16px;font-weight:700;border:none;cursor:pointer}
 .login-error{color:#ef4444;font-size:13px;display:none}
-
+.remember-row{display:flex;align-items:center;gap:8px;width:100%}
+.remember-row input{width:18px;height:18px;cursor:pointer;accent-color:#3b82f6}
+.remember-row label{font-size:14px;color:#374151;cursor:pointer}
 #scan-screen{display:none}
 .stats-mini{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
 .stat-mini{background:white;border-radius:12px;padding:14px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
@@ -38,8 +39,6 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .add-client-title{font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:12px}
 .add-row{display:flex;gap:10px}
 .btn-add{padding:14px 18px;border-radius:12px;background:#22c55e;color:white;font-size:14px;font-weight:700;border:none;cursor:pointer;white-space:nowrap}
-
-/* CAMERA */
 #camera-screen{display:none}
 .camera-card{background:white;border-radius:20px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);margin-bottom:16px}
 .camera-header{padding:20px 24px 0;text-align:center}
@@ -58,8 +57,6 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .manual-input:focus{border-color:#3b82f6}
 .btn-manual-go{padding:12px 16px;border-radius:12px;background:#1a1a1a;color:white;font-size:14px;font-weight:700;border:none;cursor:pointer}
 .btn-stop{width:calc(100% - 48px);margin:0 24px 20px;padding:14px;border-radius:14px;background:#f3f4f6;color:#6b7280;font-size:15px;font-weight:600;border:none;cursor:pointer}
-
-/* AMOUNT SCREEN */
 #amount-screen{display:none}
 .amount-card{background:white;border-radius:20px;padding:28px 24px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.08);margin-bottom:16px}
 .amount-client-name{font-size:22px;font-weight:800;color:#1a1a1a;margin-bottom:4px}
@@ -71,8 +68,6 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .amount-euro{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:24px;color:#9ca3af;font-weight:700}
 .amount-hint{font-size:12px;color:#9ca3af;margin-bottom:24px}
 .btn-validate{width:100%;padding:18px;border-radius:16px;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;font-size:17px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,0.4)}
-
-/* RESULT */
 #result-screen{display:none}
 .result-card{background:white;border-radius:20px;padding:28px 24px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.08);margin-bottom:16px}
 .result-check{width:70px;height:70px;border-radius:50%;background:#22c55e;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 14px;box-shadow:0 4px 16px rgba(34,197,94,0.35)}
@@ -97,8 +92,6 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .btn-reward{width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-size:16px;font-weight:700;border:none;cursor:pointer;margin-bottom:8px;box-shadow:0 4px 16px rgba(245,158,11,0.4)}
 .btn-next{width:100%;padding:16px;border-radius:14px;background:#1a1a1a;color:white;font-size:16px;font-weight:700;border:none;cursor:pointer}
 .btn-logout{background:none;border:none;color:#9ca3af;font-size:12px;cursor:pointer;padding:8px;margin-top:8px}
-
-/* CUSTOMERS LIST */
 #customers-screen{display:none}
 .list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .list-title{font-size:20px;font-weight:800;color:#1a1a1a}
@@ -133,6 +126,10 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
   <div class="login-sub">Connectez-vous pour accéder à votre espace gérant</div>
   <input class="input" type="text" id="login-slug" placeholder="Identifiant boutique">
   <input class="input" type="password" id="login-password" placeholder="Mot de passe">
+  <div class="remember-row">
+    <input type="checkbox" id="remember-me" checked>
+    <label for="remember-me">Rester connecté</label>
+  </div>
   <div class="login-error" id="login-error">❌ Identifiants incorrects</div>
   <button class="btn-login" onclick="login()">Se connecter</button>
 </div>
@@ -251,21 +248,53 @@ function showScreen(id) {
   if (id === 'scan') loadStats();
 }
 
+function saveSession(shop, token) {
+  try {
+    localStorage.setItem('fp_shop', JSON.stringify(shop));
+    localStorage.setItem('fp_token', token);
+  } catch(e) {}
+}
+
+function clearSession() {
+  try {
+    localStorage.removeItem('fp_shop');
+    localStorage.removeItem('fp_token');
+  } catch(e) {}
+}
+
+function loadSession() {
+  try {
+    const shop  = JSON.parse(localStorage.getItem('fp_shop'));
+    const token = localStorage.getItem('fp_token');
+    return shop && token ? { shop, token } : null;
+  } catch(e) { return null; }
+}
+
+function applyShop(shop, token) {
+  currentShop = shop;
+  shopToken   = token;
+  document.getElementById('header-logo').textContent      = shop.name.slice(0,2).toUpperCase();
+  document.getElementById('header-logo').style.background = shop.color;
+  document.getElementById('header-name').textContent      = shop.name;
+  document.getElementById('main-header').style.display    = 'flex';
+  showScreen('scan');
+}
+
 async function login() {
-  const slug     = document.getElementById('login-slug').value;
+  const slug     = document.getElementById('login-slug').value.trim();
   const password = document.getElementById('login-password').value;
+  const remember = document.getElementById('remember-me').checked;
   const res  = await fetch('/api/shops/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({slug, password})});
   const data = await res.json();
   if (data.success) {
-    currentShop = data.shop;
-    shopToken = data.token;
-    document.getElementById('header-logo').textContent     = currentShop.name.slice(0,2).toUpperCase();
-    document.getElementById('header-logo').style.background = currentShop.color;
-    document.getElementById('header-name').textContent     = currentShop.name;
-    document.getElementById('main-header').style.display   = 'flex';
-    showScreen('scan');
+    if (remember) saveSession(data.shop, data.token);
+    else clearSession();
+    applyShop(data.shop, data.token);
   } else {
     document.getElementById('login-error').style.display = 'block';
+    document.getElementById('login-error').textContent = data.error === 'Boutique suspendue — paiement en attente'
+      ? '⚠️ Boutique suspendue — paiement en attente'
+      : '❌ Identifiants incorrects';
   }
 }
 
@@ -319,21 +348,15 @@ function editPoints(customerId, currentPoints) {
 
 async function savePoints(customerId) {
   const newPoints = parseInt(document.getElementById('edit-input-' + customerId).value);
-  if (isNaN(newPoints) || newPoints < 0) {
-    alert('Entrez un nombre de points valide');
-    return;
-  }
+  if (isNaN(newPoints) || newPoints < 0) { alert('Entrez un nombre de points valide'); return; }
   const res = await fetch('/api/customers/' + customerId + '/points', {
     method: 'PUT',
     headers: {'Content-Type':'application/json', 'x-shop-token': shopToken},
     body: JSON.stringify({ points: newPoints, shop_id: currentShop.id })
   });
   const data = await res.json();
-  if (data.success) {
-    showCustomersList();
-  } else {
-    alert('❌ ' + data.error);
-  }
+  if (data.success) showCustomersList();
+  else alert('❌ ' + data.error);
 }
 
 async function startCamera() {
@@ -345,10 +368,7 @@ async function startCamera() {
       { facingMode: 'environment' },
       { fps: 10, qrbox: { width: 250, height: 250 } },
       (decodedText) => {
-        if (!scanLocked) {
-          scanLocked = true;
-          onQRDetected(decodedText);
-        }
+        if (!scanLocked) { scanLocked = true; onQRDetected(decodedText); }
       },
       () => {}
     );
@@ -357,35 +377,18 @@ async function startCamera() {
   }
 }
 
-function startScanLoop() {}
-
 function stopCamera() {
-  if (html5QrCode) {
-    html5QrCode.stop().catch(() => {});
-    html5QrCode = null;
-  }
+  if (html5QrCode) { html5QrCode.stop().catch(() => {}); html5QrCode = null; }
 }
 
 async function onQRDetected(qrData) {
   const match = qrData.match(/(?:fidelypass:customer:)?(\d+)/);
   let customerId = match ? parseInt(match[1]) : null;
-
   stopCamera();
-
-  if (!customerId) {
-    alert('QR invalide');
-    showScreen('scan');
-    return;
-  }
-
+  if (!customerId) { alert('QR invalide'); showScreen('scan'); return; }
   const res  = await fetch('/api/customers/' + customerId);
   const data = await res.json();
-  if (data.error) {
-    alert('❌ Client introuvable dans cette boutique');
-    showScreen('scan');
-    return;
-  }
-
+  if (data.error) { alert('❌ Client introuvable dans cette boutique'); showScreen('scan'); return; }
   pendingCustomerId = customerId;
   document.getElementById('amount-client-name').textContent = data.name;
   document.getElementById('amount-client-sub').textContent  = data.points + ' pts actuellement';
@@ -397,18 +400,13 @@ async function onQRDetected(qrData) {
 
 async function validateAmount() {
   const amount = parseFloat(document.getElementById('amount-input').value);
-  if (!amount || amount <= 0) {
-    alert('Entrez un montant valide');
-    return;
-  }
-
+  if (!amount || amount <= 0) { alert('Entrez un montant valide'); return; }
   const res  = await fetch('/api/scan', {
     method: 'POST',
     headers: {'Content-Type':'application/json', 'x-shop-token': shopToken},
     body: JSON.stringify({ customer_id: pendingCustomerId, shop_id: currentShop.id, amount })
   });
   const data = await res.json();
-
   if (data.success) {
     document.getElementById('result-name').textContent  = data.customer_name;
     document.getElementById('pts-before').textContent   = data.points_before;
@@ -416,15 +414,14 @@ async function validateAmount() {
     const pct = Math.min(100, Math.round((data.points_after / data.points_goal) * 100));
     document.getElementById('prog-fill').style.width = pct + '%';
     document.getElementById('prog-text').textContent  = data.points_after + '/' + data.points_goal;
-
     if (data.reward_unlocked) {
       document.getElementById('result-icon').textContent = '🎉';
       document.getElementById('result-icon').classList.add('reward');
-      document.getElementById('result-sub').textContent           = 'Récompense débloquée !';
-      document.getElementById('reward-banner').style.display      = 'block';
-      document.getElementById('reward-text-display').textContent  = data.reward_text;
-      document.getElementById('progress-section').style.display   = 'none';
-      document.getElementById('btn-reward').style.display         = 'block';
+      document.getElementById('result-sub').textContent          = 'Récompense débloquée !';
+      document.getElementById('reward-banner').style.display     = 'block';
+      document.getElementById('reward-text-display').textContent = data.reward_text;
+      document.getElementById('progress-section').style.display  = 'none';
+      document.getElementById('btn-reward').style.display        = 'block';
     } else {
       document.getElementById('result-icon').textContent = '✓';
       document.getElementById('result-icon').classList.remove('reward');
@@ -473,6 +470,7 @@ async function addCustomer() {
 }
 
 function logout() {
+  clearSession();
   currentShop = null;
   shopToken = null;
   stopCamera();
@@ -480,8 +478,14 @@ function logout() {
   showScreen('login');
 }
 
-const shopSlug = new URLSearchParams(window.location.search).get('shop');
-if (shopSlug) document.getElementById('login-slug').value = shopSlug;
+// Auto-login si session sauvegardée
+const saved = loadSession();
+if (saved) {
+  applyShop(saved.shop, saved.token);
+} else {
+  const shopSlug = new URLSearchParams(window.location.search).get('shop');
+  if (shopSlug) document.getElementById('login-slug').value = shopSlug;
+}
 </script>
 </body>
 </html>
