@@ -39,6 +39,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 .shop-stat-mini-val{font-size:18px;font-weight:800;color:#3b82f6}
 .shop-stat-mini-label{font-size:10px;color:#64748b;margin-top:2px}
 .badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#dcfce7;color:#166534}
+.badge-inactive{background:#fee2e2;color:#991b1b}
 .empty{text-align:center;color:#64748b;padding:40px}
 .msg{padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px;display:none}
 .success{background:#dcfce7;color:#166534}
@@ -49,6 +50,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 .btn-edit{background:#f59e0b;color:white}
 .btn-delete{background:#ef4444;color:white}
 .btn-qr{background:#8b5cf6;color:white}
+.btn-stripe{background:#22c55e;color:white}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:none;align-items:center;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal{background:#1e293b;border-radius:16px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;margin:16px}
@@ -58,6 +60,8 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 .btn-cancel:hover{background:#475569}
 .btn-danger{background:#ef4444;color:white}
 .btn-danger:hover{background:#dc2626}
+.payment-link-box{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;font-size:12px;word-break:break-all;color:#94a3b8;margin-top:16px}
+.payment-link-box a{color:#3b82f6;text-decoration:none}
 </style>
 </head>
 <body>
@@ -86,6 +90,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>Nom de la boutique</label><input type="text" id="name" placeholder="Ex: Boulangerie Martin"></div>
       <div class="form-group"><label>Identifiant unique</label><input type="text" id="slug" placeholder="Ex: boulangerie-martin"></div>
       <div class="form-group"><label>Mot de passe gérant</label><input type="password" id="password" placeholder="Mot de passe"></div>
+      <div class="form-group"><label>Email gérant</label><input type="email" id="email" placeholder="gerant@boutique.fr"></div>
       <div class="form-group"><label>Points par euro dépensé</label><input type="number" id="points_per_euro" value="1" step="0.1"></div>
       <div class="form-group"><label>Objectif points</label><input type="number" id="points_goal" value="100"></div>
       <div class="form-group"><label>Couleur carte</label><input type="color" id="color" value="#b45309"></div>
@@ -138,6 +143,29 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
   </div>
 </div>
 
+<!-- MODAL STRIPE -->
+<div class="modal-overlay" id="modal-stripe">
+  <div class="modal">
+    <div class="modal-title">💳 Générer un lien de paiement</div>
+    <input type="hidden" id="stripe-shop-id">
+    <p style="color:#94a3b8;font-size:13px;margin-bottom:16px">Le gérant recevra un lien pour payer <strong style="color:#f1f5f9">80€</strong> d'installation + <strong style="color:#f1f5f9">29€/mois</strong> d'abonnement.</p>
+    <div class="form-group" style="margin-bottom:16px">
+      <label>Email du gérant</label>
+      <input type="email" id="stripe-email" placeholder="gerant@boutique.fr">
+    </div>
+    <div id="stripe-result" style="display:none">
+      <p style="color:#22c55e;font-size:13px;margin-bottom:8px">✅ Lien généré ! Copie-le et envoie-le au gérant :</p>
+      <div class="payment-link-box"><a id="stripe-link" href="#" target="_blank">—</a></div>
+      <p style="color:#64748b;font-size:11px;margin-top:8px">💡 En mode test : carte <strong>4242 4242 4242 4242</strong>, date future, CVC quelconque</p>
+    </div>
+    <div id="stripe-error" style="display:none;color:#ef4444;font-size:13px;margin-top:12px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal('modal-stripe')">Fermer</button>
+      <button class="btn btn-stripe" id="stripe-btn" onclick="generatePaymentLink()">Générer le lien 💳</button>
+    </div>
+  </div>
+</div>
+
 <script>
 async function loadShops() {
   const res   = await fetch('/api/shops');
@@ -155,7 +183,8 @@ async function loadShops() {
           <div class="shop-meta">Slug: ${s.slug} · ${s.points_per_euro || 1} pts/€ · Objectif: ${s.points_goal} pts · 🎁 ${s.reward_text}${s.google_review_url ? ' · ⭐ Avis Google configuré' : ''}</div>
         </div>
         <div class="shop-actions">
-          <span class="badge">Actif</span>
+          <span class="badge ${s.active === 0 ? 'badge-inactive' : ''}">${s.active === 0 ? 'Suspendu' : 'Actif'}</span>
+          <button class="btn-sm btn-stripe" onclick="openStripe(${s.id}, '${(s.email||'').replace(/'/g,"\\'")}')">💳 Paiement</button>
           <button class="btn-sm btn-view" onclick="window.open('/gerant.html?shop=${s.slug}','_blank')">Vue gérant</button>
           <button class="btn-sm btn-qr" onclick="showQR('${s.slug}','${s.name}',${s.id})">QR Comptoir</button>
           <button class="btn-sm btn-edit" onclick="openEdit(${JSON.stringify(s).replace(/"/g,'&quot;')})">Modifier</button>
@@ -194,6 +223,7 @@ async function createShop() {
     name:               document.getElementById('name').value,
     slug:               document.getElementById('slug').value,
     password:           document.getElementById('password').value,
+    email:              document.getElementById('email').value || null,
     points_per_euro:    parseFloat(document.getElementById('points_per_euro').value),
     points_goal:        parseInt(document.getElementById('points_goal').value),
     color:              document.getElementById('color').value,
@@ -205,12 +235,56 @@ async function createShop() {
   if (result.success) {
     document.getElementById('success-msg').style.display = 'block';
     setTimeout(() => document.getElementById('success-msg').style.display = 'none', 3000);
-    ['name','slug','password','reward_text','google_review_url'].forEach(id => document.getElementById(id).value = '');
+    ['name','slug','password','email','reward_text','google_review_url'].forEach(id => document.getElementById(id).value = '');
     loadShops();
   } else {
     const err = document.getElementById('error-msg');
     err.textContent = '❌ ' + result.error;
     err.style.display = 'block';
+  }
+}
+
+function openStripe(shopId, email) {
+  document.getElementById('stripe-shop-id').value = shopId;
+  document.getElementById('stripe-email').value = email || '';
+  document.getElementById('stripe-result').style.display = 'none';
+  document.getElementById('stripe-error').style.display = 'none';
+  document.getElementById('stripe-btn').textContent = 'Générer le lien 💳';
+  document.getElementById('stripe-btn').disabled = false;
+  document.getElementById('modal-stripe').classList.add('show');
+}
+
+async function generatePaymentLink() {
+  const shopId = document.getElementById('stripe-shop-id').value;
+  const email  = document.getElementById('stripe-email').value;
+  if (!email) { document.getElementById('stripe-error').textContent = 'Email requis'; document.getElementById('stripe-error').style.display = 'block'; return; }
+  document.getElementById('stripe-btn').textContent = 'Génération...';
+  document.getElementById('stripe-btn').disabled = true;
+  document.getElementById('stripe-error').style.display = 'none';
+  try {
+    const res = await fetch('/api/shops/' + shopId + '/create-payment', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('stripe-link').href = data.payment_url;
+      document.getElementById('stripe-link').textContent = data.payment_url;
+      document.getElementById('stripe-result').style.display = 'block';
+      document.getElementById('stripe-btn').textContent = '✅ Lien copié !';
+      navigator.clipboard.writeText(data.payment_url).catch(()=>{});
+    } else {
+      document.getElementById('stripe-error').textContent = '❌ ' + data.error;
+      document.getElementById('stripe-error').style.display = 'block';
+      document.getElementById('stripe-btn').textContent = 'Générer le lien 💳';
+      document.getElementById('stripe-btn').disabled = false;
+    }
+  } catch(e) {
+    document.getElementById('stripe-error').textContent = '❌ Erreur réseau';
+    document.getElementById('stripe-error').style.display = 'block';
+    document.getElementById('stripe-btn').textContent = 'Générer le lien 💳';
+    document.getElementById('stripe-btn').disabled = false;
   }
 }
 
