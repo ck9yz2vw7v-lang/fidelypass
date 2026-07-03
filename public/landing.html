@@ -1035,7 +1035,7 @@ footer {
 </footer>
 
 <script>
-function handleContact() {
+async function handleContact() {
   const inputs = document.querySelectorAll('.cta-input');
   const nom = inputs[0].value.trim();
   const tel = inputs[1].value.trim();
@@ -1043,9 +1043,30 @@ function handleContact() {
     alert('Merci de renseigner votre commerce et votre numéro.');
     return;
   }
-  inputs[0].value = '';
-  inputs[1].value = '';
-  alert('✅ Merci ' + nom + ' ! On vous contacte sous 24h.');
+  const btn = document.querySelector('.cta-submit');
+  const originalText = btn.textContent;
+  btn.textContent = 'Envoi...';
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/leads', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ business_name: nom, phone: tel })
+    });
+    const data = await res.json();
+    if (data.success) {
+      inputs[0].value = '';
+      inputs[1].value = '';
+      alert('✅ Merci ' + nom + ' ! On vous contacte sous 24h.');
+    } else {
+      alert('Une erreur est survenue, réessayez ou contactez-nous directement.');
+    }
+  } catch (err) {
+    alert('Une erreur est survenue, réessayez ou contactez-nous directement.');
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
 }
 
 // Smooth scroll

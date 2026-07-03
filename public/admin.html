@@ -100,6 +100,11 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
     </div>
   </div>
 
+  <div class="card" id="leads-card" style="display:none">
+    <div class="card-title">📩 Demandes de contact <span id="leads-count" style="font-size:13px;color:#64748b"></span></div>
+    <div class="shops-list" id="leads-list"></div>
+  </div>
+
   <div class="card">
     <div class="card-title">🏪 Mes boutiques <span id="shops-count" style="font-size:13px;color:#64748b"></span></div>
     <div class="shops-list" id="shops-list"><div class="empty">Aucune boutique pour l'instant</div></div>
@@ -195,6 +200,41 @@ function emailStripeLink() {
     'Bonne journée,\nWalyd — FidélyPass'
   );
   window.location.href = 'mailto:' + email + '?subject=' + subject + '&body=' + body;
+}
+
+async function loadLeads() {
+  const res = await fetch('/api/admin/leads');
+  const leads = await res.json();
+  const card = document.getElementById('leads-card');
+  if (!leads.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  const unseen = leads.filter(l => !l.seen).length;
+  document.getElementById('leads-count').textContent = leads.length + ' demande(s)' + (unseen ? ' · ' + unseen + ' nouvelle(s)' : '');
+  document.getElementById('leads-list').innerHTML = leads.map(l => `
+    <div class="shop-item" style="${l.seen ? 'opacity:0.6' : ''}">
+      <div class="shop-item-top">
+        <div>
+          <div class="shop-name">${l.business_name} ${l.seen ? '' : '🆕'}</div>
+          <div class="shop-meta">📞 <a href="tel:${l.phone}" style="color:inherit">${l.phone}</a> · ${new Date(l.created_at).toLocaleString('fr-FR')}</div>
+        </div>
+        <div class="shop-actions">
+          ${l.seen ? '' : `<button class="btn-sm" onclick="markLeadSeen(${l.id})" style="background:#dbeafe;color:#1e40af">Vu</button>`}
+          <button class="btn-sm btn-delete" onclick="deleteLead(${l.id})">Supprimer</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function markLeadSeen(id) {
+  await fetch('/api/admin/leads/' + id + '/seen', { method: 'PUT' });
+  loadLeads();
+}
+
+async function deleteLead(id) {
+  if (!confirm('Supprimer cette demande ?')) return;
+  await fetch('/api/admin/leads/' + id, { method: 'DELETE' });
+  loadLeads();
 }
 
 async function loadShops() {
@@ -411,8 +451,7 @@ function closeModal(id) {
 
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
-});
-
+loadLeads();
 loadShops();
 </script>
 </body>

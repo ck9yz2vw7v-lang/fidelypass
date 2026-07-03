@@ -457,6 +457,39 @@ app.get('/admin', requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+// ─────────────────────────────────────────────
+// LEADS (formulaire de contact landing page)
+// ─────────────────────────────────────────────
+
+app.post('/api/leads', (req, res) => {
+  const { business_name, phone } = req.body;
+  if (!business_name || !business_name.trim() || !phone || !phone.trim()) {
+    return res.status(400).json({ success: false, error: 'Nom et téléphone requis' });
+  }
+  try {
+    db.prepare('INSERT INTO leads (business_name, phone) VALUES (?, ?)')
+      .run(business_name.trim(), phone.trim());
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/admin/leads', requireAdmin, (req, res) => {
+  const leads = db.prepare('SELECT * FROM leads ORDER BY created_at DESC').all();
+  res.json(leads);
+});
+
+app.put('/api/admin/leads/:id/seen', requireAdmin, (req, res) => {
+  db.prepare('UPDATE leads SET seen = 1 WHERE id = ?').run(req.params.id);
+  res.json({ success: true });
+});
+
+app.delete('/api/admin/leads/:id', requireAdmin, (req, res) => {
+  db.prepare('DELETE FROM leads WHERE id = ?').run(req.params.id);
+  res.json({ success: true });
+});
+
 app.get('/api/admin/shops/:id/stats', requireAdmin, (req, res) => {
   const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
   const customers = db.prepare('SELECT COUNT(*) as count FROM customers WHERE shop_id = ?').get(req.params.id);
