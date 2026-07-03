@@ -335,6 +335,50 @@ nav {
   font-weight: 700;
 }
 
+.mock-logout {
+  font-size: 9px;
+  color: #9ca3af;
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.mock-notif-box {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+
+.mock-notif-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.mock-notif-input {
+  font-size: 9px;
+  color: #9ca3af;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  margin-bottom: 6px;
+}
+
+.mock-notif-send {
+  background: #22c55e;
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: center;
+  padding: 6px;
+  border-radius: 6px;
+}
+
 .mock-body {
   padding: 12px;
   display: flex;
@@ -814,7 +858,7 @@ footer {
   <h1>Fidélisez vos clients.<br><em>Sans papier.</em> Sans app.</h1>
   <p>FidélyPass remplace les cartes tampons par un QR code sur smartphone. Simple à utiliser, rapide à installer, efficace dès le premier jour.</p>
   <div class="hero-actions">
-    <a href="#contact" class="btn-primary">🚀 Démarrer gratuitement</a>
+    <a href="#contact" class="btn-primary">🚀 Être rappelé sous 24h</a>
     <a href="#comment" class="btn-secondary">Voir comment ça marche</a>
   </div>
 
@@ -849,7 +893,8 @@ footer {
         <div class="phone-content-gerant">
           <div class="mock-header">
             <div class="mock-avatar">BM</div>
-            <div class="mock-shop-name">Votre commerce</div>
+            <div class="mock-shop-name" style="flex:1">Votre commerce</div>
+            <div class="mock-logout">Déconnexion</div>
           </div>
           <div class="mock-body">
             <div class="mock-stats">
@@ -863,6 +908,11 @@ footer {
               </div>
             </div>
             <div class="mock-scan-btn">📷 Ouvrir la caméra</div>
+            <div class="mock-notif-box">
+              <div class="mock-notif-label">🔔 Envoyer une notification</div>
+              <div class="mock-notif-input">Promo du jour : -20% jusqu'à 18h !</div>
+              <div class="mock-notif-send">Envoyer à mes clients abonnés</div>
+            </div>
             <div class="mock-client-row">
               <div class="mock-client-av">WA</div>
               <div class="mock-client-info">
@@ -872,17 +922,9 @@ footer {
               <div class="mock-client-badge">42 pts</div>
             </div>
             <div class="mock-client-row">
-              <div class="mock-client-av" style="background:#22c55e">FA</div>
-              <div class="mock-client-info">
-                <div class="mock-client-name">Client 2</div>
-                <div class="mock-client-pts">3 visites</div>
-              </div>
-              <div class="mock-client-badge">15 pts</div>
-            </div>
-            <div class="mock-client-row">
               <div class="mock-client-av" style="background:#f59e0b">AM</div>
               <div class="mock-client-info">
-                <div class="mock-client-name">Client 3</div>
+                <div class="mock-client-name">Client 2</div>
                 <div class="mock-client-pts">12 visites</div>
               </div>
               <div class="mock-client-badge" style="background:#fef3c7;color:#d97706">🎉 Récompense</div>
