@@ -82,6 +82,11 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
     <div class="stat"><div class="stat-val" id="revenue">0€</div><div class="stat-label">Revenus mensuels</div></div>
   </div>
 
+  <div class="card" id="leads-card" style="display:none">
+    <div class="card-title">📩 Demandes de contact <span id="leads-count" style="font-size:13px;color:#64748b"></span></div>
+    <div class="shops-list" id="leads-list"></div>
+  </div>
+
   <div class="card">
     <div class="card-title">➕ Ajouter une boutique</div>
     <div class="msg success" id="success-msg">✅ Boutique créée avec succès !</div>
@@ -98,11 +103,6 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group form-full"><label>⭐ Lien Google Avis (optionnel)</label><input type="url" id="google_review_url" placeholder="https://g.page/r/..."></div>
       <div class="form-full"><button class="btn btn-primary" onclick="createShop()">Créer la boutique</button></div>
     </div>
-  </div>
-
-  <div class="card" id="leads-card" style="display:none">
-    <div class="card-title">📩 Demandes de contact <span id="leads-count" style="font-size:13px;color:#64748b"></span></div>
-    <div class="shops-list" id="leads-list"></div>
   </div>
 
   <div class="card">
