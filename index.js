@@ -461,7 +461,7 @@ app.get('/admin', requireAdmin, (req, res) => {
 // LEADS (formulaire de contact landing page)
 // ─────────────────────────────────────────────
 
-app.post('/api/leads', (req, res) => {
+app.post('/api/leads', async (req, res) => {
   const { business_name, phone } = req.body;
   if (!business_name || !business_name.trim() || !phone || !phone.trim()) {
     return res.status(400).json({ success: false, error: 'Nom et téléphone requis' });
@@ -470,6 +470,25 @@ app.post('/api/leads', (req, res) => {
     db.prepare('INSERT INTO leads (business_name, phone) VALUES (?, ?)')
       .run(business_name.trim(), phone.trim());
     res.json({ success: true });
+
+    // Notifie l'admin par push (ne bloque pas la réponse au client)
+    if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+      const admins = db.prepare('SELECT * FROM admin_subscriptions').all();
+      const payload = JSON.stringify({
+        title: '📩 Nouvelle demande FidélyPass',
+        body: business_name.trim() + ' souhaite être contacté'
+      });
+      for (const sub of admins) {
+        webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          payload
+        ).catch(err => {
+          if (err.statusCode === 404 || err.statusCode === 410) {
+            db.prepare('DELETE FROM admin_subscriptions WHERE id = ?').run(sub.id);
+          }
+        });
+      }
+    }
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
   }
@@ -488,6 +507,35 @@ app.put('/api/admin/leads/:id/seen', requireAdmin, (req, res) => {
 app.delete('/api/admin/leads/:id', requireAdmin, (req, res) => {
   db.prepare('DELETE FROM leads WHERE id = ?').run(req.params.id);
   res.json({ success: true });
+});
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS PUSH POUR L'ADMIN
+// ─────────────────────────────────────────────
+
+app.post('/api/admin/subscribe', requireAdmin, (req, res) => {
+  const { subscription } = req.body;
+  if (!subscription || !subscription.endpoint || !subscription.keys) {
+    return res.status(400).json({ success: false, error: 'Abonnement invalide' });
+  }
+  try {
+    db.prepare('DELETE FROM admin_subscriptions WHERE endpoint = ?').run(subscription.endpoint);
+    db.prepare('INSERT INTO admin_subscriptions (endpoint, p256dh, auth) VALUES (?, ?, ?)')
+      .run(subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/unsubscribe', requireAdmin, (req, res) => {
+  const { endpoint } = req.body;
+  try {
+    if (endpoint) db.prepare('DELETE FROM admin_subscriptions WHERE endpoint = ?').run(endpoint);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
 });
 
 app.get('/api/admin/shops/:id/stats', requireAdmin, (req, res) => {

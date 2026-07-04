@@ -75,6 +75,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 <div class="container">
   <div class="page-title">Dashboard Admin</div>
   <div class="page-sub">Gérez tous vos clients depuis ici — Bonjour Walyd 👋</div>
+  <button id="admin-notif-btn" onclick="toggleAdminNotifs()" style="background:#f3f4f6;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;color:#374151;cursor:pointer;margin-bottom:16px">🔔 Activer les notifications de demandes</button>
   <div class="stats">
     <div class="stat"><div class="stat-val" id="total-shops">0</div><div class="stat-label">Boutiques actives</div></div>
     <div class="stat"><div class="stat-val" id="total-customers">0</div><div class="stat-label">Clients totaux</div></div>
@@ -452,6 +453,70 @@ function closeModal(id) {
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
 });
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+async function toggleAdminNotifs() {
+  const btn = document.getElementById('admin-notif-btn');
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    alert('Notifications non supportées sur ce navigateur.');
+    return;
+  }
+  try {
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
+    const existing = await reg.pushManager.getSubscription();
+
+    if (existing) {
+      await fetch('/api/admin/unsubscribe', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ endpoint: existing.endpoint })
+      });
+      await existing.unsubscribe();
+      btn.textContent = '🔔 Activer les notifications de demandes';
+      btn.style.background = '#f3f4f6';
+      btn.style.color = '#374151';
+      return;
+    }
+
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { alert('Notifications refusées.'); return; }
+    const { key } = await fetch('/api/vapid-public-key').then(r => r.json());
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(key)
+    });
+    await fetch('/api/admin/subscribe', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ subscription: sub })
+    });
+    btn.textContent = '🔔 Notifications activées';
+    btn.style.background = '#dcfce7';
+    btn.style.color = '#16a34a';
+  } catch (err) {
+    console.error(err);
+    alert("Impossible d'activer les notifications.");
+  }
+}
+
+// Vérifie l'état actuel au chargement
+if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+  navigator.serviceWorker.getRegistration('/sw.js').then(reg => {
+    if (reg) reg.pushManager.getSubscription().then(sub => {
+      if (sub) {
+        const btn = document.getElementById('admin-notif-btn');
+        btn.textContent = '🔔 Notifications activées';
+        btn.style.background = '#dcfce7';
+        btn.style.color = '#16a34a';
+      }
+    });
+  });
+}
 
 loadLeads();
 loadShops();
