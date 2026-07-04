@@ -187,13 +187,23 @@ app.post('/api/scan', requireShopAuth, async (req, res) => {
   db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(customer_id, shop_id, pointsEarned);
   res.json({ success: true, customer_name: customer.name, points_before: customer.points, points_after: newPoints, points_added: pointsEarned, amount_paid: amount, reward_unlocked: rewardUnlocked, reward_text: shop.reward_text, points_goal: shop.points_goal, google_review_url: shop.google_review_url || null });
 
-  // Notifie le client par push quand il débloque sa récompense
-  if (rewardUnlocked && VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  // Notifie le client par push : récompense débloquée, ou simple progression
+  if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
     const subs = db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(customer_id);
-    const body = shop.google_review_url
-      ? `Vous avez débloqué : ${shop.reward_text} 🎁 Laissez un avis pour le récupérer !`
-      : `Vous avez débloqué : ${shop.reward_text} 🎁 Montrez cet écran au gérant !`;
-    const payload = JSON.stringify({ title: `🎉 ${shop.name}`, body, url: '/card/' + customer_id });
+    let payload;
+    if (rewardUnlocked) {
+      const body = shop.google_review_url
+        ? `Vous avez débloqué : ${shop.reward_text} 🎁 Laissez un avis pour le récupérer !`
+        : `Vous avez débloqué : ${shop.reward_text} 🎁 Montrez cet écran au gérant !`;
+      payload = JSON.stringify({ title: `🎉 ${shop.name}`, body, url: '/card/' + customer_id });
+    } else {
+      const remaining = shop.points_goal - newPoints;
+      payload = JSON.stringify({
+        title: `🎯 ${shop.name}`,
+        body: `Vous avez ${newPoints} points sur ${shop.points_goal}. Encore ${remaining} pts pour : ${shop.reward_text} 🎁`,
+        url: '/card/' + customer_id
+      });
+    }
     for (const sub of subs) {
       webpush.sendNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
