@@ -191,9 +191,9 @@ app.post('/api/scan', requireShopAuth, async (req, res) => {
   if (rewardUnlocked && VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
     const subs = db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(customer_id);
     const body = shop.google_review_url
-      ? `Objectif atteint : ${shop.reward_text}. Laissez un avis pour le récupérer !`
-      : `Objectif atteint : ${shop.reward_text}. Montrez cet écran au gérant !`;
-    const payload = JSON.stringify({ title: `🎉 ${shop.name} — Récompense débloquée !`, body, url: '/card/' + customer_id });
+      ? `Vous avez débloqué : ${shop.reward_text} 🎁 Laissez un avis pour le récupérer !`
+      : `Vous avez débloqué : ${shop.reward_text} 🎁 Montrez cet écran au gérant !`;
+    const payload = JSON.stringify({ title: `🎉 ${shop.name}`, body, url: '/card/' + customer_id });
     for (const sub of subs) {
       webpush.sendNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
