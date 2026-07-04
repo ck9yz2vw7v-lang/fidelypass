@@ -174,7 +174,7 @@ app.put('/api/customers/:id/points', requireShopAuth, (req, res) => {
   res.json({ success: true });
 });
 
-app.post('/api/scan', requireShopAuth, (req, res) => {
+app.post('/api/scan', requireShopAuth, async (req, res) => {
   const { customer_id, shop_id, amount } = req.body;
   const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
   const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(customer_id, shop_id);
@@ -186,6 +186,25 @@ app.post('/api/scan', requireShopAuth, (req, res) => {
   db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1 WHERE id = ?').run(newPoints, customer_id);
   db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(customer_id, shop_id, pointsEarned);
   res.json({ success: true, customer_name: customer.name, points_before: customer.points, points_after: newPoints, points_added: pointsEarned, amount_paid: amount, reward_unlocked: rewardUnlocked, reward_text: shop.reward_text, points_goal: shop.points_goal, google_review_url: shop.google_review_url || null });
+
+  // Notifie le client par push quand il débloque sa récompense
+  if (rewardUnlocked && VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+    const subs = db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(customer_id);
+    const body = shop.google_review_url
+      ? `Objectif atteint : ${shop.reward_text}. Laissez un avis pour le récupérer !`
+      : `Objectif atteint : ${shop.reward_text}. Montrez cet écran au gérant !`;
+    const payload = JSON.stringify({ title: `🎉 ${shop.name} — Récompense débloquée !`, body, url: '/card/' + customer_id });
+    for (const sub of subs) {
+      webpush.sendNotification(
+        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+        payload
+      ).catch(err => {
+        if (err.statusCode === 404 || err.statusCode === 410) {
+          db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
+        }
+      });
+    }
+  }
 });
 
 app.post('/api/reward/:customer_id', requireShopAuth, (req, res) => {

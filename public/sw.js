@@ -6,7 +6,8 @@ self.addEventListener('push', function (event) {
     body: data.body,
     icon: '/icon-192.png',
     badge: '/icon-192.png',
-    vibrate: [100, 50, 100]
+    vibrate: [100, 50, 100],
+    data: { url: data.url || '/' }
   };
 
   event.waitUntil(self.registration.showNotification(data.title, options));
@@ -14,10 +15,13 @@ self.addEventListener('push', function (event) {
 
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || '/';
   event.waitUntil(
     clients.matchAll({ type: 'window' }).then(function (clientList) {
-      if (clientList.length > 0) return clientList[0].focus();
-      return clients.openWindow('/');
+      for (const client of clientList) {
+        if (client.url.includes(targetUrl) && 'focus' in client) return client.focus();
+      }
+      return clients.openWindow(targetUrl);
     })
   );
 });
