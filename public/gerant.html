@@ -156,6 +156,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
     <button class="btn-scan" onclick="startCamera()">📷 Ouvrir la caméra</button>
   </div>
   <button class="btn-list" onclick="showCustomersList()">👥 Voir mes clients</button>
+  <button class="btn-list" style="background:#6B21A8;margin-top:10px" onclick="showCounterQR()">📱 QR Code Comptoir</button>
   <div class="add-client-card" style="margin-bottom:16px">
     <div class="add-client-title">🔔 Envoyer une notification</div>
     <textarea class="input" id="notif-message" placeholder="Ex : Promo du jour : -20% sur tout jusqu'à 18h !" rows="2" style="resize:none;margin-bottom:10px"></textarea>
@@ -185,8 +186,22 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
   <div class="link-modal">
     <h3>✅ Client ajouté !</h3>
     <div class="link-modal-url" id="link-modal-url"></div>
-    <button class="link-modal-copy" onclick="copyClientLink()">📋 Copier le lien</button>
+    <button class="link-modal-copy" id="link-copy-btn" onclick="copyClientLink()">📋 Copier le lien</button>
     <button class="link-modal-close" onclick="closeLinkModal()">Fermer</button>
+  </div>
+</div>
+
+<!-- QR COMPTOIR MODAL -->
+<div class="link-modal-overlay" id="qr-modal-overlay">
+  <div class="link-modal">
+    <h3>📱 QR Code Comptoir</h3>
+    <p style="color:#6b7280;font-size:13px;margin-bottom:16px">Imprimez ce QR code et posez-le sur votre comptoir. Vos clients le scannent pour créer leur carte.</p>
+    <div style="background:white;border-radius:12px;padding:16px;margin-bottom:12px">
+      <img id="qr-comptoir-img" src="" style="width:100%;border-radius:8px" alt="QR Code Comptoir">
+    </div>
+    <div class="link-modal-url" id="qr-comptoir-url"></div>
+    <button class="link-modal-copy" id="qr-copy-btn" onclick="copyCounterLink()">📋 Copier le lien</button>
+    <button class="link-modal-close" onclick="closeQRModal()">Fermer</button>
   </div>
 </div>
 
@@ -518,11 +533,36 @@ function closeLinkModal() {
 async function copyClientLink() {
   try {
     await navigator.clipboard.writeText(pendingClientLink);
-    const btn = document.querySelector('.link-modal-copy');
+    const btn = document.getElementById('link-copy-btn');
     btn.textContent = '✓ Copié !';
     setTimeout(() => { btn.textContent = '📋 Copier le lien'; }, 1500);
   } catch (e) {
     alert('Lien : ' + pendingClientLink);
+  }
+}
+
+let pendingCounterLink = '';
+
+function showCounterQR() {
+  if (!currentShop) return;
+  pendingCounterLink = window.location.origin + '/join/' + currentShop.slug;
+  document.getElementById('qr-comptoir-img').src = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(pendingCounterLink);
+  document.getElementById('qr-comptoir-url').textContent = pendingCounterLink;
+  document.getElementById('qr-modal-overlay').style.display = 'flex';
+}
+
+function closeQRModal() {
+  document.getElementById('qr-modal-overlay').style.display = 'none';
+}
+
+async function copyCounterLink() {
+  try {
+    await navigator.clipboard.writeText(pendingCounterLink);
+    const btn = document.getElementById('qr-copy-btn');
+    btn.textContent = '✓ Copié !';
+    setTimeout(() => { btn.textContent = '📋 Copier le lien'; }, 1500);
+  } catch (e) {
+    alert('Lien : ' + pendingCounterLink);
   }
 }
 
