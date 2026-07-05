@@ -99,6 +99,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>Email gérant</label><input type="email" id="email" placeholder="gerant@boutique.fr"></div>
       <div class="form-group"><label>Points par euro dépensé</label><input type="number" id="points_per_euro" value="1" step="0.1"></div>
       <div class="form-group"><label>Objectif points</label><input type="number" id="points_goal" value="100"></div>
+      <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="referral_bonus_points" value="10"></div>
       <div class="form-group"><label>Couleur carte</label><input type="color" id="color" value="#b45309"></div>
       <div class="form-group form-full"><label>Récompense offerte</label><input type="text" id="reward_text" placeholder="Ex: 1 sandwich offert"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis (optionnel)</label><input type="url" id="google_review_url" placeholder="https://g.page/r/..."></div>
@@ -123,6 +124,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="edit-password" placeholder="Laisser vide = inchangé"></div>
       <div class="form-group"><label>Points par euro</label><input type="number" id="edit-points-per-euro" step="0.1"></div>
       <div class="form-group"><label>Objectif points</label><input type="number" id="edit-points-goal"></div>
+      <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="edit-referral-bonus"></div>
       <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
@@ -297,6 +299,7 @@ async function createShop() {
     email:              document.getElementById('email').value || null,
     points_per_euro:    parseFloat(document.getElementById('points_per_euro').value),
     points_goal:        parseInt(document.getElementById('points_goal').value),
+    referral_bonus_points: parseInt(document.getElementById('referral_bonus_points').value),
     color:              document.getElementById('color').value,
     reward_text:        document.getElementById('reward_text').value,
     google_review_url:  document.getElementById('google_review_url').value || null
@@ -389,6 +392,7 @@ function resetEditModal() {
       <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="edit-password" placeholder="Laisser vide = inchangé"></div>
       <div class="form-group"><label>Points par euro</label><input type="number" id="edit-points-per-euro" step="0.1"></div>
       <div class="form-group"><label>Objectif points</label><input type="number" id="edit-points-goal"></div>
+      <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="edit-referral-bonus"></div>
       <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
@@ -408,6 +412,7 @@ function openEdit(shop) {
   document.getElementById('edit-password').value        = '';
   document.getElementById('edit-points-per-euro').value = shop.points_per_euro || 1;
   document.getElementById('edit-points-goal').value     = shop.points_goal;
+  document.getElementById('edit-referral-bonus').value  = shop.referral_bonus_points != null ? shop.referral_bonus_points : 10;
   document.getElementById('edit-color').value           = shop.color;
   document.getElementById('edit-reward').value          = shop.reward_text;
   document.getElementById('edit-google-review').value   = shop.google_review_url || '';
@@ -417,14 +422,15 @@ function openEdit(shop) {
 async function saveEdit() {
   const id   = document.getElementById('edit-id').value;
   const data = {
-    name:              document.getElementById('edit-name').value,
-    slug:              document.getElementById('edit-slug').value,
-    password:          document.getElementById('edit-password').value,
-    points_per_euro:   parseFloat(document.getElementById('edit-points-per-euro').value),
-    points_goal:       parseInt(document.getElementById('edit-points-goal').value),
-    color:             document.getElementById('edit-color').value,
-    reward_text:       document.getElementById('edit-reward').value,
-    google_review_url: document.getElementById('edit-google-review').value || null
+    name:                  document.getElementById('edit-name').value,
+    slug:                  document.getElementById('edit-slug').value,
+    password:              document.getElementById('edit-password').value,
+    points_per_euro:       parseFloat(document.getElementById('edit-points-per-euro').value),
+    points_goal:           parseInt(document.getElementById('edit-points-goal').value),
+    referral_bonus_points: parseInt(document.getElementById('edit-referral-bonus').value),
+    color:                 document.getElementById('edit-color').value,
+    reward_text:           document.getElementById('edit-reward').value,
+    google_review_url:     document.getElementById('edit-google-review').value || null
   };
   const res = await fetch('/api/shops/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
   const result = await res.json();

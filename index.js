@@ -147,23 +147,65 @@ app.get('/api/shops/:id/stats', requireShopAuth, (req, res) => {
   res.json({ shop, total_customers: customers.count, total_scans: scans.count, total_rewards: rewards.count });
 });
 
-app.post('/api/customers', (req, res) => {
-  const { shop_id, name } = req.body;
+app.post('/api/customers', async (req, res) => {
+  const { shop_id, name, ref } = req.body;
   try {
-    const stmt = db.prepare('INSERT INTO customers (shop_id, name) VALUES (?, ?)');
-    const result = stmt.run(shop_id, name);
-    res.json({ success: true, id: result.lastInsertRowid });
+    const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
+    if (!shop) return res.status(400).json({ success: false, error: 'Boutique introuvable' });
+
+    // Vérifie que le parrain est un client valide de la même boutique
+    let referrer = null;
+    if (ref) {
+      referrer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(ref, shop_id);
+    }
+    const bonus = shop.referral_bonus_points || 0;
+    const startingPoints = referrer ? bonus : 0;
+
+    const stmt = db.prepare('INSERT INTO customers (shop_id, name, points, referred_by) VALUES (?, ?, ?, ?)');
+    const result = stmt.run(shop_id, name, startingPoints, referrer ? referrer.id : null);
+    res.json({ success: true, id: result.lastInsertRowid, bonus_received: startingPoints });
+
+    // Récompense le parrain + le notifie
+    if (referrer && bonus > 0) {
+      db.prepare('UPDATE customers SET points = points + ? WHERE id = ?').run(bonus, referrer.id);
+      if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+        const subs = db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(referrer.id);
+        const payload = JSON.stringify({
+          title: `🎉 ${shop.name}`,
+          body: `${name} a rejoint grâce à vous ! +${bonus} points offerts 🎁`,
+          url: '/card/' + referrer.id
+        });
+        for (const sub of subs) {
+          webpush.sendNotification(
+            { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+            payload
+          ).catch(err => {
+            if (err.statusCode === 404 || err.statusCode === 410) {
+              db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
+            }
+          });
+        }
+      }
+    }
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
 app.get('/api/customers/:id', (req, res) => {
   const customer = db.prepare(`
-    SELECT c.*, s.points_goal, s.reward_text, s.google_review_url, s.color
+    SELECT c.*, s.points_goal, s.reward_text, s.google_review_url, s.color, s.slug, s.name as shop_name, s.referral_bonus_points
     FROM customers c JOIN shops s ON s.id = c.shop_id
     WHERE c.id = ?
   `).get(req.params.id);
   if (customer) res.json(customer);
   else res.status(404).json({ error: 'Client introuvable' });
+});
+
+app.get('/api/customers/:id/history', (req, res) => {
+  const history = db.prepare(`
+    SELECT points_added, scanned_at FROM scans
+    WHERE customer_id = ? ORDER BY scanned_at DESC LIMIT 10
+  `).all(req.params.id);
+  res.json(history);
 });
 
 app.put('/api/customers/:id/points', requireShopAuth, (req, res) => {
@@ -183,7 +225,7 @@ app.post('/api/scan', requireShopAuth, async (req, res) => {
   const pointsEarned = Math.floor((amount || 0) * pointsPerEuro);
   const newPoints = customer.points + pointsEarned;
   const rewardUnlocked = newPoints >= shop.points_goal;
-  db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1 WHERE id = ?').run(newPoints, customer_id);
+  db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1, last_visit = CURRENT_TIMESTAMP WHERE id = ?').run(newPoints, customer_id);
   db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(customer_id, shop_id, pointsEarned);
   res.json({ success: true, customer_name: customer.name, points_before: customer.points, points_after: newPoints, points_added: pointsEarned, amount_paid: amount, reward_unlocked: rewardUnlocked, reward_text: shop.reward_text, points_goal: shop.points_goal, google_review_url: shop.google_review_url || null });
 
@@ -342,7 +384,7 @@ app.get('/card/:id', (req, res) => {
     walletHtml = '<div id="wallet-btn"><script>fetch("/api/customers/' + id + '/wallet").then(r=>r.json()).then(d=>{if(d.url){document.getElementById("wallet-btn").innerHTML=\'<a href="\'+d.url+\'" target="_blank"><img src="https://pay.google.com/about/static/sample-assets/pay-with-google/add-to-wallet-button.svg" style="width:200px;margin-top:8px" alt="Ajouter à Google Wallet"><\\/a>\';}});<\\/script></div>';
   }
 
-  res.send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}#qr{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}.points-box{margin-top:20px;background:#f8fafc;border-radius:16px;padding:16px}.points-val{font-size:28px;font-weight:900;color:#111827}.points-goal{font-size:13px;color:#6b7280;margin-bottom:10px}.progress-track{background:#e5e7eb;border-radius:99px;height:10px;overflow:hidden}.progress-fill{background:#3b82f6;height:100%;border-radius:99px;transition:width 0.4s ease}.review-banner{margin-top:20px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:16px;color:white;text-align:center;display:none}.review-banner h3{font-size:16px;font-weight:800;margin-bottom:6px}.review-banner p{color:rgba(255,255,255,0.9);font-size:13px;margin-bottom:12px}.review-btn{display:inline-block;background:white;color:#d97706;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none}.notif-btn{margin-top:16px;background:#f3f4f6;color:#374151;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}.notif-btn.on{background:#dcfce7;color:#16a34a}.unsub-link{display:block;margin-top:8px;font-size:11px;color:#9ca3af;text-decoration:underline;cursor:pointer;background:none;border:none}.ios-hint{margin-top:12px;background:#fef3c7;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e;text-align:left;line-height:1.5;display:none}</style></head><body><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°${id}</div><div class="points-box" id="points-box" style="display:none"><div class="points-val" id="points-val">0</div><div class="points-goal" id="points-goal-text">sur 0 points</div><div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div></div>${walletHtml}<button class="notif-btn" id="notif-btn" onclick="enableNotifs()">🔔 Activer les notifications</button><button class="unsub-link" id="unsub-link" onclick="disableNotifs()" style="display:none">Se désabonner des notifications</button><div class="ios-hint" id="ios-hint">📲 Sur iPhone : pour recevoir les notifications, ajoutez d'abord cette page à votre écran d'accueil (bouton partager <strong>⬆️</strong> puis "Sur l'écran d'accueil"), ouvrez l'app depuis l'icône, puis réessayez.</div><div class="review-banner" id="review-banner"><h3>🎉 Objectif atteint !</h3><p id="review-banner-text">Votre avis compte beaucoup pour nous</p><a id="review-link" class="review-btn" href="#" target="_blank" style="display:none">⭐ Laisser un avis Google</a></div></div><script>
+  res.send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}#qr{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}.points-box{margin-top:20px;background:#f8fafc;border-radius:16px;padding:16px}.points-val{font-size:28px;font-weight:900;color:#111827}.points-goal{font-size:13px;color:#6b7280;margin-bottom:10px}.progress-track{background:#e5e7eb;border-radius:99px;height:10px;overflow:hidden}.progress-fill{background:#3b82f6;height:100%;border-radius:99px;transition:width 0.4s ease}.review-banner{margin-top:20px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:16px;color:white;text-align:center;display:none}.review-banner h3{font-size:16px;font-weight:800;margin-bottom:6px}.review-banner p{color:rgba(255,255,255,0.9);font-size:13px;margin-bottom:12px}.review-btn{display:inline-block;background:white;color:#d97706;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none}.notif-btn{margin-top:16px;background:#f3f4f6;color:#374151;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}.notif-btn.on{background:#dcfce7;color:#16a34a}.unsub-link{display:block;margin-top:8px;font-size:11px;color:#9ca3af;text-decoration:underline;cursor:pointer;background:none;border:none}.ios-hint{margin-top:12px;background:#fef3c7;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e;text-align:left;line-height:1.5;display:none}.section-box{margin-top:20px;background:#f8fafc;border-radius:16px;padding:16px;text-align:left}.section-title{font-size:13px;font-weight:800;color:#374151;margin-bottom:10px;text-align:center}.history-row{display:flex;justify-content:space-between;font-size:12px;color:#6b7280;padding:6px 0;border-bottom:1px solid #e5e7eb}.history-row:last-child{border-bottom:none}.referral-link-box{background:white;border:1px solid #e5e7eb;border-radius:10px;padding:10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px}.referral-copy-btn{width:100%;padding:12px;border-radius:10px;background:#3b82f6;color:white;font-size:13px;font-weight:700;border:none;cursor:pointer}</style></head><body><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°${id}</div><div class="points-box" id="points-box" style="display:none"><div class="points-val" id="points-val">0</div><div class="points-goal" id="points-goal-text">sur 0 points</div><div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div></div>${walletHtml}<button class="notif-btn" id="notif-btn" onclick="enableNotifs()">🔔 Activer les notifications</button><button class="unsub-link" id="unsub-link" onclick="disableNotifs()" style="display:none">Se désabonner des notifications</button><div class="ios-hint" id="ios-hint">📲 Sur iPhone : pour recevoir les notifications, ajoutez d'abord cette page à votre écran d'accueil (bouton partager <strong>⬆️</strong> puis "Sur l'écran d'accueil"), ouvrez l'app depuis l'icône, puis réessayez.</div><div class="review-banner" id="review-banner"><h3>🎉 Objectif atteint !</h3><p id="review-banner-text">Votre avis compte beaucoup pour nous</p><a id="review-link" class="review-btn" href="#" target="_blank" style="display:none">⭐ Laisser un avis Google</a></div><div class="section-box" id="referral-box" style="display:none"><div class="section-title">🎁 Parrainez un ami</div><p style="font-size:12px;color:#6b7280;margin-bottom:10px;text-align:center">Votre ami reçoit des points, vous aussi !</p><div class="referral-link-box" id="referral-link-text"></div><button class="referral-copy-btn" onclick="copyReferralLink()">📋 Copier mon lien de parrainage</button></div><div class="section-box" id="history-box" style="display:none"><div class="section-title">📋 Historique des visites</div><div id="history-list"></div></div></div><script>
 const IS_IOS = ${isIOS};
 const IS_STANDALONE = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
 
@@ -367,7 +409,34 @@ fetch("/api/customers/${id}").then(r=>r.json()).then(c => {
     }
     banner.style.display = 'block';
   }
+
+  if (c.slug) {
+    window.__referralLink = window.location.origin + '/join/' + c.slug + '?ref=' + c.id;
+    document.getElementById('referral-link-text').textContent = window.__referralLink;
+    document.getElementById('referral-box').style.display = 'block';
+  }
 });
+
+fetch("/api/customers/${id}/history").then(r=>r.json()).then(rows => {
+  if (!rows || !rows.length) return;
+  document.getElementById('history-box').style.display = 'block';
+  document.getElementById('history-list').innerHTML = rows.map(r => {
+    const d = new Date(r.scanned_at);
+    const dateStr = d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'2-digit'});
+    return '<div class="history-row"><span>' + dateStr + '</span><span>+' + r.points_added + ' pts</span></div>';
+  }).join('');
+});
+
+async function copyReferralLink() {
+  try {
+    await navigator.clipboard.writeText(window.__referralLink);
+    const btn = document.querySelector('.referral-copy-btn');
+    btn.textContent = '✓ Copié !';
+    setTimeout(() => { btn.textContent = '📋 Copier mon lien de parrainage'; }, 1500);
+  } catch (e) {
+    alert('Lien : ' + window.__referralLink);
+  }
+}
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -483,7 +552,7 @@ app.get('/join/:slug', (req, res) => {
   const goal = shop.points_goal;
   const reward = shop.reward_text;
   const initials = shop.name.slice(0,2).toUpperCase();
-  res.send('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Rejoindre ' + name + '</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:380px}.logo{width:64px;height:64px;border-radius:16px;background:' + color + ';display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:white;margin:0 auto 16px}h1{font-size:22px;font-weight:800;color:#1a1a1a;margin-bottom:4px}p{color:#6b7280;font-size:14px;margin-bottom:24px}.info{background:#f8fafc;border-radius:12px;padding:14px;margin-bottom:24px;font-size:13px;color:#374151}input{width:100%;padding:16px;border:2px solid #e5e7eb;border-radius:14px;font-size:18px;text-align:center;font-weight:700;color:#1a1a1a;outline:none;margin-bottom:12px}input:focus{border-color:#3b82f6}button{width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;font-size:17px;font-weight:700;border:none;cursor:pointer}.error{color:#ef4444;font-size:13px;margin-bottom:12px;display:none}</style></head><body><div class="card"><div class="logo">' + initials + '</div><h1>' + name + '</h1><p>Créez votre carte de fidélité gratuite</p><div class="info">🎁 Objectif : <strong>' + goal + ' points</strong><br>Récompense : <strong>' + reward + '</strong></div><div class="error" id="e">Veuillez entrer votre prénom</div><input type="text" id="n" placeholder="Votre prénom"><button onclick="j()">Obtenir ma carte 🎯</button></div><script>async function j(){const n=document.getElementById("n").value.trim();if(!n){document.getElementById("e").style.display="block";return;}const r=await fetch("/api/customers",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({shop_id:' + id + ',name:n})});const d=await r.json();if(d.success)window.location.href="/card/"+d.id;}document.getElementById("n").addEventListener("keypress",e=>{if(e.key==="Enter")j();});<\/script></body></html>');
+  res.send('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Rejoindre ' + name + '</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:380px}.logo{width:64px;height:64px;border-radius:16px;background:' + color + ';display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:white;margin:0 auto 16px}h1{font-size:22px;font-weight:800;color:#1a1a1a;margin-bottom:4px}p{color:#6b7280;font-size:14px;margin-bottom:24px}.info{background:#f8fafc;border-radius:12px;padding:14px;margin-bottom:24px;font-size:13px;color:#374151}.ref-info{background:#dcfce7;border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px;color:#16a34a;font-weight:600;display:none}input{width:100%;padding:16px;border:2px solid #e5e7eb;border-radius:14px;font-size:18px;text-align:center;font-weight:700;color:#1a1a1a;outline:none;margin-bottom:12px}input:focus{border-color:#3b82f6}button{width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;font-size:17px;font-weight:700;border:none;cursor:pointer}.error{color:#ef4444;font-size:13px;margin-bottom:12px;display:none}</style></head><body><div class="card"><div class="logo">' + initials + '</div><h1>' + name + '</h1><p>Créez votre carte de fidélité gratuite</p><div class="ref-info" id="ref-info">🎁 Vous avez été invité(e) — points bonus à l\'inscription !</div><div class="info">🎁 Objectif : <strong>' + goal + ' points</strong><br>Récompense : <strong>' + reward + '</strong></div><div class="error" id="e">Veuillez entrer votre prénom</div><input type="text" id="n" placeholder="Votre prénom"><button onclick="j()">Obtenir ma carte 🎯</button></div><script>const ref=new URLSearchParams(window.location.search).get("ref");if(ref)document.getElementById("ref-info").style.display="block";async function j(){const n=document.getElementById("n").value.trim();if(!n){document.getElementById("e").style.display="block";return;}const r=await fetch("/api/customers",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({shop_id:' + id + ',name:n,ref:ref})});const d=await r.json();if(d.success)window.location.href="/card/"+d.id;}document.getElementById("n").addEventListener("keypress",e=>{if(e.key==="Enter")j();});<\/script></body></html>');
 });
 
 app.get('/', (req, res) => {
@@ -695,5 +764,50 @@ app.post('/webhook', (req, res) => {
 
   res.json({ received: true });
 });
+
+// ─────────────────────────────────────────────
+// RELANCE CLIENTS INACTIFS (30 jours sans visite)
+// ─────────────────────────────────────────────
+
+async function checkInactiveCustomers() {
+  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
+  try {
+    const inactive = db.prepare(`
+      SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal
+      FROM customers c JOIN shops s ON s.id = c.shop_id
+      WHERE c.last_visit IS NOT NULL
+        AND julianday('now') - julianday(c.last_visit) >= 30
+        AND (c.last_reminder_sent IS NULL OR c.last_reminder_sent < c.last_visit)
+    `).all();
+
+    for (const customer of inactive) {
+      const subs = db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(customer.id);
+      if (!subs.length) continue;
+      const payload = JSON.stringify({
+        title: `👋 ${customer.shop_name}`,
+        body: `On ne vous a pas vu depuis 30 jours ! Il vous reste ${customer.points}/${customer.points_goal} points pour : ${customer.reward_text} 🎁`,
+        url: '/card/' + customer.id
+      });
+      for (const sub of subs) {
+        webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          payload
+        ).catch(err => {
+          if (err.statusCode === 404 || err.statusCode === 410) {
+            db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
+          }
+        });
+      }
+      db.prepare('UPDATE customers SET last_reminder_sent = CURRENT_TIMESTAMP WHERE id = ?').run(customer.id);
+    }
+    if (inactive.length) console.log('Relance clients inactifs envoyée à', inactive.length, 'client(s)');
+  } catch (err) {
+    console.log('Erreur relance clients inactifs:', err.message);
+  }
+}
+
+// Vérifie une première fois 2 minutes après le démarrage, puis toutes les 24h
+setTimeout(checkInactiveCustomers, 2 * 60 * 1000);
+setInterval(checkInactiveCustomers, 24 * 60 * 60 * 1000);
 
 app.listen(PORT, () => console.log('FidelyPass tourne sur http://localhost:' + PORT));

@@ -51,5 +51,10 @@ db.exec(`
 `);
 
 try { db.exec('ALTER TABLE shops ADD COLUMN points_per_euro REAL DEFAULT 1'); } catch(e) {}
+try { db.exec('ALTER TABLE shops ADD COLUMN referral_bonus_points INTEGER DEFAULT 10'); } catch(e) {}
+try { db.exec('ALTER TABLE customers ADD COLUMN last_visit DATETIME'); } catch(e) {}
+try { db.exec('ALTER TABLE customers ADD COLUMN last_reminder_sent DATETIME'); } catch(e) {}
+try { db.exec('ALTER TABLE customers ADD COLUMN referred_by INTEGER'); } catch(e) {}
+try { db.exec("UPDATE customers SET last_visit = created_at WHERE last_visit IS NULL"); } catch(e) {}
 
 module.exports = db;
