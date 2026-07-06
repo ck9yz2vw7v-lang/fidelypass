@@ -102,11 +102,11 @@ try {
 app.get('/api/test', (req, res) => res.json({ message: 'FidélyPass fonctionne !' }));
 
 app.post('/api/shops', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
-    const result = stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null);
+    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
+    const result = stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -293,6 +293,25 @@ app.get('/api/customers/:id/wallet', async (req, res) => {
   }
 });
 
+app.get('/api/customers/:id/apple-wallet', async (req, res) => {
+  try {
+    const customer = db.prepare(`
+      SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.color
+      FROM customers c JOIN shops s ON s.id = c.shop_id
+      WHERE c.id = ?
+    `).get(req.params.id);
+    if (!customer) return res.status(404).json({ error: 'Client introuvable' });
+    const { createApplePassBuffer } = require('./wallet');
+    const buffer = await createApplePassBuffer(customer);
+    res.set('Content-Type', 'application/vnd.apple.pkpass');
+    res.set('Content-Disposition', 'attachment; filename=fidelypass.pkpass');
+    res.send(buffer);
+  } catch (err) {
+    console.error('Apple Wallet error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─────────────────────────────────────────────
 // WEB PUSH
 // ─────────────────────────────────────────────
@@ -379,7 +398,7 @@ app.get('/card/:id', (req, res) => {
 
   let walletHtml = '';
   if (!isAndroid) {
-    walletHtml = '<p style="margin-top:16px;font-size:13px;color:#9ca3af">🍎 Apple Wallet bientôt disponible</p>';
+    walletHtml = '<a href="/api/customers/' + id + '/apple-wallet" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;background:#000;color:white;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none">🍎 Ajouter à Apple Wallet</a>';
   } else {
     walletHtml = '<div id="wallet-btn"><script>fetch("/api/customers/' + id + '/wallet").then(r=>r.json()).then(d=>{if(d.url){document.getElementById("wallet-btn").innerHTML=\'<a href="\'+d.url+\'" target="_blank"><img src="https://pay.google.com/about/static/sample-assets/pay-with-google/add-to-wallet-button.svg" style="width:200px;margin-top:8px" alt="Ajouter à Google Wallet"><\\/a>\';}});<\\/script></div>';
   }
@@ -520,7 +539,7 @@ if ('serviceWorker' in navigator && Notification.permission === 'granted') {
 });
 
 app.put('/api/shops/:id', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points } = req.body;
   try {
     const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
@@ -528,8 +547,8 @@ app.put('/api/shops/:id', async (req, res) => {
     if (password && password.trim() !== '') {
       newPassword = await bcrypt.hash(password, 10);
     }
-    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=? WHERE id=?`)
-      .run(name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || shop.email || null, req.params.id);
+    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=? WHERE id=?`)
+      .run(name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || shop.email || null, referral_bonus_points != null ? referral_bonus_points : (shop.referral_bonus_points || 10), req.params.id);
     res.json({ success: true });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });

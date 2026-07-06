@@ -23,6 +23,8 @@
     "jsonwebtoken": "^9.0.3",
     "qrcode": "^1.5.4",
     "stripe": "^22.3.0",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "passkit-generator": "^3.5.7",
+    "node-forge": "^1.4.0"
   }
 }
