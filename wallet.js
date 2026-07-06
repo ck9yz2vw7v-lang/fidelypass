@@ -135,6 +135,7 @@ async function createApplePassBuffer(customer) {
     passTypeIdentifier: 'pass.com.fidelypass.loyalty',
     teamIdentifier: teamId,
     organizationName: customer.shop_name || 'FidélyPass',
+    logoText: customer.shop_name || 'FidélyPass',
     serialNumber: 'fidelypass-' + customer.id,
     description: (customer.shop_name || 'FidélyPass') + ' - Carte de fidélité',
     backgroundColor: hexToRgb(customer.color),
