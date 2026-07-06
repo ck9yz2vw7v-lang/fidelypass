@@ -111,8 +111,13 @@ function getAppleCertificates() {
   }
   if (!certPem || !keyPem) throw new Error('Impossible d\'extraire le certificat/clé du fichier .p12');
 
+  const wwdrDer = Buffer.from(APPLE_WWDR_CERT_BASE64, 'base64');
+  const wwdrAsn1 = forge.asn1.fromDer(wwdrDer.toString('binary'));
+  const wwdrCert = forge.pki.certificateFromAsn1(wwdrAsn1);
+  const wwdrPem = forge.pki.certificateToPem(wwdrCert);
+
   _appleCertsCache = {
-    wwdr: Buffer.from(APPLE_WWDR_CERT_BASE64, 'base64'),
+    wwdr: Buffer.from(wwdrPem, 'utf-8'),
     signerCert: Buffer.from(certPem, 'utf-8'),
     signerKey: Buffer.from(keyPem, 'utf-8'),
   };
