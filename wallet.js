@@ -2,6 +2,7 @@ const { google } = require('googleapis');
 const jwt = require('jsonwebtoken');
 const { PKPass } = require('passkit-generator');
 const forge = require('node-forge');
+const { PNG } = require('pngjs');
 
 // Assets binaires encodés en base64 (icône + logo du pass Apple Wallet)
 const PASS_ASSETS = {
@@ -84,6 +85,32 @@ function hexToRgb(hex) {
   return `rgb(${r},${g},${b})`;
 }
 
+// Génère une bannière (strip) avec un léger dégradé dans la couleur de la boutique
+function generateStripPng(hex, width, height) {
+  hex = (hex || '#3b82f6').replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  const r = parseInt(hex.substring(0, 2), 16) || 59;
+  const g = parseInt(hex.substring(2, 4), 16) || 130;
+  const b = parseInt(hex.substring(4, 6), 16) || 246;
+
+  const png = new PNG({ width, height });
+  for (let y = 0; y < height; y++) {
+    const t = y / height; // 0 (haut, plus clair) -> 1 (bas, couleur d'origine)
+    const factor = 1 + (1 - t) * 0.18; // léger éclaircissement vers le haut
+    const rr = Math.min(255, Math.round(r * factor));
+    const gg = Math.min(255, Math.round(g * factor));
+    const bb = Math.min(255, Math.round(b * factor));
+    for (let x = 0; x < width; x++) {
+      const idx = (width * y + x) << 2;
+      png.data[idx] = rr;
+      png.data[idx + 1] = gg;
+      png.data[idx + 2] = bb;
+      png.data[idx + 3] = 255;
+    }
+  }
+  return PNG.sync.write(png);
+}
+
 // Extrait le certificat et la clé privée depuis le fichier .p12 (une seule fois, mis en cache)
 let _appleCertsCache = null;
 function getAppleCertificates() {
@@ -142,14 +169,14 @@ async function createApplePassBuffer(customer) {
     foregroundColor: 'rgb(255,255,255)',
     labelColor: 'rgb(255,255,255)',
     storeCard: {
+      headerFields: [
+        { key: 'goal', label: 'OBJECTIF', value: customer.points_goal + ' pts' }
+      ],
       primaryFields: [
-        { key: 'points', label: 'POINTS', value: customer.points }
+        { key: 'points', label: 'POINTS', value: customer.points + ' / ' + customer.points_goal }
       ],
       secondaryFields: [
         { key: 'name', label: 'CLIENT', value: customer.name }
-      ],
-      auxiliaryFields: [
-        { key: 'goal', label: 'OBJECTIF', value: customer.points_goal + ' pts' }
       ],
       backFields: [
         { key: 'reward', label: 'Récompense', value: customer.reward_text || 'Non définie' }
@@ -170,6 +197,9 @@ async function createApplePassBuffer(customer) {
     'logo.png': Buffer.from(PASS_ASSETS.logo, 'base64'),
     'logo@2x.png': Buffer.from(PASS_ASSETS.logo_2x, 'base64'),
     'logo@3x.png': Buffer.from(PASS_ASSETS.logo_3x, 'base64'),
+    'strip.png': generateStripPng(customer.color, 375, 123),
+    'strip@2x.png': generateStripPng(customer.color, 750, 246),
+    'strip@3x.png': generateStripPng(customer.color, 1125, 369),
   }, certificates);
 
   return pass.getAsBuffer();
