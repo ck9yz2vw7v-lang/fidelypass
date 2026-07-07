@@ -58,8 +58,11 @@ function deleteSession(token) {
 
 function requireShopAuth(req, res, next) {
   const token = req.headers['x-shop-token'];
-  const shopId = req.params.id || req.params.shop_id || req.body.shop_id;
-  if (!token || !sessions[token] || String(sessions[token]) !== String(shopId)) {
+  const sessionShopId = token ? sessions[token] : undefined;
+  const candidates = [req.params.shop_id, req.body && req.body.shop_id, req.params.id]
+    .filter(v => v !== undefined && v !== null);
+  const authorized = sessionShopId !== undefined && candidates.some(c => String(sessionShopId) === String(c));
+  if (!token || !authorized) {
     return res.status(403).json({ success: false, error: 'Non autorisé' });
   }
   next();
