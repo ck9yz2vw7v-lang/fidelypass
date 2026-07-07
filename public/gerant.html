@@ -378,6 +378,7 @@ function renderCustomersList(customers) {
       '<div class="customer-points" id="pts-display-' + c.id + '">' + c.points + ' pts</div>' +
       '<button class="btn-edit-pts" onclick="window.open(\'/card/' + c.id + '\',\'_blank\')" style="background:#6B21A8;color:white;margin-left:6px">📱</button>' +
       '<button class="btn-edit-pts" onclick="editPoints(' + c.id + ', ' + c.points + ')">✏️</button>' +
+      '<button class="btn-edit-pts" onclick="deleteCustomer(' + c.id + ')" style="background:#fee2e2;color:#dc2626">🗑️</button>' +
     '</div>';
   }).join('');
 }
@@ -386,6 +387,29 @@ function filterCustomers() {
   const q = document.getElementById('customer-search').value.trim().toLowerCase();
   if (!q) { renderCustomersList(allCustomers); return; }
   renderCustomersList(allCustomers.filter(c => c.name.toLowerCase().includes(q)));
+}
+
+async function deleteCustomer(customerId) {
+  const customer = allCustomers.find(c => c.id === customerId);
+  const customerName = customer ? customer.name : 'ce client';
+  if (!confirm('Supprimer définitivement ' + customerName + ' ? Son historique de points et de visites sera perdu. Cette action est irréversible.')) return;
+  try {
+    const res = await fetch('/api/customers/' + customerId, {
+      method: 'DELETE',
+      headers: {'Content-Type':'application/json', 'x-shop-token': shopToken},
+      body: JSON.stringify({ shop_id: currentShop.id })
+    });
+    const data = await res.json();
+    if (data.success) {
+      allCustomers = allCustomers.filter(c => c.id !== customerId);
+      filterCustomers();
+      loadStats();
+    } else {
+      alert('❌ ' + (data.error || 'Erreur lors de la suppression'));
+    }
+  } catch (e) {
+    alert('❌ Erreur réseau');
+  }
 }
 
 function editPoints(customerId, currentPoints) {

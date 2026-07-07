@@ -216,6 +216,16 @@ app.put('/api/customers/:id/points', requireShopAuth, (req, res) => {
   res.json({ success: true });
 });
 
+app.delete('/api/customers/:id', requireShopAuth, (req, res) => {
+  const { shop_id } = req.body;
+  const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(req.params.id, shop_id);
+  if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
+  db.prepare('DELETE FROM scans WHERE customer_id = ?').run(req.params.id);
+  db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ?').run(req.params.id);
+  db.prepare('DELETE FROM customers WHERE id = ?').run(req.params.id);
+  res.json({ success: true });
+});
+
 app.post('/api/scan', requireShopAuth, async (req, res) => {
   const { customer_id, shop_id, amount } = req.body;
   const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
