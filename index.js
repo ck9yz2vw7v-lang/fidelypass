@@ -97,6 +97,9 @@ try {
 try {
   db.prepare("ALTER TABLE shops ADD COLUMN email TEXT").run();
 } catch(e) {}
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN payment_exempt INTEGER DEFAULT 0").run();
+} catch(e) {}
 
 // ─────────────────────────────────────────────
 // ROUTES EXISTANTES
@@ -135,7 +138,7 @@ app.post('/api/shops/login', loginLimiter, async (req, res) => {
   }
 
   if (!valid) return res.status(401).json({ success: false, error: 'Identifiants incorrects' });
-  if (shop.active === 0) return res.status(403).json({ success: false, error: 'Boutique suspendue — paiement en attente' });
+  if (shop.active === 0 && shop.payment_exempt !== 1) return res.status(403).json({ success: false, error: 'Boutique suspendue — paiement en attente' });
 
   const token = generateToken();
   saveSession(token, shop.id);
@@ -689,6 +692,21 @@ app.post('/api/admin/unsubscribe', requireAdmin, (req, res) => {
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
   }
+});
+
+app.post('/api/admin/shops/:id/toggle-exempt', requireAdmin, (req, res) => {
+  try {
+    const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+    if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
+    const newExempt = shop.payment_exempt === 1 ? 0 : 1;
+    // Quand on exempte une boutique, on la réactive aussi immédiatement
+    if (newExempt === 1) {
+      db.prepare('UPDATE shops SET payment_exempt = 1, active = 1 WHERE id = ?').run(shop.id);
+    } else {
+      db.prepare('UPDATE shops SET payment_exempt = 0 WHERE id = ?').run(shop.id);
+    }
+    res.json({ success: true, payment_exempt: newExempt });
+  } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
 app.get('/api/admin/shops/:id/stats', requireAdmin, (req, res) => {
