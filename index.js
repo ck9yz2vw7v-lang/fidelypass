@@ -571,6 +571,12 @@ app.put('/api/shops/:id', async (req, res) => {
 
 app.delete('/api/shops/:id', (req, res) => {
   try {
+    const customerIds = db.prepare('SELECT id FROM customers WHERE shop_id = ?').all(req.params.id).map(c => c.id);
+    if (customerIds.length) {
+      const placeholders = customerIds.map(() => '?').join(',');
+      db.prepare(`DELETE FROM push_subscriptions WHERE customer_id IN (${placeholders})`).run(...customerIds);
+    }
+    db.prepare('DELETE FROM sessions_store WHERE shop_id = ?').run(req.params.id);
     db.prepare('DELETE FROM scans WHERE shop_id = ?').run(req.params.id);
     db.prepare('DELETE FROM customers WHERE shop_id = ?').run(req.params.id);
     db.prepare('DELETE FROM shops WHERE id = ?').run(req.params.id);
