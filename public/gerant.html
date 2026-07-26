@@ -239,7 +239,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
     <div class="amount-label">Montant de la commande</div>
     <div class="amount-input-wrap">
       <input class="amount-input" type="number" id="amount-input" placeholder="0" min="0" step="0.01">
-      <span class="amount-euro">€</span>
+      <span class="amount-euro" id="amount-currency-symbol">€</span>
     </div>
     <div class="amount-hint" id="amount-hint">1€ = 1 point</div>
     <button class="btn-validate" onclick="validateAmount()">✓ Valider et créditer les points</button>
@@ -275,6 +275,13 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 
 <script>
 let currentShop = null;
+
+function currencySymbol(code) {
+  return { EUR: '€', CHF: 'CHF', XOF: 'CFA' }[code] || '€';
+}
+function currencyWord(code) {
+  return { EUR: 'euro', CHF: 'franc suisse', XOF: 'franc CFA' }[code] || 'euro';
+}
 let shopToken = null;
 let html5QrCode = null;
 let scanLocked = false;
@@ -470,7 +477,8 @@ async function onQRDetected(qrData) {
   document.getElementById('amount-client-name').textContent = data.name;
   document.getElementById('amount-client-sub').textContent  = data.points + ' pts actuellement';
   const ratio = currentShop.points_per_euro || 1;
-  document.getElementById('amount-hint').textContent = ratio + ' pt' + (ratio > 1 ? 's' : '') + ' par euro dépensé';
+  document.getElementById('amount-currency-symbol').textContent = currencySymbol(currentShop.currency);
+  document.getElementById('amount-hint').textContent = ratio + ' pt' + (ratio > 1 ? 's' : '') + ' par ' + currencyWord(currentShop.currency) + ' dépensé';
   document.getElementById('amount-input').value = '';
   showScreen('amount');
 }
@@ -502,7 +510,7 @@ async function validateAmount() {
     } else {
       document.getElementById('result-icon').textContent = '✓';
       document.getElementById('result-icon').classList.remove('reward');
-      document.getElementById('result-sub').textContent          = '+' + data.points_added + ' points pour ' + amount.toFixed(2) + '€';
+      document.getElementById('result-sub').textContent          = '+' + data.points_added + ' points pour ' + amount.toFixed(2) + currencySymbol(currentShop.currency);
       document.getElementById('reward-banner').style.display     = 'none';
       document.getElementById('progress-section').style.display  = 'block';
       document.getElementById('btn-reward').style.display        = 'none';

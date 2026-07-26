@@ -100,6 +100,12 @@ try {
 try {
   db.prepare("ALTER TABLE shops ADD COLUMN payment_exempt INTEGER DEFAULT 0").run();
 } catch(e) {}
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN waive_setup_fee INTEGER DEFAULT 0").run();
+} catch(e) {}
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN currency TEXT DEFAULT 'EUR'").run();
+} catch(e) {}
 
 // ─────────────────────────────────────────────
 // ROUTES EXISTANTES
@@ -108,11 +114,11 @@ try {
 app.get('/api/test', (req, res) => res.json({ message: 'FidélyPass fonctionne !' }));
 
 app.post('/api/shops', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
-    const result = stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10);
+    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
+    const result = stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR');
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -555,7 +561,7 @@ if ('serviceWorker' in navigator && Notification.permission === 'granted') {
 });
 
 app.put('/api/shops/:id', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency } = req.body;
   try {
     const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
@@ -563,8 +569,8 @@ app.put('/api/shops/:id', async (req, res) => {
     if (password && password.trim() !== '') {
       newPassword = await bcrypt.hash(password, 10);
     }
-    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=? WHERE id=?`)
-      .run(name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || shop.email || null, referral_bonus_points != null ? referral_bonus_points : (shop.referral_bonus_points || 10), req.params.id);
+    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=? WHERE id=?`)
+      .run(name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || shop.email || null, referral_bonus_points != null ? referral_bonus_points : (shop.referral_bonus_points || 10), currency || shop.currency || 'EUR', req.params.id);
     res.json({ success: true });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -715,6 +721,16 @@ app.post('/api/admin/shops/:id/toggle-exempt', requireAdmin, (req, res) => {
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
+app.post('/api/admin/shops/:id/toggle-setup-fee', requireAdmin, (req, res) => {
+  try {
+    const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+    if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
+    const newWaive = shop.waive_setup_fee === 1 ? 0 : 1;
+    db.prepare('UPDATE shops SET waive_setup_fee = ? WHERE id = ?').run(newWaive, shop.id);
+    res.json({ success: true, waive_setup_fee: newWaive });
+  } catch (err) { res.status(400).json({ success: false, error: err.message }); }
+});
+
 app.get('/api/admin/shops/:id/stats', requireAdmin, (req, res) => {
   const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
   const customers = db.prepare('SELECT COUNT(*) as count FROM customers WHERE shop_id = ?').get(req.params.id);
@@ -748,29 +764,32 @@ app.post('/api/shops/:id/create-payment', requireAdmin, async (req, res) => {
       db.prepare('UPDATE shops SET stripe_customer_id = ?, email = ? WHERE id = ?').run(stripeCustomerId, email, shop.id);
     }
 
-    // Créer session Stripe Checkout : 80€ installation + 29€/mois abonnement
+    // Créer session Stripe Checkout : 80€ installation (sauf si exemptée) + abonnement mensuel
+    const lineItems = [];
+    if (shop.waive_setup_fee !== 1) {
+      lineItems.push({
+        price_data: {
+          currency: 'eur',
+          product_data: { name: 'Installation FidélyPass — ' + shop.name },
+          unit_amount: 8000, // 80€
+        },
+        quantity: 1,
+      });
+    }
+    lineItems.push({
+      price_data: {
+        currency: 'eur',
+        product_data: { name: 'Abonnement FidélyPass mensuel' + (isMulti ? ' (tarif multi-boutiques)' : '') },
+        unit_amount: monthlyPrice,
+        recurring: { interval: 'month' },
+      },
+      quantity: 1,
+    });
+
     const session = await getStripe().checkout.sessions.create({
       customer: stripeCustomerId,
       payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: { name: 'Installation FidélyPass — ' + shop.name },
-            unit_amount: 8000, // 80€
-          },
-          quantity: 1,
-        },
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: { name: 'Abonnement FidélyPass mensuel' + (isMulti ? ' (tarif multi-boutiques)' : '') },
-            unit_amount: monthlyPrice,
-            recurring: { interval: 'month' },
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       mode: 'subscription',
       success_url: 'https://fidelypass-production.up.railway.app/admin?payment=success',
       cancel_url: 'https://fidelypass-production.up.railway.app/admin?payment=cancel',
