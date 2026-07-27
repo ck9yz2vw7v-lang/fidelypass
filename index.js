@@ -164,6 +164,11 @@ function parseDataUrl(dataUrl) {
   return { mime: match[1], base64: match[2] };
 }
 
+// URL publique du logo d'une boutique, à utiliser comme icône de notification (undefined si pas de logo -> l'icône FidélyPass par défaut du service worker sera utilisée)
+function shopIconUrl(logoBase64, shopId) {
+  return logoBase64 ? 'https://fidelypass-production.up.railway.app/shops/' + shopId + '/logo-file' : undefined;
+}
+
 function ensurePassAuthToken(customerId) {
   const customer = db.prepare('SELECT pass_auth_token FROM customers WHERE id = ?').get(customerId);
   if (customer && customer.pass_auth_token) return customer.pass_auth_token;
@@ -283,7 +288,8 @@ app.post('/api/customers', async (req, res) => {
         const payload = JSON.stringify({
           title: `🎉 ${shop.name}`,
           body: `${name} a rejoint grâce à vous ! +${bonus} points offerts 🎁`,
-          url: '/card/' + referrer.id
+          url: '/card/' + referrer.id,
+          icon: shopIconUrl(shop.logo_base64, shop.id)
         });
         for (const sub of subs) {
           webpush.sendNotification(
@@ -361,13 +367,14 @@ app.post('/api/scan', requireShopAuth, async (req, res) => {
       const body = shop.google_review_url
         ? `Vous avez débloqué : ${shop.reward_text} 🎁 Laissez un avis pour le récupérer !`
         : `Vous avez débloqué : ${shop.reward_text} 🎁 Montrez cet écran au gérant !`;
-      payload = JSON.stringify({ title: `🎉 ${shop.name}`, body, url: '/card/' + customer_id });
+      payload = JSON.stringify({ title: `🎉 ${shop.name}`, body, url: '/card/' + customer_id, icon: shopIconUrl(shop.logo_base64, shop.id) });
     } else {
       const remaining = shop.points_goal - newPoints;
       payload = JSON.stringify({
         title: `🎯 ${shop.name}`,
         body: `Vous avez ${newPoints} points sur ${shop.points_goal}. Encore ${remaining} pts pour : ${shop.reward_text} 🎁`,
-        url: '/card/' + customer_id
+        url: '/card/' + customer_id,
+        icon: shopIconUrl(shop.logo_base64, shop.id)
       });
     }
     for (const sub of subs) {
@@ -594,7 +601,7 @@ app.post('/api/shops/:id/notify', requireShopAuth, async (req, res) => {
     WHERE c.shop_id = ?
   `).all(req.params.id);
 
-  const payload = JSON.stringify({ title: shop.name, body: message.trim() });
+  const payload = JSON.stringify({ title: shop.name, body: message.trim(), icon: shopIconUrl(shop.logo_base64, shop.id) });
   let sent = 0, failed = 0;
 
   for (const sub of subs) {
@@ -1180,7 +1187,7 @@ async function checkInactiveCustomers() {
   if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
   try {
     const inactive = db.prepare(`
-      SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal
+      SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.logo_base64
       FROM customers c JOIN shops s ON s.id = c.shop_id
       WHERE c.last_visit IS NOT NULL
         AND julianday('now') - julianday(c.last_visit) >= 30
@@ -1193,7 +1200,8 @@ async function checkInactiveCustomers() {
       const payload = JSON.stringify({
         title: `👋 ${customer.shop_name}`,
         body: `On ne vous a pas vu depuis 30 jours ! Il vous reste ${customer.points}/${customer.points_goal} points pour : ${customer.reward_text} 🎁`,
-        url: '/card/' + customer.id
+        url: '/card/' + customer.id,
+        icon: shopIconUrl(customer.logo_base64, customer.shop_id)
       });
       for (const sub of subs) {
         webpush.sendNotification(
