@@ -101,6 +101,8 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .customer-info{flex:1;min-width:0}
 .customer-name{font-size:15px;font-weight:700;color:#1a1a1a}
 .customer-meta{font-size:12px;color:#9ca3af}
+.customer-gauge-wrap{width:100%;height:5px;background:#1e293b;border-radius:3px;margin-top:6px;overflow:hidden}
+.customer-gauge-fill{height:100%;border-radius:3px;transition:width 0.3s}
 .customer-points{font-size:18px;font-weight:800;color:#3b82f6;white-space:nowrap}
 .empty-list{text-align:center;color:#9ca3af;font-size:14px;padding:40px 20px}
 .btn-edit-pts{background:#f3f4f6;border:none;border-radius:8px;width:32px;height:32px;font-size:14px;cursor:pointer;flex-shrink:0;margin-left:6px}
@@ -368,19 +370,36 @@ async function showCustomersList() {
   renderCustomersList(allCustomers);
 }
 
+function gaugeColorForRatio(ratio) {
+  ratio = Math.max(0, Math.min(1, ratio));
+  const yellow = [234, 179, 8], orange = [249, 115, 22], red = [220, 38, 38];
+  let a, b, t;
+  if (ratio <= 0.5) { a = yellow; b = orange; t = ratio / 0.5; }
+  else { a = orange; b = red; t = (ratio - 0.5) / 0.5; }
+  const r = Math.round(a[0] + (b[0] - a[0]) * t);
+  const g = Math.round(a[1] + (b[1] - a[1]) * t);
+  const bl = Math.round(a[2] + (b[2] - a[2]) * t);
+  return 'rgb(' + r + ',' + g + ',' + bl + ')';
+}
+
 function renderCustomersList(customers) {
   const listEl = document.getElementById('customers-list');
   if (!customers.length) {
     listEl.innerHTML = '<div class="empty-list">Aucun client trouvé</div>';
     return;
   }
+  const goal = (currentShop && currentShop.points_goal) || 100;
   listEl.innerHTML = customers.map(c => {
     const initials = c.name.slice(0,2).toUpperCase();
+    const ratio = goal > 0 ? c.points / goal : 0;
+    const gaugeColor = gaugeColorForRatio(ratio);
+    const gaugeWidth = Math.max(0, Math.min(100, ratio * 100));
     return '<div class="customer-row" id="row-' + c.id + '">' +
       '<div class="customer-avatar">' + initials + '</div>' +
       '<div class="customer-info">' +
         '<div class="customer-name">' + c.name + '</div>' +
         '<div class="customer-meta">' + (c.total_visits || 0) + ' visite' + ((c.total_visits || 0) > 1 ? 's' : '') + '</div>' +
+        '<div class="customer-gauge-wrap"><div class="customer-gauge-fill" style="width:' + gaugeWidth + '%;background:' + gaugeColor + '"></div></div>' +
       '</div>' +
       '<div class="customer-points" id="pts-display-' + c.id + '">' + c.points + ' pts</div>' +
       '<button class="btn-edit-pts" onclick="window.open(\'/card/' + c.id + '\',\'_blank\')" style="background:#6B21A8;color:white;margin-left:6px">📱</button>' +
