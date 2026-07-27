@@ -28,6 +28,50 @@ function getCredentials() {
   return JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
 }
 
+function normalizeHexColor(hex) {
+  hex = (hex || '#3b82f6').replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  return '#' + hex.padEnd(6, '0').slice(0, 6);
+}
+
+// Crée (ou met à jour) une classe Google Wallet propre à CETTE boutique — nom, couleur, logo,
+// lien menu — pour que la carte Google ressemble à la carte Apple au lieu d'être générique.
+// Note : une classe nouvellement créée passe par une revue de Google avant d'être pleinement
+// publique ; elle reste utilisable pour les tests avec le même compte émetteur entre-temps.
+async function ensureShopLoyaltyClass(customer) {
+  const classId = `${ISSUER_ID}.fidelypass_shop_${customer.shop_id}`;
+
+  const classResource = {
+    id: classId,
+    issuerName: 'FidélyPass',
+    programName: customer.shop_name || 'FidélyPass',
+    reviewStatus: 'UNDER_REVIEW',
+    hexBackgroundColor: normalizeHexColor(customer.color),
+  };
+
+  if (customer.logo_base64) {
+    classResource.programLogo = {
+      sourceUri: { uri: `https://fidelypass-production.up.railway.app/shops/${customer.shop_id}/logo-file` },
+      contentDescription: { defaultValue: { language: 'fr', value: customer.shop_name || 'FidélyPass' } },
+    };
+  }
+  if (customer.menu_url) {
+    classResource.homepageUri = {
+      uri: customer.menu_url,
+      description: 'Notre menu',
+    };
+  }
+
+  try {
+    await google.walletobjects('v1').loyaltyclass.get({ resourceId: classId });
+    await google.walletobjects('v1').loyaltyclass.patch({ resourceId: classId, requestBody: classResource });
+  } catch (e) {
+    await google.walletobjects('v1').loyaltyclass.insert({ requestBody: classResource });
+  }
+
+  return classId;
+}
+
 async function createWalletPass(customer) {
   const credentials = getCredentials();
   const auth = new google.auth.GoogleAuth({
@@ -38,23 +82,36 @@ async function createWalletPass(customer) {
   const client = await auth.getClient();
   google.options({ auth: client });
 
+  const classId = await ensureShopLoyaltyClass(customer);
   const objectId = `${ISSUER_ID}.fidelypass_${customer.id}`;
+  const remaining = Math.max(0, (customer.points_goal || 0) - (customer.points || 0));
+
+  const textModulesData = [
+    { id: 'reward', header: 'Récompense', body: customer.reward_text || 'Non définie' },
+    { id: 'remaining', header: 'Restant', body: remaining + ' pts' },
+  ];
+
+  const linksModuleData = { uris: [] };
+  if (customer.menu_url) linksModuleData.uris.push({ uri: customer.menu_url, description: '📋 Notre menu' });
+  if (customer.google_review_url) linksModuleData.uris.push({ uri: customer.google_review_url, description: '⭐ Laisser un avis' });
 
   const loyaltyObject = {
     id: objectId,
-    classId: `${ISSUER_ID}.${CLASS_ID}`,
+    classId,
     state: 'ACTIVE',
     accountId: String(customer.id),
     accountName: customer.name,
     loyaltyPoints: {
-      label: 'Points',
+      label: 'Points sur ' + (customer.points_goal || 0),
       balance: { int: customer.points || 0 },
     },
+    textModulesData,
     barcode: {
       type: 'QR_CODE',
       value: `https://fidelypass-production.up.railway.app/card/${customer.id}`,
     },
   };
+  if (linksModuleData.uris.length) loyaltyObject.linksModuleData = linksModuleData;
 
   try {
     await google.walletobjects('v1').loyaltyobject.get({ resourceId: objectId });

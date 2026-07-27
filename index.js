@@ -399,8 +399,15 @@ app.get('/api/customers/:id/qr', async (req, res) => {
 
 app.get('/api/customers/:id/wallet', async (req, res) => {
   try {
-    const customer = db.prepare('SELECT * FROM customers WHERE id = ?').get(req.params.id);
+    const customer = db.prepare(`
+      SELECT c.*, s.id as shop_id, s.name as shop_name, s.reward_text, s.points_goal, s.color,
+             s.menu_url, s.google_review_url, s.logo_base64,
+             (s.menu_file_base64 IS NOT NULL) as has_menu_file
+      FROM customers c JOIN shops s ON s.id = c.shop_id
+      WHERE c.id = ?
+    `).get(req.params.id);
     if (!customer) return res.status(404).json({ error: 'Client introuvable' });
+    if (customer.has_menu_file) customer.menu_url = 'https://fidelypass-production.up.railway.app/shops/' + customer.shop_id + '/menu-file';
     const { createWalletPass } = require('./wallet');
     const url = await createWalletPass(customer);
     res.json({ url });
@@ -803,6 +810,18 @@ app.delete('/api/shops/:id', (req, res) => {
     db.prepare('DELETE FROM shops WHERE id = ?').run(req.params.id);
     res.json({ success: true });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
+});
+
+// Sert le logo de la boutique en tant que vraie image accessible publiquement (nécessaire pour
+// Google Wallet, qui exige une URL et n'accepte pas une image encodée en base64 directement)
+app.get('/shops/:id/logo-file', (req, res) => {
+  const shop = db.prepare('SELECT logo_base64 FROM shops WHERE id = ?').get(req.params.id);
+  if (!shop || !shop.logo_base64) return res.status(404).send('Aucun logo disponible');
+  const match = String(shop.logo_base64).match(/^data:([^;]+);base64,(.+)$/);
+  const mime = match ? match[1] : 'image/png';
+  const raw = match ? match[2] : shop.logo_base64;
+  res.set('Content-Type', mime);
+  res.send(Buffer.from(raw, 'base64'));
 });
 
 // Sert le fichier menu (image ou PDF) uploadé par la boutique, affiché inline dans le navigateur
