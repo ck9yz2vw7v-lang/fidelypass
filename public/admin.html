@@ -118,6 +118,25 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>Couleur carte</label><input type="color" id="color" value="#b45309"></div>
       <div class="form-group form-full"><label>Récompense offerte</label><input type="text" id="reward_text" placeholder="Ex: 1 sandwich offert"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis (optionnel)</label><input type="url" id="google_review_url" placeholder="https://g.page/r/..."></div>
+      <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="menu_url" placeholder="https://..."></div>
+      <div class="form-group form-full">
+        <label>📄 Ou fichier menu — image/PDF (optionnel, prioritaire sur le lien)</label>
+        <input type="file" id="menu_file" accept="image/png,image/jpeg,image/webp,application/pdf">
+        <div id="menu-file-preview-wrap" style="display:none;margin-top:8px;font-size:13px;color:#94a3b8">
+          📎 <span id="menu-file-preview-name"></span>
+          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearMenuFileInput()">Retirer</button>
+        </div>
+      </div>
+      <div class="form-group"><label>📍 Latitude (optionnel)</label><input type="text" id="latitude" placeholder="Ex: 45.7640"></div>
+      <div class="form-group"><label>📍 Longitude (optionnel)</label><input type="text" id="longitude" placeholder="Ex: 4.8357"></div>
+      <div class="form-group form-full">
+        <label>🖼️ Logo de la boutique (PNG, optionnel)</label>
+        <input type="file" id="logo_file" accept="image/png">
+        <div id="logo-preview-wrap" style="display:none;margin-top:8px">
+          <img id="logo-preview" style="max-height:60px;border-radius:8px;background:#0f172a;padding:6px">
+          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearLogoInput()">Retirer</button>
+        </div>
+      </div>
       <div class="form-full"><button class="btn btn-primary" onclick="createShop()">Créer la boutique</button></div>
     </div>
   </div>
@@ -150,6 +169,25 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
+      <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="edit-menu-url" placeholder="https://..."></div>
+      <div class="form-group form-full">
+        <label>📄 Ou fichier menu — image/PDF (optionnel, prioritaire sur le lien)</label>
+        <input type="file" id="edit-menu-file" accept="image/png,image/jpeg,image/webp,application/pdf">
+        <div id="edit-menu-file-preview-wrap" style="display:none;margin-top:8px;font-size:13px;color:#94a3b8">
+          📎 <span id="edit-menu-file-preview-name"></span>
+          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearEditMenuFileInput()">Retirer</button>
+        </div>
+      </div>
+      <div class="form-group"><label>📍 Latitude (optionnel)</label><input type="text" id="edit-latitude" placeholder="Ex: 45.7640"></div>
+      <div class="form-group"><label>📍 Longitude (optionnel)</label><input type="text" id="edit-longitude" placeholder="Ex: 4.8357"></div>
+      <div class="form-group form-full">
+        <label>🖼️ Logo de la boutique (PNG, optionnel)</label>
+        <input type="file" id="edit-logo-file" accept="image/png">
+        <div id="edit-logo-preview-wrap" style="display:none;margin-top:8px">
+          <img id="edit-logo-preview" style="max-height:60px;border-radius:8px;background:#0f172a;padding:6px">
+          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearEditLogoInput()">Retirer</button>
+        </div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal('modal-edit')">Annuler</button>
@@ -278,8 +316,8 @@ async function loadShops() {
     <div class="shop-item">
       <div class="shop-item-top">
         <div>
-          <div class="shop-name">${s.name}</div>
-          <div class="shop-meta">Slug: ${s.slug} · ${s.points_per_euro || 1} pts/${currencySymbol(s.currency)} · Objectif: ${s.points_goal} pts · 🎁 ${s.reward_text}${s.google_review_url ? ' · ⭐ Avis Google configuré' : ''}</div>
+          <div class="shop-name">${s.has_logo ? `<span style="display:inline-block;width:20px;height:20px;vertical-align:middle;border-radius:4px;margin-right:6px;background:#334155;text-align:center;line-height:20px;font-size:11px">🖼️</span>` : ''}${s.name}</div>
+          <div class="shop-meta">Slug: ${s.slug} · ${s.points_per_euro || 1} pts/${currencySymbol(s.currency)} · Objectif: ${s.points_goal} pts · 🎁 ${s.reward_text}${s.google_review_url ? ' · ⭐ Avis Google configuré' : ''}${(s.menu_url || s.has_menu_file) ? ' · 📋 Menu configuré' : ''}</div>
         </div>
         <div class="shop-actions">
           <span class="badge ${s.active === 0 ? 'badge-inactive' : ''}">${s.active === 0 ? 'Suspendu' : 'Actif'}</span>
@@ -290,7 +328,7 @@ async function loadShops() {
           <button class="btn-sm btn-stripe" onclick="openStripe(${s.id}, '${(s.email||'').replace(/'/g,"\\'")}')">💳 Paiement</button>
           <button class="btn-sm btn-view" onclick="window.open('/gerant.html?shop=${s.slug}','_blank')">Vue gérant</button>
           <button class="btn-sm btn-qr" onclick="showQR('${s.slug}','${s.name}',${s.id})">QR Comptoir</button>
-          <button class="btn-sm btn-edit" onclick="openEdit(${JSON.stringify(s).replace(/"/g,'&quot;')})">Modifier</button>
+          <button class="btn-sm btn-edit" onclick="openEdit(${s.id})">Modifier</button>
           <button class="btn-sm btn-delete" onclick="openDelete(${s.id}, '${s.name.replace(/'/g,"\\'")}')">Supprimer</button>
         </div>
       </div>
@@ -321,6 +359,56 @@ async function loadShops() {
   document.getElementById('total-scans').textContent = grandTotalScans;
 }
 
+let pendingLogoBase64Create = null;
+
+document.getElementById('logo_file').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) { pendingLogoBase64Create = null; document.getElementById('logo-preview-wrap').style.display = 'none'; return; }
+  if (file.size > 2 * 1024 * 1024) {
+    alert('❌ Ce logo est trop lourd (max 2 Mo). Choisis une image plus légère.');
+    e.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    pendingLogoBase64Create = ev.target.result;
+    document.getElementById('logo-preview').src = pendingLogoBase64Create;
+    document.getElementById('logo-preview-wrap').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
+function clearLogoInput() {
+  pendingLogoBase64Create = null;
+  document.getElementById('logo_file').value = '';
+  document.getElementById('logo-preview-wrap').style.display = 'none';
+}
+
+let pendingMenuFileBase64Create = null;
+
+document.getElementById('menu_file').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) { pendingMenuFileBase64Create = null; document.getElementById('menu-file-preview-wrap').style.display = 'none'; return; }
+  if (file.size > 8 * 1024 * 1024) {
+    alert('❌ Ce fichier est trop lourd (max 8 Mo). Choisis un fichier plus léger.');
+    e.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    pendingMenuFileBase64Create = ev.target.result;
+    document.getElementById('menu-file-preview-name').textContent = file.name;
+    document.getElementById('menu-file-preview-wrap').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
+function clearMenuFileInput() {
+  pendingMenuFileBase64Create = null;
+  document.getElementById('menu_file').value = '';
+  document.getElementById('menu-file-preview-wrap').style.display = 'none';
+}
+
 async function createShop() {
   const data = {
     name:               document.getElementById('name').value,
@@ -333,14 +421,21 @@ async function createShop() {
     referral_bonus_points: parseInt(document.getElementById('referral_bonus_points').value),
     color:              document.getElementById('color').value,
     reward_text:        document.getElementById('reward_text').value,
-    google_review_url:  document.getElementById('google_review_url').value || null
+    google_review_url:  document.getElementById('google_review_url').value || null,
+    menu_url:           document.getElementById('menu_url').value || null,
+    latitude:           document.getElementById('latitude').value || null,
+    longitude:          document.getElementById('longitude').value || null,
+    logo_base64:        pendingLogoBase64Create,
+    menu_file_base64:   pendingMenuFileBase64Create
   };
   const res    = await fetch('/api/shops', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
   const result = await res.json();
   if (result.success) {
     document.getElementById('success-msg').style.display = 'block';
     setTimeout(() => document.getElementById('success-msg').style.display = 'none', 3000);
-    ['name','slug','password','email','reward_text','google_review_url'].forEach(id => document.getElementById(id).value = '');
+    ['name','slug','password','email','reward_text','google_review_url','menu_url','latitude','longitude'].forEach(id => document.getElementById(id).value = '');
+    clearLogoInput();
+    clearMenuFileInput();
     loadShops();
   } else {
     const err = document.getElementById('error-msg');
@@ -470,16 +565,94 @@ function resetEditModal() {
       <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
+      <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="edit-menu-url" placeholder="https://..."></div>
+      <div class="form-group form-full">
+        <label>📄 Ou fichier menu — image/PDF (optionnel, prioritaire sur le lien)</label>
+        <input type="file" id="edit-menu-file" accept="image/png,image/jpeg,image/webp,application/pdf">
+        <div id="edit-menu-file-preview-wrap" style="display:none;margin-top:8px;font-size:13px;color:#94a3b8">
+          📎 <span id="edit-menu-file-preview-name"></span>
+          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearEditMenuFileInput()">Retirer</button>
+        </div>
+      </div>
+      <div class="form-group"><label>📍 Latitude (optionnel)</label><input type="text" id="edit-latitude" placeholder="Ex: 45.7640"></div>
+      <div class="form-group"><label>📍 Longitude (optionnel)</label><input type="text" id="edit-longitude" placeholder="Ex: 4.8357"></div>
+      <div class="form-group form-full">
+        <label>🖼️ Logo de la boutique (PNG, optionnel)</label>
+        <input type="file" id="edit-logo-file" accept="image/png">
+        <div id="edit-logo-preview-wrap" style="display:none;margin-top:8px">
+          <img id="edit-logo-preview" style="max-height:60px;border-radius:8px;background:#0f172a;padding:6px">
+          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearEditLogoInput()">Retirer</button>
+        </div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal('modal-edit')">Annuler</button>
       <button class="btn btn-primary" onclick="saveEdit()">Enregistrer</button>
     </div>
   `;
+  attachEditLogoListener();
 }
 
-function openEdit(shop) {
+let editLogoBase64; // undefined = pas de changement, '' = suppression explicite, dataURL = nouveau logo
+let editMenuFileBase64; // undefined = pas de changement, '' = suppression explicite, dataURL = nouveau fichier
+
+function attachEditLogoListener() {
+  const input = document.getElementById('edit-logo-file');
+  if (!input) return;
+  input.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert('❌ Ce logo est trop lourd (max 2 Mo). Choisis une image plus légère.');
+      e.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      editLogoBase64 = ev.target.result;
+      document.getElementById('edit-logo-preview').src = editLogoBase64;
+      document.getElementById('edit-logo-preview-wrap').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  const menuInput = document.getElementById('edit-menu-file');
+  if (!menuInput) return;
+  menuInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) {
+      alert('❌ Ce fichier est trop lourd (max 8 Mo). Choisis un fichier plus léger.');
+      e.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      editMenuFileBase64 = ev.target.result;
+      document.getElementById('edit-menu-file-preview-name').textContent = file.name;
+      document.getElementById('edit-menu-file-preview-wrap').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function clearEditLogoInput() {
+  editLogoBase64 = '';
+  document.getElementById('edit-logo-file').value = '';
+  document.getElementById('edit-logo-preview-wrap').style.display = 'none';
+}
+
+function clearEditMenuFileInput() {
+  editMenuFileBase64 = '';
+  document.getElementById('edit-menu-file').value = '';
+  document.getElementById('edit-menu-file-preview-wrap').style.display = 'none';
+}
+
+async function openEdit(shopId) {
   resetEditModal();
+  editLogoBase64 = undefined;
+  editMenuFileBase64 = undefined;
+  const shop = await (await fetch('/api/admin/shops/' + shopId + '/full')).json();
   document.getElementById('edit-id').value              = shop.id;
   document.getElementById('edit-name').value            = shop.name;
   document.getElementById('edit-slug').value            = shop.slug;
@@ -491,6 +664,17 @@ function openEdit(shop) {
   document.getElementById('edit-color').value           = shop.color;
   document.getElementById('edit-reward').value          = shop.reward_text;
   document.getElementById('edit-google-review').value   = shop.google_review_url || '';
+  document.getElementById('edit-menu-url').value        = shop.menu_url || '';
+  document.getElementById('edit-latitude').value        = shop.latitude != null ? shop.latitude : '';
+  document.getElementById('edit-longitude').value       = shop.longitude != null ? shop.longitude : '';
+  if (shop.logo_base64) {
+    document.getElementById('edit-logo-preview').src = shop.logo_base64;
+    document.getElementById('edit-logo-preview-wrap').style.display = 'block';
+  }
+  if (shop.menu_file_base64) {
+    document.getElementById('edit-menu-file-preview-name').textContent = 'Fichier déjà configuré (' + (shop.menu_file_type || 'fichier') + ')';
+    document.getElementById('edit-menu-file-preview-wrap').style.display = 'block';
+  }
   document.getElementById('modal-edit').classList.add('show');
 }
 
@@ -506,7 +690,12 @@ async function saveEdit() {
     referral_bonus_points: parseInt(document.getElementById('edit-referral-bonus').value),
     color:                 document.getElementById('edit-color').value,
     reward_text:           document.getElementById('edit-reward').value,
-    google_review_url:     document.getElementById('edit-google-review').value || null
+    google_review_url:     document.getElementById('edit-google-review').value || null,
+    menu_url:              document.getElementById('edit-menu-url').value || null,
+    latitude:              document.getElementById('edit-latitude').value || null,
+    longitude:             document.getElementById('edit-longitude').value || null,
+    logo_base64:           editLogoBase64,
+    menu_file_base64:      editMenuFileBase64
   };
   const res = await fetch('/api/shops/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
   const result = await res.json();

@@ -113,6 +113,12 @@ try {
   db.prepare("ALTER TABLE shops ADD COLUMN menu_url TEXT").run();
 } catch(e) {}
 try {
+  db.prepare("ALTER TABLE shops ADD COLUMN menu_file_base64 TEXT").run();
+} catch(e) {}
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN menu_file_type TEXT").run();
+} catch(e) {}
+try {
   db.prepare("ALTER TABLE shops ADD COLUMN latitude REAL").run();
 } catch(e) {}
 try {
@@ -142,6 +148,16 @@ try {
 } catch(e) {}
 
 // Génère (si besoin) le jeton d'authentification utilisé par le service web Apple Wallet pour ce client
+// Extrait le type MIME et les données d'un fichier envoyé en data URL (ex: "data:application/pdf;base64,...")
+function parseDataUrl(dataUrl) {
+  if (!dataUrl || typeof dataUrl !== 'string') return null;
+  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) return null;
+  const allowed = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
+  if (!allowed.includes(match[1])) return null;
+  return { mime: match[1], base64: match[2] };
+}
+
 function ensurePassAuthToken(customerId) {
   const customer = db.prepare('SELECT pass_auth_token FROM customers WHERE id = ?').get(customerId);
   if (customer && customer.pass_auth_token) return customer.pass_auth_token;
@@ -173,16 +189,33 @@ async function touchPassAndPush(customerId) {
 app.get('/api/test', (req, res) => res.json({ message: 'FidélyPass fonctionne !' }));
 
 app.post('/api/shops', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64 } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64 } = req.body;
   try {
+    const menuFile = parseDataUrl(menu_file_base64);
     const hashedPassword = await bcrypt.hash(password, 10);
-    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
-    const result = stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null);
+    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
+    const result = stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
-app.get('/api/shops', (req, res) => res.json(db.prepare('SELECT * FROM shops').all()));
+app.get('/api/shops', (req, res) => {
+  const shops = db.prepare('SELECT * FROM shops').all();
+  // On n'envoie pas les logos/fichiers menu en entier dans la liste (potentiellement plusieurs Mo
+  // par boutique) — juste un indicateur de présence. Le détail complet est chargé à la demande
+  // via /api/admin/shops/:id/full au moment d'ouvrir la modale de modification.
+  const light = shops.map(s => {
+    const { logo_base64, menu_file_base64, ...rest } = s;
+    return { ...rest, has_logo: !!logo_base64, has_menu_file: !!menu_file_base64 };
+  });
+  res.json(light);
+});
+
+app.get('/api/admin/shops/:id/full', requireAdmin, (req, res) => {
+  const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+  if (!shop) return res.status(404).json({ error: 'Boutique introuvable' });
+  res.json(shop);
+});
 
 app.post('/api/shops/login', loginLimiter, async (req, res) => {
   const { slug, password } = req.body;
@@ -442,11 +475,13 @@ app.get('/apple-wallet/v1/passes/:passTypeIdentifier/:serialNumber', async (req,
     if (!checkApplePassAuth(req, customerId)) return res.status(401).end();
     const customer = db.prepare(`
       SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.color,
-             s.menu_url, s.latitude, s.longitude, s.logo_base64
+             s.menu_url, s.latitude, s.longitude, s.logo_base64,
+             (s.menu_file_base64 IS NOT NULL) as has_menu_file
       FROM customers c JOIN shops s ON s.id = c.shop_id
       WHERE c.id = ?
     `).get(customerId);
     if (!customer) return res.status(404).end();
+    if (customer.has_menu_file) customer.menu_url = 'https://fidelypass-production.up.railway.app/shops/' + customer.shop_id + '/menu-file';
     customer.pass_auth_token = ensurePassAuthToken(customer.id);
     const { createApplePassBuffer } = require('./wallet');
     const buffer = await createApplePassBuffer(customer);
@@ -469,11 +504,13 @@ app.get('/api/customers/:id/apple-wallet', async (req, res) => {
   try {
     const customer = db.prepare(`
       SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.color,
-             s.menu_url, s.latitude, s.longitude, s.logo_base64
+             s.menu_url, s.latitude, s.longitude, s.logo_base64,
+             (s.menu_file_base64 IS NOT NULL) as has_menu_file
       FROM customers c JOIN shops s ON s.id = c.shop_id
       WHERE c.id = ?
     `).get(req.params.id);
     if (!customer) return res.status(404).json({ error: 'Client introuvable' });
+    if (customer.has_menu_file) customer.menu_url = 'https://fidelypass-production.up.railway.app/shops/' + customer.shop_id + '/menu-file';
     customer.pass_auth_token = ensurePassAuthToken(customer.id);
     const { createApplePassBuffer } = require('./wallet');
     const buffer = await createApplePassBuffer(customer);
@@ -713,7 +750,7 @@ if ('serviceWorker' in navigator && Notification.permission === 'granted') {
 });
 
 app.put('/api/shops/:id', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64 } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64 } = req.body;
   try {
     const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
@@ -721,7 +758,19 @@ app.put('/api/shops/:id', async (req, res) => {
     if (password && password.trim() !== '') {
       newPassword = await bcrypt.hash(password, 10);
     }
-    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=? WHERE id=?`)
+    let newMenuFileBase64 = shop.menu_file_base64;
+    let newMenuFileType = shop.menu_file_type;
+    if (menu_file_base64 !== undefined) {
+      if (!menu_file_base64) {
+        newMenuFileBase64 = null;
+        newMenuFileType = null;
+      } else {
+        const menuFile = parseDataUrl(menu_file_base64);
+        newMenuFileBase64 = menuFile ? menuFile.base64 : null;
+        newMenuFileType = menuFile ? menuFile.mime : null;
+      }
+    }
+    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=?, menu_file_base64=?, menu_file_type=? WHERE id=?`)
       .run(
         name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null,
         email || shop.email || null, referral_bonus_points != null ? referral_bonus_points : (shop.referral_bonus_points || 10),
@@ -730,6 +779,8 @@ app.put('/api/shops/:id', async (req, res) => {
         latitude !== undefined && latitude !== '' ? (latitude != null ? parseFloat(latitude) : null) : shop.latitude,
         longitude !== undefined && longitude !== '' ? (longitude != null ? parseFloat(longitude) : null) : shop.longitude,
         logo_base64 !== undefined ? (logo_base64 || null) : shop.logo_base64,
+        newMenuFileBase64,
+        newMenuFileType,
         req.params.id
       );
     res.json({ success: true });
@@ -752,6 +803,16 @@ app.delete('/api/shops/:id', (req, res) => {
     db.prepare('DELETE FROM shops WHERE id = ?').run(req.params.id);
     res.json({ success: true });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
+});
+
+// Sert le fichier menu (image ou PDF) uploadé par la boutique, affiché inline dans le navigateur
+app.get('/shops/:id/menu-file', (req, res) => {
+  const shop = db.prepare('SELECT menu_file_base64, menu_file_type FROM shops WHERE id = ?').get(req.params.id);
+  if (!shop || !shop.menu_file_base64) return res.status(404).send('Aucun menu disponible');
+  const buffer = Buffer.from(shop.menu_file_base64, 'base64');
+  res.set('Content-Type', shop.menu_file_type || 'application/octet-stream');
+  res.set('Content-Disposition', 'inline; filename="menu"');
+  res.send(buffer);
 });
 
 app.get('/join/:slug', (req, res) => {
