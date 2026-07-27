@@ -3,8 +3,10 @@ const jwt = require('jsonwebtoken');
 const { PKPass } = require('passkit-generator');
 const forge = require('node-forge');
 const { PNG } = require('pngjs');
+const http2 = require('http2');
 
-// Assets binaires encodés en base64 (icône + logo du pass Apple Wallet)
+// Assets binaires encodés en base64 (icône + logo par défaut du pass Apple Wallet, utilisés
+// si la boutique n'a pas fourni son propre logo)
 const PASS_ASSETS = {
   "icon": "iVBORw0KGgoAAAANSUhEUgAAAB0AAAAdCAYAAABWk2cPAAABEElEQVR4nM2WQRLCIAxFQ8eNXsMFh9Cr2YVezR6ii15Dl7qq0/7mh8SW0cywAEIegRCSBOR0fbxwbK107SFN+01toGa3YRM1wSkCvF/2dO58e7rgXXtIyQO0YN/Am5JCBOjV30UXDzkvxo59r65lXlOoB4ZzCGei3il6OQVqhq15zdvFnUaBOI4nol2TGUgeoAdsQlnwIHDI+dMsPWaXesqCA0EMbHlbfKcWoDS+CXQr+X+o58msgrKAQAALNGsjMyjLlRp4bJYes2seb+TBRxLJAoq78oCjuZd+4lYOZuIBigS+NivTRKO3WK5EKweRcslSfKfegiui/5tqcOzUrntHoMjkeLH0rwWcQWuC0e4bxZinS65ewrcAAAAASUVORK5CYII=",
   "icon_2x": "iVBORw0KGgoAAAANSUhEUgAAADoAAAA6CAYAAADhu0ooAAACLklEQVR4nO2bTXKDMAyFBdNNc40sOER7tWbRXq05BItcI122KzqMY+v3iQTCW3WKEf4sYQtb6Uiht8/rr6bdvXQ+HTqpDdvg0QFLccDVC2sDLFUD7st/rB2SqM7QSw3WqpKlb13YguZMN6G7VXVE+d78/ngV27x//aQ9/3w6dC9ZxjVwrfYZ0B3Sm1Y4jVDQsHc0AxJpNxy6WYC1Z0S8GwLVQl6GQWxzHEfV87yw7ndUA6kBLKUB9sC6QCVID2ApCdgKawblIBGApThgC6xp1l0aUrJrmQghCUN0spHuvwyD6t3lpA7d1uhJnbR00GtLE8IqUA9kxAMeuxJsytdLNMyi99fkBm2NOqqTLTveSU8EtcxsaE9Y7En9dM263lGt3ecZHM8sDHtHpQe3Bgc5a3NiQWvh4PGmZp1E2OTCF+LRSDKgaYfwaurmmNVTWWkk0RPtAu6gW9MOipB1tszIcSdBQBFLA2KJ4sSC1j59PKMu3YOyyX2qwULXm8p5U0erXEn9cRzTtjKz7Igetey0oTMbi720HQb0h7HWjjcqUpaXKGxGzrvvAtbkhSWKr5MRSCLQBrZmFo6E4+Lfo9zoZaVvqLOX/TRN0lOcj05a+sSbyH+8H65KWaKGYdLdahjmD88ERpTg9JqiXo2yKr8QduGVY/NORTycUjk2/ZFZD3jPWsApYtNqAefKLGjU6j8zQr2rj6Q5U9+6sHaVLDe57hZgawzP/XOQUo8OrInCP2IAQXnSlmpKAAAAAElFTkSuQmCC",
@@ -18,6 +20,7 @@ const APPLE_WWDR_CERT_BASE64 = "MIIEVTCCAz2gAwIBAgIUE9x3lVJx5T3GMujM/+Uh88zFztIw
 
 const ISSUER_ID = '3388000000023164162';
 const CLASS_ID = 'fidelypass_loyalty';
+const APPLE_PASS_TYPE_ID = 'pass.com.fidelypass.loyalty';
 
 function getCredentials() {
   const b64 = process.env.GOOGLE_WALLET_KEY_BASE64;
@@ -76,31 +79,37 @@ async function createWalletPass(customer) {
   return `https://pay.google.com/gp/v/save/${token}`;
 }
 
-function hexToRgb(hex) {
+function hexToRgbParts(hex) {
   hex = (hex || '#3b82f6').replace('#', '');
   if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
   const r = parseInt(hex.substring(0, 2), 16) || 59;
   const g = parseInt(hex.substring(2, 4), 16) || 130;
   const b = parseInt(hex.substring(4, 6), 16) || 246;
+  return { r, g, b };
+}
+
+function hexToRgb(hex) {
+  const { r, g, b } = hexToRgbParts(hex);
   return `rgb(${r},${g},${b})`;
 }
 
-// Génère une bannière (strip) avec un léger dégradé dans la couleur de la boutique
+// Génère une bannière (strip) avec un dégradé vertical + une légère touche de lumière en haut à
+// gauche, pour un rendu moins plat qu'un aplat uni
 function generateStripPng(hex, width, height) {
-  hex = (hex || '#3b82f6').replace('#', '');
-  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
-  const r = parseInt(hex.substring(0, 2), 16) || 59;
-  const g = parseInt(hex.substring(2, 4), 16) || 130;
-  const b = parseInt(hex.substring(4, 6), 16) || 246;
-
+  const { r, g, b } = hexToRgbParts(hex);
   const png = new PNG({ width, height });
   for (let y = 0; y < height; y++) {
-    const t = y / height; // 0 (haut, plus clair) -> 1 (bas, couleur d'origine)
-    const factor = 1 + (1 - t) * 0.18; // léger éclaircissement vers le haut
-    const rr = Math.min(255, Math.round(r * factor));
-    const gg = Math.min(255, Math.round(g * factor));
-    const bb = Math.min(255, Math.round(b * factor));
+    const t = y / height; // 0 (haut) -> 1 (bas)
+    const verticalFactor = 1 + (1 - t) * 0.22;
     for (let x = 0; x < width; x++) {
+      const dx = x / width;
+      const dy = y / height;
+      const dist = Math.sqrt(dx * dx * 0.6 + dy * dy * 0.25);
+      const highlight = Math.max(0, 1 - dist * 1.3) * 0.16;
+      const factor = verticalFactor + highlight;
+      const rr = Math.min(255, Math.round(r * factor));
+      const gg = Math.min(255, Math.round(g * factor));
+      const bb = Math.min(255, Math.round(b * factor));
       const idx = (width * y + x) << 2;
       png.data[idx] = rr;
       png.data[idx + 1] = gg;
@@ -109,6 +118,60 @@ function generateStripPng(hex, width, height) {
     }
   }
   return PNG.sync.write(png);
+}
+
+// Redimensionne (plus proche voisin, sans dépendance externe) une image PNG uploadée par le
+// commerçant pour produire les 3 résolutions attendues par Apple (@1x/@2x/@3x), en conservant
+// les proportions et en plafonnant la largeur au format attendu pour un logo de carte
+function resizePngBuffer(srcBuffer, targetHeight, maxWidth) {
+  const src = PNG.sync.read(srcBuffer);
+  const scale = targetHeight / src.height;
+  let targetWidth = Math.round(src.width * scale);
+  if (targetWidth > maxWidth) targetWidth = maxWidth;
+  if (targetWidth < 1) targetWidth = 1;
+  const dst = new PNG({ width: targetWidth, height: targetHeight });
+  const scaleX = src.width / targetWidth;
+  const scaleY = src.height / targetHeight;
+  for (let y = 0; y < targetHeight; y++) {
+    const sy = Math.min(src.height - 1, Math.floor(y * scaleY));
+    for (let x = 0; x < targetWidth; x++) {
+      const sx = Math.min(src.width - 1, Math.floor(x * scaleX));
+      const srcIdx = (src.width * sy + sx) << 2;
+      const dstIdx = (targetWidth * y + x) << 2;
+      dst.data[dstIdx] = src.data[srcIdx];
+      dst.data[dstIdx + 1] = src.data[srcIdx + 1];
+      dst.data[dstIdx + 2] = src.data[srcIdx + 2];
+      dst.data[dstIdx + 3] = src.data[srcIdx + 3];
+    }
+  }
+  return PNG.sync.write(dst);
+}
+
+// Construit les 3 fichiers logo (@1x/@2x/@3x) à partir du logo base64 fourni par la boutique.
+// Retourne null si aucun logo n'est fourni, ou s'il n'a pas pu être décodé (doit être un PNG valide)
+function buildShopLogoFiles(logoBase64) {
+  if (!logoBase64) return null;
+  try {
+    const raw = logoBase64.includes(',') ? logoBase64.split(',').pop() : logoBase64;
+    const buf = Buffer.from(raw, 'base64');
+    return {
+      'logo.png': resizePngBuffer(buf, 50, 160),
+      'logo@2x.png': resizePngBuffer(buf, 100, 320),
+      'logo@3x.png': resizePngBuffer(buf, 150, 480),
+    };
+  } catch (e) {
+    console.error('Logo boutique invalide (PNG attendu), utilisation du logo par défaut:', e.message);
+    return null;
+  }
+}
+
+// Petite barre de progression textuelle (compatible avec le rendu des cartes Apple Wallet)
+function progressBarText(points, goal) {
+  const safeGoal = goal > 0 ? goal : 1;
+  const ratio = Math.max(0, Math.min(1, points / safeGoal));
+  const totalBlocks = 10;
+  const filled = Math.round(ratio * totalBlocks);
+  return '█'.repeat(filled) + '░'.repeat(totalBlocks - filled) + '  ' + Math.round(ratio * 100) + '%';
 }
 
 // Extrait le certificat et la clé privée depuis le fichier .p12 (une seule fois, mis en cache)
@@ -157,9 +220,19 @@ async function createApplePassBuffer(customer) {
 
   const certificates = getAppleCertificates();
 
+  const remaining = Math.max(0, (customer.points_goal || 0) - (customer.points || 0));
+
+  const backFields = [
+    { key: 'reward', label: 'Récompense', value: customer.reward_text || 'Non définie' },
+    { key: 'info', label: 'Comment ça marche', value: 'Montrez cette carte à chaque achat pour cumuler des points et débloquer votre récompense.' },
+  ];
+  if (customer.menu_url) {
+    backFields.push({ key: 'menu', label: 'Notre menu', value: customer.menu_url });
+  }
+
   const passJson = {
     formatVersion: 1,
-    passTypeIdentifier: 'pass.com.fidelypass.loyalty',
+    passTypeIdentifier: APPLE_PASS_TYPE_ID,
     teamIdentifier: teamId,
     organizationName: customer.shop_name || 'FidélyPass',
     logoText: customer.shop_name || 'FidélyPass',
@@ -178,9 +251,11 @@ async function createApplePassBuffer(customer) {
       secondaryFields: [
         { key: 'name', label: 'CLIENT', value: customer.name }
       ],
-      backFields: [
-        { key: 'reward', label: 'Récompense', value: customer.reward_text || 'Non définie' }
-      ]
+      auxiliaryFields: [
+        { key: 'remaining', label: 'RESTANT', value: remaining + ' pts' },
+        { key: 'progress', label: 'PROGRESSION', value: progressBarText(customer.points, customer.points_goal) }
+      ],
+      backFields
     },
     barcodes: [{
       message: 'fidelypass:customer:' + customer.id,
@@ -189,14 +264,31 @@ async function createApplePassBuffer(customer) {
     }]
   };
 
+  // Mise à jour automatique de la carte (nécessite un jeton d'authentification par client)
+  if (customer.pass_auth_token) {
+    passJson.webServiceURL = 'https://fidelypass-production.up.railway.app/apple-wallet';
+    passJson.authenticationToken = customer.pass_auth_token;
+  }
+
+  // Apparition automatique sur l'écran verrouillé à proximité de la boutique (si coordonnées fournies)
+  if (customer.latitude != null && customer.longitude != null) {
+    passJson.locations = [{
+      latitude: customer.latitude,
+      longitude: customer.longitude,
+      relevantText: `Vous êtes près de ${customer.shop_name || 'la boutique'} — montrez votre carte !`
+    }];
+  }
+
+  const shopLogoFiles = buildShopLogoFiles(customer.logo_base64);
+
   const pass = new PKPass({
     'pass.json': Buffer.from(JSON.stringify(passJson)),
     'icon.png': Buffer.from(PASS_ASSETS.icon, 'base64'),
     'icon@2x.png': Buffer.from(PASS_ASSETS.icon_2x, 'base64'),
     'icon@3x.png': Buffer.from(PASS_ASSETS.icon_3x, 'base64'),
-    'logo.png': Buffer.from(PASS_ASSETS.logo, 'base64'),
-    'logo@2x.png': Buffer.from(PASS_ASSETS.logo_2x, 'base64'),
-    'logo@3x.png': Buffer.from(PASS_ASSETS.logo_3x, 'base64'),
+    'logo.png': shopLogoFiles ? shopLogoFiles['logo.png'] : Buffer.from(PASS_ASSETS.logo, 'base64'),
+    'logo@2x.png': shopLogoFiles ? shopLogoFiles['logo@2x.png'] : Buffer.from(PASS_ASSETS.logo_2x, 'base64'),
+    'logo@3x.png': shopLogoFiles ? shopLogoFiles['logo@3x.png'] : Buffer.from(PASS_ASSETS.logo_3x, 'base64'),
     'strip.png': generateStripPng(customer.color, 375, 123),
     'strip@2x.png': generateStripPng(customer.color, 750, 246),
     'strip@3x.png': generateStripPng(customer.color, 1125, 369),
@@ -205,4 +297,51 @@ async function createApplePassBuffer(customer) {
   return pass.getAsBuffer();
 }
 
-module.exports = { createWalletPass, createApplePassBuffer };
+// Envoie une notification push "silencieuse" à un appareil pour lui dire de récupérer la carte
+// à jour (protocole PassKit officiel — payload vide, l'iPhone va chercher la nouvelle version
+// via GET /apple-wallet/v1/passes/...)
+function sendApplePushNotification(pushToken) {
+  return new Promise((resolve, reject) => {
+    let certificates;
+    try {
+      certificates = getAppleCertificates();
+    } catch (e) {
+      return reject(e);
+    }
+
+    const client = http2.connect('https://api.push.apple.com', {
+      cert: certificates.signerCert,
+      key: certificates.signerKey,
+    });
+
+    const timeout = setTimeout(() => {
+      client.close();
+      reject(new Error('Push Apple Wallet: délai dépassé'));
+    }, 8000);
+
+    client.on('error', (err) => { clearTimeout(timeout); reject(err); });
+
+    const req = client.request({
+      ':method': 'POST',
+      ':path': '/3/device/' + pushToken,
+      'apns-topic': APPLE_PASS_TYPE_ID,
+      'content-type': 'application/json',
+    });
+
+    let status = 0;
+    let body = '';
+    req.on('response', (headers) => { status = headers[':status']; });
+    req.setEncoding('utf8');
+    req.on('data', (chunk) => { body += chunk; });
+    req.on('end', () => {
+      clearTimeout(timeout);
+      client.close();
+      if (status >= 200 && status < 300) resolve(true);
+      else reject(new Error('Push Apple Wallet échoué: ' + status + ' ' + body));
+    });
+    req.on('error', (err) => { clearTimeout(timeout); client.close(); reject(err); });
+    req.end(JSON.stringify({}));
+  });
+}
+
+module.exports = { createWalletPass, createApplePassBuffer, sendApplePushNotification };

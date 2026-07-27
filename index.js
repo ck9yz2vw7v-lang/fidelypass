@@ -72,7 +72,7 @@ function requireShopAuth(req, res, next) {
 app.use('/webhook', express.raw({ type: 'application/json' }));
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Rate limiter sur le login
@@ -85,6 +85,9 @@ const loginLimiter = rateLimit({
 });
 
 // Migration DB : ajouter colonnes Stripe si elles n'existent pas
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN google_review_url TEXT").run();
+} catch(e) {}
 try {
   db.prepare("ALTER TABLE shops ADD COLUMN stripe_customer_id TEXT").run();
 } catch(e) {}
@@ -106,6 +109,62 @@ try {
 try {
   db.prepare("ALTER TABLE shops ADD COLUMN currency TEXT DEFAULT 'EUR'").run();
 } catch(e) {}
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN menu_url TEXT").run();
+} catch(e) {}
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN latitude REAL").run();
+} catch(e) {}
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN longitude REAL").run();
+} catch(e) {}
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN logo_base64 TEXT").run();
+} catch(e) {}
+try {
+  db.prepare("ALTER TABLE customers ADD COLUMN pass_auth_token TEXT").run();
+} catch(e) {}
+try {
+  db.prepare("ALTER TABLE customers ADD COLUMN pass_updated_at TEXT").run();
+} catch(e) {}
+try {
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS apple_pass_registrations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      device_library_id TEXT NOT NULL,
+      pass_type_id TEXT NOT NULL,
+      serial_number TEXT NOT NULL,
+      push_token TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(device_library_id, serial_number)
+    )
+  `).run();
+} catch(e) {}
+
+// Génère (si besoin) le jeton d'authentification utilisé par le service web Apple Wallet pour ce client
+function ensurePassAuthToken(customerId) {
+  const customer = db.prepare('SELECT pass_auth_token FROM customers WHERE id = ?').get(customerId);
+  if (customer && customer.pass_auth_token) return customer.pass_auth_token;
+  const token = crypto.randomBytes(20).toString('hex');
+  db.prepare('UPDATE customers SET pass_auth_token = ? WHERE id = ?').run(token, customerId);
+  return token;
+}
+
+// Marque la carte d'un client comme mise à jour, et pousse une notification Apple Wallet aux appareils enregistrés
+async function touchPassAndPush(customerId) {
+  try {
+    db.prepare('UPDATE customers SET pass_updated_at = ? WHERE id = ?').run(new Date().toISOString(), customerId);
+    const serialNumber = 'fidelypass-' + customerId;
+    const regs = db.prepare('SELECT push_token FROM apple_pass_registrations WHERE serial_number = ?').all(serialNumber);
+    if (!regs.length) return;
+    const { sendApplePushNotification } = require('./wallet');
+    for (const reg of regs) {
+      sendApplePushNotification(reg.push_token).catch(() => {});
+    }
+  } catch (e) {
+    console.error('Push Apple Wallet erreur:', e.message);
+  }
+}
 
 // ─────────────────────────────────────────────
 // ROUTES EXISTANTES
@@ -114,11 +173,11 @@ try {
 app.get('/api/test', (req, res) => res.json({ message: 'FidélyPass fonctionne !' }));
 
 app.post('/api/shops', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64 } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
-    const result = stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR');
+    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
+    const result = stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -234,6 +293,7 @@ app.delete('/api/customers/:id', requireShopAuth, (req, res) => {
   if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
   db.prepare('DELETE FROM scans WHERE customer_id = ?').run(req.params.id);
   db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ?').run(req.params.id);
+  db.prepare('DELETE FROM apple_pass_registrations WHERE serial_number = ?').run('fidelypass-' + req.params.id);
   db.prepare('DELETE FROM customers WHERE id = ?').run(req.params.id);
   res.json({ success: true });
 });
@@ -249,6 +309,7 @@ app.post('/api/scan', requireShopAuth, async (req, res) => {
   const rewardUnlocked = newPoints >= shop.points_goal;
   db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1, last_visit = CURRENT_TIMESTAMP WHERE id = ?').run(newPoints, customer_id);
   db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(customer_id, shop_id, pointsEarned);
+  touchPassAndPush(customer_id);
   res.json({ success: true, customer_name: customer.name, points_before: customer.points, points_after: newPoints, points_added: pointsEarned, amount_paid: amount, reward_unlocked: rewardUnlocked, reward_text: shop.reward_text, points_goal: shop.points_goal, google_review_url: shop.google_review_url || null });
 
   // Notifie le client par push : récompense débloquée, ou simple progression
@@ -288,6 +349,7 @@ app.post('/api/reward/:customer_id', requireShopAuth, (req, res) => {
   const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
   db.prepare('UPDATE customers SET points = 0 WHERE id = ?').run(req.params.customer_id);
   db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(req.params.customer_id, shop_id, 0);
+  touchPassAndPush(req.params.customer_id);
   res.json({ success: true, google_review_url: shop.google_review_url || null });
 });
 
@@ -315,14 +377,104 @@ app.get('/api/customers/:id/wallet', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────
+// SERVICE WEB APPLE WALLET (mise à jour automatique des cartes)
+// ─────────────────────────────────────────────
+
+const APPLE_PASS_TYPE_ID = 'pass.com.fidelypass.loyalty';
+
+function customerIdFromSerial(serialNumber) {
+  const id = String(serialNumber || '').replace('fidelypass-', '');
+  return /^\d+$/.test(id) ? Number(id) : null;
+}
+
+function checkApplePassAuth(req, customerId) {
+  const header = req.headers['authorization'] || '';
+  const token = header.startsWith('ApplePass ') ? header.slice('ApplePass '.length) : null;
+  if (!token) return false;
+  const customer = db.prepare('SELECT pass_auth_token FROM customers WHERE id = ?').get(customerId);
+  return !!customer && customer.pass_auth_token === token;
+}
+
+// Enregistrement d'un appareil pour recevoir les mises à jour push d'une carte
+app.post('/apple-wallet/v1/devices/:deviceLibraryIdentifier/registrations/:passTypeIdentifier/:serialNumber', (req, res) => {
+  const { deviceLibraryIdentifier, passTypeIdentifier, serialNumber } = req.params;
+  const customerId = customerIdFromSerial(serialNumber);
+  if (passTypeIdentifier !== APPLE_PASS_TYPE_ID || !customerId) return res.status(404).end();
+  if (!checkApplePassAuth(req, customerId)) return res.status(401).end();
+  const pushToken = req.body && req.body.pushToken;
+  if (!pushToken) return res.status(400).end();
+  const existing = db.prepare('SELECT id FROM apple_pass_registrations WHERE device_library_id = ? AND serial_number = ?').get(deviceLibraryIdentifier, serialNumber);
+  if (existing) {
+    db.prepare('UPDATE apple_pass_registrations SET push_token = ? WHERE id = ?').run(pushToken, existing.id);
+    return res.status(200).end();
+  }
+  db.prepare('INSERT INTO apple_pass_registrations (device_library_id, pass_type_id, serial_number, push_token) VALUES (?, ?, ?, ?)')
+    .run(deviceLibraryIdentifier, passTypeIdentifier, serialNumber, pushToken);
+  res.status(201).end();
+});
+
+// Désenregistrement d'un appareil
+app.delete('/apple-wallet/v1/devices/:deviceLibraryIdentifier/registrations/:passTypeIdentifier/:serialNumber', (req, res) => {
+  const { deviceLibraryIdentifier, passTypeIdentifier, serialNumber } = req.params;
+  const customerId = customerIdFromSerial(serialNumber);
+  if (passTypeIdentifier !== APPLE_PASS_TYPE_ID || !customerId) return res.status(404).end();
+  if (!checkApplePassAuth(req, customerId)) return res.status(401).end();
+  db.prepare('DELETE FROM apple_pass_registrations WHERE device_library_id = ? AND serial_number = ?').run(deviceLibraryIdentifier, serialNumber);
+  res.status(200).end();
+});
+
+// Liste des cartes à mettre à jour pour un appareil donné
+app.get('/apple-wallet/v1/devices/:deviceLibraryIdentifier/registrations/:passTypeIdentifier', (req, res) => {
+  const { deviceLibraryIdentifier, passTypeIdentifier } = req.params;
+  if (passTypeIdentifier !== APPLE_PASS_TYPE_ID) return res.status(404).end();
+  const rows = db.prepare('SELECT serial_number FROM apple_pass_registrations WHERE device_library_id = ?').all(deviceLibraryIdentifier);
+  if (!rows.length) return res.status(204).end();
+  res.json({ lastUpdated: String(Date.now()), serialNumbers: rows.map(r => r.serial_number) });
+});
+
+// Renvoie la carte à jour (appelé par l'iPhone quand une notification push est reçue)
+app.get('/apple-wallet/v1/passes/:passTypeIdentifier/:serialNumber', async (req, res) => {
+  try {
+    const { passTypeIdentifier, serialNumber } = req.params;
+    const customerId = customerIdFromSerial(serialNumber);
+    if (passTypeIdentifier !== APPLE_PASS_TYPE_ID || !customerId) return res.status(404).end();
+    if (!checkApplePassAuth(req, customerId)) return res.status(401).end();
+    const customer = db.prepare(`
+      SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.color,
+             s.menu_url, s.latitude, s.longitude, s.logo_base64
+      FROM customers c JOIN shops s ON s.id = c.shop_id
+      WHERE c.id = ?
+    `).get(customerId);
+    if (!customer) return res.status(404).end();
+    customer.pass_auth_token = ensurePassAuthToken(customer.id);
+    const { createApplePassBuffer } = require('./wallet');
+    const buffer = await createApplePassBuffer(customer);
+    res.set('Content-Type', 'application/vnd.apple.pkpass');
+    res.set('Last-Modified', new Date().toUTCString());
+    res.send(buffer);
+  } catch (err) {
+    console.error('Apple Wallet update error:', err.message);
+    res.status(500).end();
+  }
+});
+
+// Apple envoie ici des logs de debug — on les affiche simplement dans nos logs serveur
+app.post('/apple-wallet/v1/log', (req, res) => {
+  console.log('Apple Wallet log:', JSON.stringify(req.body));
+  res.status(200).end();
+});
+
 app.get('/api/customers/:id/apple-wallet', async (req, res) => {
   try {
     const customer = db.prepare(`
-      SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.color
+      SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.color,
+             s.menu_url, s.latitude, s.longitude, s.logo_base64
       FROM customers c JOIN shops s ON s.id = c.shop_id
       WHERE c.id = ?
     `).get(req.params.id);
     if (!customer) return res.status(404).json({ error: 'Client introuvable' });
+    customer.pass_auth_token = ensurePassAuthToken(customer.id);
     const { createApplePassBuffer } = require('./wallet');
     const buffer = await createApplePassBuffer(customer);
     res.set('Content-Type', 'application/vnd.apple.pkpass');
@@ -561,7 +713,7 @@ if ('serviceWorker' in navigator && Notification.permission === 'granted') {
 });
 
 app.put('/api/shops/:id', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64 } = req.body;
   try {
     const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
@@ -569,8 +721,17 @@ app.put('/api/shops/:id', async (req, res) => {
     if (password && password.trim() !== '') {
       newPassword = await bcrypt.hash(password, 10);
     }
-    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=? WHERE id=?`)
-      .run(name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || shop.email || null, referral_bonus_points != null ? referral_bonus_points : (shop.referral_bonus_points || 10), currency || shop.currency || 'EUR', req.params.id);
+    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=? WHERE id=?`)
+      .run(
+        name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null,
+        email || shop.email || null, referral_bonus_points != null ? referral_bonus_points : (shop.referral_bonus_points || 10),
+        currency || shop.currency || 'EUR',
+        menu_url !== undefined ? (menu_url || null) : shop.menu_url,
+        latitude !== undefined && latitude !== '' ? (latitude != null ? parseFloat(latitude) : null) : shop.latitude,
+        longitude !== undefined && longitude !== '' ? (longitude != null ? parseFloat(longitude) : null) : shop.longitude,
+        logo_base64 !== undefined ? (logo_base64 || null) : shop.logo_base64,
+        req.params.id
+      );
     res.json({ success: true });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -581,6 +742,9 @@ app.delete('/api/shops/:id', (req, res) => {
     if (customerIds.length) {
       const placeholders = customerIds.map(() => '?').join(',');
       db.prepare(`DELETE FROM push_subscriptions WHERE customer_id IN (${placeholders})`).run(...customerIds);
+      const serials = customerIds.map(id => 'fidelypass-' + id);
+      const serialPlaceholders = serials.map(() => '?').join(',');
+      db.prepare(`DELETE FROM apple_pass_registrations WHERE serial_number IN (${serialPlaceholders})`).run(...serials);
     }
     db.prepare('DELETE FROM sessions_store WHERE shop_id = ?').run(req.params.id);
     db.prepare('DELETE FROM scans WHERE shop_id = ?').run(req.params.id);
@@ -748,11 +912,11 @@ app.post('/api/shops/:id/create-payment', requireAdmin, async (req, res) => {
     const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
 
-    const email = shop.email || req.body.email;
+    const email = (shop.email || req.body.email || '').trim().toLowerCase();
     if (!email) return res.status(400).json({ success: false, error: 'Email gérant requis' });
 
-    // Compter les boutiques actives de ce gérant (même email) pour remise multi-boutiques
-    const shopCount = db.prepare("SELECT COUNT(*) as count FROM shops WHERE email = ? AND active = 1 AND id != ?").get(email, shop.id);
+    // Compter les boutiques actives de ce gérant (même email, insensible à la casse) pour remise multi-boutiques
+    const shopCount = db.prepare("SELECT COUNT(*) as count FROM shops WHERE LOWER(TRIM(email)) = ? AND active = 1 AND id != ?").get(email, shop.id);
     const isMulti = shopCount.count >= 1;
     const monthlyPrice = isMulti ? 2400 : 2900; // centimes : 24€ ou 29€
 
