@@ -1225,4 +1225,4 @@ async function checkInactiveCustomers() {
 setTimeout(checkInactiveCustomers, 2 * 60 * 1000);
 setInterval(checkInactiveCustomers, 24 * 60 * 60 * 1000);
 
-app.listen(PORT, () => console.log('FidelyPass tourne sur http://localhost:' + PORT));
+app.listen(PORT, () => console.log('FidelyPass tourne sur http://localhost:' + PORT));// redeploy trigger
