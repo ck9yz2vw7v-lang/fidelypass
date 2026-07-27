@@ -119,6 +119,8 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group form-full"><label>Récompense offerte</label><input type="text" id="reward_text" placeholder="Ex: 1 sandwich offert"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis (optionnel)</label><input type="url" id="google_review_url" placeholder="https://g.page/r/..."></div>
       <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="menu_url" placeholder="https://..."></div>
+      <div class="form-group"><label>📞 Téléphone (optionnel)</label><input type="tel" id="phone" placeholder="06 12 34 56 78"></div>
+      <div class="form-group"><label>🕒 Horaires (optionnel)</label><input type="text" id="opening_hours" placeholder="Lun-Sam 9h-19h"></div>
       <div class="form-group form-full">
         <label>📄 Ou fichier menu — image/PDF (optionnel, prioritaire sur le lien)</label>
         <input type="file" id="menu_file" accept="image/png,image/jpeg,image/webp,application/pdf">
@@ -170,6 +172,8 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
       <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="edit-menu-url" placeholder="https://..."></div>
+      <div class="form-group"><label>📞 Téléphone (optionnel)</label><input type="tel" id="edit-phone" placeholder="06 12 34 56 78"></div>
+      <div class="form-group"><label>🕒 Horaires (optionnel)</label><input type="text" id="edit-opening-hours" placeholder="Lun-Sam 9h-19h"></div>
       <div class="form-group form-full">
         <label>📄 Ou fichier menu — image/PDF (optionnel, prioritaire sur le lien)</label>
         <input type="file" id="edit-menu-file" accept="image/png,image/jpeg,image/webp,application/pdf">
@@ -423,6 +427,8 @@ async function createShop() {
     reward_text:        document.getElementById('reward_text').value,
     google_review_url:  document.getElementById('google_review_url').value || null,
     menu_url:           document.getElementById('menu_url').value || null,
+    phone:              document.getElementById('phone').value || null,
+    opening_hours:      document.getElementById('opening_hours').value || null,
     latitude:           document.getElementById('latitude').value || null,
     longitude:          document.getElementById('longitude').value || null,
     logo_base64:        pendingLogoBase64Create,
@@ -433,7 +439,7 @@ async function createShop() {
   if (result.success) {
     document.getElementById('success-msg').style.display = 'block';
     setTimeout(() => document.getElementById('success-msg').style.display = 'none', 3000);
-    ['name','slug','password','email','reward_text','google_review_url','menu_url','latitude','longitude'].forEach(id => document.getElementById(id).value = '');
+    ['name','slug','password','email','reward_text','google_review_url','menu_url','latitude','longitude','phone','opening_hours'].forEach(id => document.getElementById(id).value = '');
     clearLogoInput();
     clearMenuFileInput();
     loadShops();
@@ -566,6 +572,8 @@ function resetEditModal() {
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
       <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="edit-menu-url" placeholder="https://..."></div>
+      <div class="form-group"><label>📞 Téléphone (optionnel)</label><input type="tel" id="edit-phone" placeholder="06 12 34 56 78"></div>
+      <div class="form-group"><label>🕒 Horaires (optionnel)</label><input type="text" id="edit-opening-hours" placeholder="Lun-Sam 9h-19h"></div>
       <div class="form-group form-full">
         <label>📄 Ou fichier menu — image/PDF (optionnel, prioritaire sur le lien)</label>
         <input type="file" id="edit-menu-file" accept="image/png,image/jpeg,image/webp,application/pdf">
@@ -665,6 +673,8 @@ async function openEdit(shopId) {
   document.getElementById('edit-reward').value          = shop.reward_text;
   document.getElementById('edit-google-review').value   = shop.google_review_url || '';
   document.getElementById('edit-menu-url').value        = shop.menu_url || '';
+  document.getElementById('edit-phone').value            = shop.phone || '';
+  document.getElementById('edit-opening-hours').value    = shop.opening_hours || '';
   document.getElementById('edit-latitude').value        = shop.latitude != null ? shop.latitude : '';
   document.getElementById('edit-longitude').value       = shop.longitude != null ? shop.longitude : '';
   if (shop.logo_base64) {
@@ -692,6 +702,8 @@ async function saveEdit() {
     reward_text:           document.getElementById('edit-reward').value,
     google_review_url:     document.getElementById('edit-google-review').value || null,
     menu_url:              document.getElementById('edit-menu-url').value || null,
+    phone:                 document.getElementById('edit-phone').value || null,
+    opening_hours:         document.getElementById('edit-opening-hours').value || null,
     latitude:              document.getElementById('edit-latitude').value || null,
     longitude:             document.getElementById('edit-longitude').value || null,
     logo_base64:           editLogoBase64,

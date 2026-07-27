@@ -128,6 +128,12 @@ try {
   db.prepare("ALTER TABLE shops ADD COLUMN logo_base64 TEXT").run();
 } catch(e) {}
 try {
+  db.prepare("ALTER TABLE shops ADD COLUMN phone TEXT").run();
+} catch(e) {}
+try {
+  db.prepare("ALTER TABLE shops ADD COLUMN opening_hours TEXT").run();
+} catch(e) {}
+try {
   db.prepare("ALTER TABLE customers ADD COLUMN pass_auth_token TEXT").run();
 } catch(e) {}
 try {
@@ -189,12 +195,12 @@ async function touchPassAndPush(customerId) {
 app.get('/api/test', (req, res) => res.json({ message: 'FidélyPass fonctionne !' }));
 
 app.post('/api/shops', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64 } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours } = req.body;
   try {
     const menuFile = parseDataUrl(menu_file_base64);
     const hashedPassword = await bcrypt.hash(password, 10);
-    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
-    const result = stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null);
+    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, phone, opening_hours, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
+    const result = stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null, phone || null, opening_hours || null);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -297,7 +303,7 @@ app.post('/api/customers', async (req, res) => {
 app.get('/api/customers/:id', (req, res) => {
   const customer = db.prepare(`
     SELECT c.*, s.points_goal, s.reward_text, s.google_review_url, s.color, s.slug, s.name as shop_name, s.referral_bonus_points,
-           s.menu_url, (s.menu_file_base64 IS NOT NULL) as has_menu_file
+           s.menu_url, s.phone, s.opening_hours, (s.menu_file_base64 IS NOT NULL) as has_menu_file
     FROM customers c JOIN shops s ON s.id = c.shop_id
     WHERE c.id = ?
   `).get(req.params.id);
@@ -403,7 +409,7 @@ app.get('/api/customers/:id/wallet', async (req, res) => {
   try {
     const customer = db.prepare(`
       SELECT c.*, s.id as shop_id, s.name as shop_name, s.reward_text, s.points_goal, s.color,
-             s.menu_url, s.google_review_url, s.logo_base64,
+             s.menu_url, s.google_review_url, s.logo_base64, s.phone, s.opening_hours,
              (s.menu_file_base64 IS NOT NULL) as has_menu_file
       FROM customers c JOIN shops s ON s.id = c.shop_id
       WHERE c.id = ?
@@ -484,7 +490,7 @@ app.get('/apple-wallet/v1/passes/:passTypeIdentifier/:serialNumber', async (req,
     if (!checkApplePassAuth(req, customerId)) return res.status(401).end();
     const customer = db.prepare(`
       SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.color,
-             s.menu_url, s.latitude, s.longitude, s.logo_base64,
+             s.menu_url, s.latitude, s.longitude, s.logo_base64, s.phone, s.opening_hours,
              (s.menu_file_base64 IS NOT NULL) as has_menu_file
       FROM customers c JOIN shops s ON s.id = c.shop_id
       WHERE c.id = ?
@@ -513,7 +519,7 @@ app.get('/api/customers/:id/apple-wallet', async (req, res) => {
   try {
     const customer = db.prepare(`
       SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.color,
-             s.menu_url, s.latitude, s.longitude, s.logo_base64,
+             s.menu_url, s.latitude, s.longitude, s.logo_base64, s.phone, s.opening_hours,
              (s.menu_file_base64 IS NOT NULL) as has_menu_file
       FROM customers c JOIN shops s ON s.id = c.shop_id
       WHERE c.id = ?
@@ -623,7 +629,7 @@ app.get('/card/:id', (req, res) => {
     walletHtml = '<div id="wallet-btn"><script>fetch("/api/customers/' + id + '/wallet").then(r=>r.json()).then(d=>{if(d.url){document.getElementById("wallet-btn").innerHTML=\'<a href="\'+d.url+\'" target="_blank"><img src="https://pay.google.com/about/static/sample-assets/pay-with-google/add-to-wallet-button.svg" style="width:200px;margin-top:8px" alt="Ajouter à Google Wallet"><\\/a>\';}});<\\/script></div>';
   }
 
-  res.send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}#qr{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}.points-box{margin-top:20px;background:#f8fafc;border-radius:16px;padding:16px}.points-val{font-size:28px;font-weight:900;color:#111827}.points-goal{font-size:13px;color:#6b7280;margin-bottom:10px}.progress-track{background:#e5e7eb;border-radius:99px;height:10px;overflow:hidden}.progress-fill{background:#3b82f6;height:100%;border-radius:99px;transition:width 0.4s ease}.review-banner{margin-top:20px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:16px;color:white;text-align:center;display:none}.review-banner h3{font-size:16px;font-weight:800;margin-bottom:6px}.review-banner p{color:rgba(255,255,255,0.9);font-size:13px;margin-bottom:12px}.review-btn{display:inline-block;background:white;color:#d97706;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none}.notif-btn{margin-top:16px;background:#f3f4f6;color:#374151;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}.notif-btn.on{background:#dcfce7;color:#16a34a}.unsub-link{display:block;margin-top:8px;font-size:11px;color:#9ca3af;text-decoration:underline;cursor:pointer;background:none;border:none}.ios-hint{margin-top:12px;background:#fef3c7;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e;text-align:left;line-height:1.5;display:none}.section-box{margin-top:20px;background:#f8fafc;border-radius:16px;padding:16px;text-align:left}.section-title{font-size:13px;font-weight:800;color:#374151;margin-bottom:10px;text-align:center}.history-row{display:flex;justify-content:space-between;font-size:12px;color:#6b7280;padding:6px 0;border-bottom:1px solid #e5e7eb}.history-row:last-child{border-bottom:none}.referral-link-box{background:white;border:1px solid #e5e7eb;border-radius:10px;padding:10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px}.referral-copy-btn{width:100%;padding:12px;border-radius:10px;background:#3b82f6;color:white;font-size:13px;font-weight:700;border:none;cursor:pointer}</style></head><body><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°${id}</div><div class="points-box" id="points-box" style="display:none"><div class="points-val" id="points-val">0</div><div class="points-goal" id="points-goal-text">sur 0 points</div><div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div></div>${walletHtml}<a id="menu-link" href="#" target="_blank" style="display:none;align-items:center;justify-content:center;gap:8px;margin-top:12px;background:#f3f4f6;color:#374151;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none">📋 Voir le menu</a><button class="notif-btn" id="notif-btn" onclick="enableNotifs()">🔔 Activer les notifications</button><button class="unsub-link" id="unsub-link" onclick="disableNotifs()" style="display:none">Se désabonner des notifications</button><div class="ios-hint" id="ios-hint">📲 Sur iPhone : pour recevoir les notifications, ajoutez d'abord cette page à votre écran d'accueil (bouton partager <strong>⬆️</strong> puis "Sur l'écran d'accueil"), ouvrez l'app depuis l'icône, puis réessayez.</div><div class="review-banner" id="review-banner"><h3>🎉 Objectif atteint !</h3><p id="review-banner-text">Votre avis compte beaucoup pour nous</p><a id="review-link" class="review-btn" href="#" target="_blank" style="display:none">⭐ Laisser un avis Google</a></div><div class="section-box" id="referral-box" style="display:none"><div class="section-title">🎁 Parrainez un ami</div><p style="font-size:12px;color:#6b7280;margin-bottom:10px;text-align:center">Votre ami reçoit des points, vous aussi !</p><div class="referral-link-box" id="referral-link-text"></div><button class="referral-copy-btn" onclick="copyReferralLink()">📋 Copier mon lien de parrainage</button></div><div class="section-box" id="history-box" style="display:none"><div class="section-title">📋 Historique des visites</div><div id="history-list"></div></div></div><script>
+  res.send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}#qr{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}.points-box{margin-top:20px;background:#f8fafc;border-radius:16px;padding:16px}.points-val{font-size:28px;font-weight:900;color:#111827}.points-goal{font-size:13px;color:#6b7280;margin-bottom:10px}.progress-track{background:#e5e7eb;border-radius:99px;height:10px;overflow:hidden}.progress-fill{background:#3b82f6;height:100%;border-radius:99px;transition:width 0.4s ease}.review-banner{margin-top:20px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:16px;color:white;text-align:center;display:none}.review-banner h3{font-size:16px;font-weight:800;margin-bottom:6px}.review-banner p{color:rgba(255,255,255,0.9);font-size:13px;margin-bottom:12px}.review-btn{display:inline-block;background:white;color:#d97706;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none}.notif-btn{margin-top:16px;background:#f3f4f6;color:#374151;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}.notif-btn.on{background:#dcfce7;color:#16a34a}.unsub-link{display:block;margin-top:8px;font-size:11px;color:#9ca3af;text-decoration:underline;cursor:pointer;background:none;border:none}.ios-hint{margin-top:12px;background:#fef3c7;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e;text-align:left;line-height:1.5;display:none}.section-box{margin-top:20px;background:#f8fafc;border-radius:16px;padding:16px;text-align:left}.section-title{font-size:13px;font-weight:800;color:#374151;margin-bottom:10px;text-align:center}.history-row{display:flex;justify-content:space-between;font-size:12px;color:#6b7280;padding:6px 0;border-bottom:1px solid #e5e7eb}.history-row:last-child{border-bottom:none}.referral-link-box{background:white;border:1px solid #e5e7eb;border-radius:10px;padding:10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px}.referral-copy-btn{width:100%;padding:12px;border-radius:10px;background:#3b82f6;color:white;font-size:13px;font-weight:700;border:none;cursor:pointer}</style></head><body><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°${id}</div><div class="points-box" id="points-box" style="display:none"><div class="points-val" id="points-val">0</div><div class="points-goal" id="points-goal-text">sur 0 points</div><div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div></div>${walletHtml}<a id="menu-link" href="#" target="_blank" style="display:none;align-items:center;justify-content:center;gap:8px;margin-top:12px;background:#f3f4f6;color:#374151;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none">📋 Voir le menu</a><a id="phone-link" href="#" style="display:none;align-items:center;justify-content:center;gap:8px;margin-top:12px;background:#f3f4f6;color:#374151;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none">📞 Appeler la boutique</a><div id="hours-text" style="display:none;margin-top:12px;font-size:13px;color:#6b7280;text-align:center">🕒 <span id="hours-value"></span></div><button class="notif-btn" id="notif-btn" onclick="enableNotifs()">🔔 Activer les notifications</button><button class="unsub-link" id="unsub-link" onclick="disableNotifs()" style="display:none">Se désabonner des notifications</button><div class="ios-hint" id="ios-hint">📲 Sur iPhone : pour recevoir les notifications, ajoutez d'abord cette page à votre écran d'accueil (bouton partager <strong>⬆️</strong> puis "Sur l'écran d'accueil"), ouvrez l'app depuis l'icône, puis réessayez.</div><div class="review-banner" id="review-banner"><h3>🎉 Objectif atteint !</h3><p id="review-banner-text">Votre avis compte beaucoup pour nous</p><a id="review-link" class="review-btn" href="#" target="_blank" style="display:none">⭐ Laisser un avis Google</a></div><div class="section-box" id="referral-box" style="display:none"><div class="section-title">🎁 Parrainez un ami</div><p style="font-size:12px;color:#6b7280;margin-bottom:10px;text-align:center">Votre ami reçoit des points, vous aussi !</p><div class="referral-link-box" id="referral-link-text"></div><button class="referral-copy-btn" onclick="copyReferralLink()">📋 Copier mon lien de parrainage</button></div><div class="section-box" id="history-box" style="display:none"><div class="section-title">📋 Historique des visites</div><div id="history-list"></div></div></div><script>
 const IS_IOS = ${isIOS};
 const IS_STANDALONE = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
 
@@ -653,6 +659,17 @@ fetch("/api/customers/${id}").then(r=>r.json()).then(c => {
     const menuLink = document.getElementById('menu-link');
     menuLink.href = c.menu_url;
     menuLink.style.display = 'flex';
+  }
+
+  if (c.phone) {
+    const phoneLink = document.getElementById('phone-link');
+    phoneLink.href = 'tel:' + c.phone.replace(/\\s/g, '');
+    phoneLink.style.display = 'flex';
+  }
+
+  if (c.opening_hours) {
+    document.getElementById('hours-value').textContent = c.opening_hours;
+    document.getElementById('hours-text').style.display = 'block';
   }
 
   if (c.slug) {
@@ -765,7 +782,7 @@ if ('serviceWorker' in navigator && Notification.permission === 'granted') {
 });
 
 app.put('/api/shops/:id', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64 } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours } = req.body;
   try {
     const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
@@ -785,7 +802,7 @@ app.put('/api/shops/:id', async (req, res) => {
         newMenuFileType = menuFile ? menuFile.mime : null;
       }
     }
-    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=?, menu_file_base64=?, menu_file_type=? WHERE id=?`)
+    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=?, menu_file_base64=?, menu_file_type=?, phone=?, opening_hours=? WHERE id=?`)
       .run(
         name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null,
         email || shop.email || null, referral_bonus_points != null ? referral_bonus_points : (shop.referral_bonus_points || 10),
@@ -796,6 +813,8 @@ app.put('/api/shops/:id', async (req, res) => {
         logo_base64 !== undefined ? (logo_base64 || null) : shop.logo_base64,
         newMenuFileBase64,
         newMenuFileType,
+        phone !== undefined ? (phone || null) : shop.phone,
+        opening_hours !== undefined ? (opening_hours || null) : shop.opening_hours,
         req.params.id
       );
     res.json({ success: true });

@@ -90,10 +90,14 @@ async function createWalletPass(customer) {
     { id: 'reward', header: 'Récompense', body: customer.reward_text || 'Non définie' },
     { id: 'remaining', header: 'Restant', body: remaining + ' pts' },
   ];
+  if (customer.opening_hours) {
+    textModulesData.push({ id: 'hours', header: 'Horaires', body: customer.opening_hours });
+  }
 
   const linksModuleData = { uris: [] };
   if (customer.menu_url) linksModuleData.uris.push({ uri: customer.menu_url, description: '📋 Notre menu' });
   if (customer.google_review_url) linksModuleData.uris.push({ uri: customer.google_review_url, description: '⭐ Laisser un avis' });
+  if (customer.phone) linksModuleData.uris.push({ uri: 'tel:' + customer.phone.replace(/\s/g, ''), description: '📞 Nous appeler' });
 
   const loyaltyObject = {
     id: objectId,
@@ -285,6 +289,12 @@ async function createApplePassBuffer(customer) {
   ];
   if (customer.menu_url) {
     backFields.push({ key: 'menu', label: 'Notre menu', value: customer.menu_url });
+  }
+  if (customer.phone) {
+    backFields.push({ key: 'phone', label: 'Nous appeler', value: customer.phone });
+  }
+  if (customer.opening_hours) {
+    backFields.push({ key: 'hours', label: 'Horaires', value: customer.opening_hours });
   }
 
   const passJson = {
