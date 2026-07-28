@@ -8,6 +8,7 @@ const rateLimit = require('express-rate-limit');
 const db = require('./database');
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
 // Stripe
@@ -33,27 +34,18 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
 // Sessions
 const sessions = {};
 
-// Recharge les sessions existantes depuis la DB au démarrage (survit aux redéploiements)
-try {
-  const rows = db.prepare('SELECT token, shop_id FROM sessions_store').all();
-  rows.forEach(r => { sessions[r.token] = r.shop_id; });
-  console.log('Sessions rechargées:', rows.length);
-} catch (e) {
-  console.log('Aucune session à recharger:', e.message);
-}
-
 function generateToken() {
   return crypto.randomBytes(24).toString('hex');
 }
 
-function saveSession(token, shopId) {
+async function saveSession(token, shopId) {
   sessions[token] = shopId;
-  try { db.prepare('INSERT OR REPLACE INTO sessions_store (token, shop_id) VALUES (?, ?)').run(token, shopId); } catch(e) {}
+  try { await db.prepare('INSERT INTO sessions_store (token, shop_id) VALUES (?, ?) ON CONFLICT (token) DO UPDATE SET shop_id = EXCLUDED.shop_id').run(token, shopId); } catch(e) {}
 }
 
-function deleteSession(token) {
+async function deleteSession(token) {
   delete sessions[token];
-  try { db.prepare('DELETE FROM sessions_store WHERE token = ?').run(token); } catch(e) {}
+  try { await db.prepare('DELETE FROM sessions_store WHERE token = ?').run(token); } catch(e) {}
 }
 
 function requireShopAuth(req, res, next) {
@@ -84,75 +76,6 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Migration DB : ajouter colonnes Stripe si elles n'existent pas
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN google_review_url TEXT").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN stripe_customer_id TEXT").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN stripe_subscription_id TEXT").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN active INTEGER DEFAULT 0").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN email TEXT").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN payment_exempt INTEGER DEFAULT 0").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN waive_setup_fee INTEGER DEFAULT 0").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN currency TEXT DEFAULT 'EUR'").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN menu_url TEXT").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN menu_file_base64 TEXT").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN menu_file_type TEXT").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN latitude REAL").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN longitude REAL").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN logo_base64 TEXT").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN phone TEXT").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE shops ADD COLUMN opening_hours TEXT").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE customers ADD COLUMN pass_auth_token TEXT").run();
-} catch(e) {}
-try {
-  db.prepare("ALTER TABLE customers ADD COLUMN pass_updated_at TEXT").run();
-} catch(e) {}
-try {
-  db.prepare(`
-    CREATE TABLE IF NOT EXISTS apple_pass_registrations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      device_library_id TEXT NOT NULL,
-      pass_type_id TEXT NOT NULL,
-      serial_number TEXT NOT NULL,
-      push_token TEXT NOT NULL,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE(device_library_id, serial_number)
-    )
-  `).run();
-} catch(e) {}
-
 // Génère (si besoin) le jeton d'authentification utilisé par le service web Apple Wallet pour ce client
 // Extrait le type MIME et les données d'un fichier envoyé en data URL (ex: "data:application/pdf;base64,...")
 function parseDataUrl(dataUrl) {
@@ -169,20 +92,20 @@ function shopIconUrl(logoBase64, shopId) {
   return logoBase64 ? 'https://fidelypass-production.up.railway.app/shops/' + shopId + '/logo-file' : undefined;
 }
 
-function ensurePassAuthToken(customerId) {
-  const customer = db.prepare('SELECT pass_auth_token FROM customers WHERE id = ?').get(customerId);
+async function ensurePassAuthToken(customerId) {
+  const customer = await db.prepare('SELECT pass_auth_token FROM customers WHERE id = ?').get(customerId);
   if (customer && customer.pass_auth_token) return customer.pass_auth_token;
   const token = crypto.randomBytes(20).toString('hex');
-  db.prepare('UPDATE customers SET pass_auth_token = ? WHERE id = ?').run(token, customerId);
+  await db.prepare('UPDATE customers SET pass_auth_token = ? WHERE id = ?').run(token, customerId);
   return token;
 }
 
 // Marque la carte d'un client comme mise à jour, et pousse une notification Apple Wallet aux appareils enregistrés
 async function touchPassAndPush(customerId) {
   try {
-    db.prepare('UPDATE customers SET pass_updated_at = ? WHERE id = ?').run(new Date().toISOString(), customerId);
+    await db.prepare('UPDATE customers SET pass_updated_at = ? WHERE id = ?').run(new Date().toISOString(), customerId);
     const serialNumber = 'fidelypass-' + customerId;
-    const regs = db.prepare('SELECT push_token FROM apple_pass_registrations WHERE serial_number = ?').all(serialNumber);
+    const regs = await db.prepare('SELECT push_token FROM apple_pass_registrations WHERE serial_number = ?').all(serialNumber);
     if (!regs.length) return;
     const { sendApplePushNotification } = require('./wallet');
     for (const reg of regs) {
@@ -199,19 +122,97 @@ async function touchPassAndPush(customerId) {
 
 app.get('/api/test', (req, res) => res.json({ message: 'FidélyPass fonctionne !' }));
 
+// Route de migration UNIQUE : transfère les données de l'ancienne base SQLite vers la
+// nouvelle base PostgreSQL. À appeler une seule fois après avoir ajouté PostgreSQL sur
+// Railway, avant de considérer la bascule comme terminée. Peut être supprimée ensuite.
+app.post('/api/admin/migrate-to-postgres', requireAdmin, async (req, res) => {
+  const path = require('path');
+  let Database;
+  try {
+    Database = require('better-sqlite3');
+  } catch (e) {
+    return res.status(500).json({ success: false, error: "Impossible de charger l'ancienne base (better-sqlite3 manquant) : " + e.message });
+  }
+
+  const sqlitePath = process.env.RAILWAY_VOLUME_MOUNT_PATH
+    ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'fidelypass.db')
+    : path.join(__dirname, 'fidelypass.db');
+
+  let oldDb;
+  try {
+    oldDb = new Database(sqlitePath, { readonly: true });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: 'Ancienne base introuvable à ' + sqlitePath + ' : ' + e.message });
+  }
+
+  const summary = {};
+  try {
+    const tables = [
+      { name: 'shops', columns: ['id','name','slug','password','reward_text','points_per_euro','points_goal','color','created_at','referral_bonus_points','google_review_url','stripe_customer_id','stripe_subscription_id','active','email','payment_exempt','waive_setup_fee','currency','menu_url','menu_file_base64','menu_file_type','latitude','longitude','logo_base64','phone','opening_hours'] },
+      { name: 'customers', columns: ['id','shop_id','name','points','total_visits','created_at','last_visit','last_reminder_sent','referred_by','pass_auth_token','pass_updated_at'] },
+      { name: 'scans', columns: ['id','customer_id','shop_id','points_added','scanned_at'] },
+      { name: 'push_subscriptions', columns: ['id','customer_id','endpoint','p256dh','auth','created_at'] },
+      { name: 'apple_pass_registrations', columns: ['id','device_library_id','pass_type_id','serial_number','push_token','created_at'] },
+      { name: 'sessions_store', columns: ['token','shop_id','created_at'] },
+      { name: 'leads', columns: ['id','business_name','phone','seen','created_at'] },
+      { name: 'admin_subscriptions', columns: ['id','endpoint','p256dh','auth','created_at'] },
+    ];
+
+    for (const table of tables) {
+      let oldColumns;
+      try {
+        oldColumns = oldDb.prepare(`PRAGMA table_info(${table.name})`).all().map(c => c.name);
+      } catch (e) {
+        summary[table.name] = 'table absente dans l\'ancienne base, ignorée';
+        continue;
+      }
+      const usableColumns = table.columns.filter(c => oldColumns.includes(c));
+      const rows = oldDb.prepare(`SELECT ${usableColumns.join(', ')} FROM ${table.name}`).all();
+
+      let inserted = 0;
+      for (const row of rows) {
+        const placeholders = usableColumns.map(() => '?').join(', ');
+        const values = usableColumns.map(c => row[c]);
+        try {
+          await db.prepare(
+            `INSERT INTO ${table.name} (${usableColumns.join(', ')}) VALUES (${placeholders}) ON CONFLICT DO NOTHING`
+          ).run(...values);
+          inserted++;
+        } catch (e) {
+          console.error(`Migration ${table.name} id=${row.id || row.token}:`, e.message);
+        }
+      }
+      summary[table.name] = `${inserted}/${rows.length} lignes migrées`;
+
+      // Recale la séquence auto-increment Postgres pour éviter des collisions d'id plus tard
+      if (usableColumns.includes('id')) {
+        try {
+          await db.exec(`SELECT setval(pg_get_serial_sequence('${table.name}', 'id'), COALESCE((SELECT MAX(id) FROM ${table.name}), 1))`);
+        } catch (e) {}
+      }
+    }
+
+    oldDb.close();
+    res.json({ success: true, summary });
+  } catch (err) {
+    try { oldDb.close(); } catch (e) {}
+    res.status(500).json({ success: false, error: err.message, summary });
+  }
+});
+
 app.post('/api/shops', async (req, res) => {
   const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours } = req.body;
   try {
     const menuFile = parseDataUrl(menu_file_base64);
     const hashedPassword = await bcrypt.hash(password, 10);
-    const stmt = db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, phone, opening_hours, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`);
-    const result = stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null, phone || null, opening_hours || null);
+    const stmt = await db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, phone, opening_hours, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) RETURNING id`);
+    const result = await stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null, phone || null, opening_hours || null);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
-app.get('/api/shops', (req, res) => {
-  const shops = db.prepare('SELECT * FROM shops').all();
+app.get('/api/shops', async (req, res) => {
+  const shops = await db.prepare('SELECT * FROM shops').all();
   // On n'envoie pas les logos/fichiers menu en entier dans la liste (potentiellement plusieurs Mo
   // par boutique) — juste un indicateur de présence. Le détail complet est chargé à la demande
   // via /api/admin/shops/:id/full au moment d'ouvrir la modale de modification.
@@ -222,15 +223,15 @@ app.get('/api/shops', (req, res) => {
   res.json(light);
 });
 
-app.get('/api/admin/shops/:id/full', requireAdmin, (req, res) => {
-  const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+app.get('/api/admin/shops/:id/full', requireAdmin, async (req, res) => {
+  const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
   if (!shop) return res.status(404).json({ error: 'Boutique introuvable' });
   res.json(shop);
 });
 
 app.post('/api/shops/login', loginLimiter, async (req, res) => {
   const { slug, password } = req.body;
-  const shop = db.prepare('SELECT * FROM shops WHERE slug = ?').get(slug);
+  const shop = await db.prepare('SELECT * FROM shops WHERE slug = ?').get(slug);
   if (!shop) return res.status(401).json({ success: false, error: 'Identifiants incorrects' });
 
   // Support anciens mots de passe en clair (migration progressive)
@@ -242,7 +243,7 @@ app.post('/api/shops/login', loginLimiter, async (req, res) => {
     valid = (password === shop.password);
     if (valid) {
       const hashed = await bcrypt.hash(password, 10);
-      db.prepare('UPDATE shops SET password = ? WHERE id = ?').run(hashed, shop.id);
+      await db.prepare('UPDATE shops SET password = ? WHERE id = ?').run(hashed, shop.id);
     }
   }
 
@@ -250,41 +251,41 @@ app.post('/api/shops/login', loginLimiter, async (req, res) => {
   if (shop.active === 0 && shop.payment_exempt !== 1) return res.status(403).json({ success: false, error: 'Boutique suspendue — paiement en attente' });
 
   const token = generateToken();
-  saveSession(token, shop.id);
+  await saveSession(token, shop.id);
   res.json({ success: true, shop, token });
 });
 
-app.get('/api/shops/:id/stats', requireShopAuth, (req, res) => {
-  const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
-  const customers = db.prepare('SELECT COUNT(*) as count FROM customers WHERE shop_id = ?').get(req.params.id);
-  const scans = db.prepare('SELECT COUNT(*) as count FROM scans WHERE shop_id = ?').get(req.params.id);
-  const rewards = db.prepare("SELECT COUNT(*) as count FROM scans WHERE shop_id = ? AND points_added = 0").get(req.params.id);
-  res.json({ shop, total_customers: customers.count, total_scans: scans.count, total_rewards: rewards.count });
+app.get('/api/shops/:id/stats', requireShopAuth, async (req, res) => {
+  const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+  const customers = await db.prepare('SELECT COUNT(*) as count FROM customers WHERE shop_id = ?').get(req.params.id);
+  const scans = await db.prepare('SELECT COUNT(*) as count FROM scans WHERE shop_id = ?').get(req.params.id);
+  const rewards = await db.prepare("SELECT COUNT(*) as count FROM scans WHERE shop_id = ? AND points_added = 0").get(req.params.id);
+  res.json({ shop, total_customers: Number(customers.count), total_scans: Number(scans.count), total_rewards: Number(rewards.count) });
 });
 
 app.post('/api/customers', async (req, res) => {
   const { shop_id, name, ref } = req.body;
   try {
-    const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
+    const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
     if (!shop) return res.status(400).json({ success: false, error: 'Boutique introuvable' });
 
     // Vérifie que le parrain est un client valide de la même boutique
     let referrer = null;
     if (ref) {
-      referrer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(ref, shop_id);
+      referrer = await db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(ref, shop_id);
     }
     const bonus = shop.referral_bonus_points || 0;
     const startingPoints = referrer ? bonus : 0;
 
-    const stmt = db.prepare('INSERT INTO customers (shop_id, name, points, referred_by) VALUES (?, ?, ?, ?)');
-    const result = stmt.run(shop_id, name, startingPoints, referrer ? referrer.id : null);
+    const stmt = await db.prepare('INSERT INTO customers (shop_id, name, points, referred_by) VALUES (?, ?, ?, ?) RETURNING id');
+    const result = await stmt.run(shop_id, name, startingPoints, referrer ? referrer.id : null);
     res.json({ success: true, id: result.lastInsertRowid, bonus_received: startingPoints });
 
     // Récompense le parrain + le notifie
     if (referrer && bonus > 0) {
-      db.prepare('UPDATE customers SET points = points + ? WHERE id = ?').run(bonus, referrer.id);
+      await db.prepare('UPDATE customers SET points = points + ? WHERE id = ?').run(bonus, referrer.id);
       if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-        const subs = db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(referrer.id);
+        const subs = await db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(referrer.id);
         const payload = JSON.stringify({
           title: `🎉 ${shop.name}`,
           body: `${name} a rejoint grâce à vous ! +${bonus} points offerts 🎁`,
@@ -295,9 +296,9 @@ app.post('/api/customers', async (req, res) => {
           webpush.sendNotification(
             { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
             payload
-          ).catch(err => {
+          ).catch(async err => {
             if (err.statusCode === 404 || err.statusCode === 410) {
-              db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
+              await db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
             }
           });
         }
@@ -306,8 +307,8 @@ app.post('/api/customers', async (req, res) => {
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
-app.get('/api/customers/:id', (req, res) => {
-  const customer = db.prepare(`
+app.get('/api/customers/:id', async (req, res) => {
+  const customer = await db.prepare(`
     SELECT c.*, s.points_goal, s.reward_text, s.google_review_url, s.color, s.slug, s.name as shop_name, s.referral_bonus_points,
            s.menu_url, s.phone, s.opening_hours, (s.menu_file_base64 IS NOT NULL) as has_menu_file
     FROM customers c JOIN shops s ON s.id = c.shop_id
@@ -318,50 +319,50 @@ app.get('/api/customers/:id', (req, res) => {
   res.json(customer);
 });
 
-app.get('/api/customers/:id/history', (req, res) => {
-  const history = db.prepare(`
+app.get('/api/customers/:id/history', async (req, res) => {
+  const history = await db.prepare(`
     SELECT points_added, scanned_at FROM scans
     WHERE customer_id = ? ORDER BY scanned_at DESC LIMIT 10
   `).all(req.params.id);
   res.json(history);
 });
 
-app.put('/api/customers/:id/points', requireShopAuth, (req, res) => {
+app.put('/api/customers/:id/points', requireShopAuth, async (req, res) => {
   const { points, shop_id } = req.body;
-  const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(req.params.id, shop_id);
+  const customer = await db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(req.params.id, shop_id);
   if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
-  db.prepare('UPDATE customers SET points = ? WHERE id = ?').run(points, req.params.id);
+  await db.prepare('UPDATE customers SET points = ? WHERE id = ?').run(points, req.params.id);
   res.json({ success: true });
 });
 
-app.delete('/api/customers/:id', requireShopAuth, (req, res) => {
+app.delete('/api/customers/:id', requireShopAuth, async (req, res) => {
   const { shop_id } = req.body;
-  const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(req.params.id, shop_id);
+  const customer = await db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(req.params.id, shop_id);
   if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
-  db.prepare('DELETE FROM scans WHERE customer_id = ?').run(req.params.id);
-  db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ?').run(req.params.id);
-  db.prepare('DELETE FROM apple_pass_registrations WHERE serial_number = ?').run('fidelypass-' + req.params.id);
-  db.prepare('DELETE FROM customers WHERE id = ?').run(req.params.id);
+  await db.prepare('DELETE FROM scans WHERE customer_id = ?').run(req.params.id);
+  await db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ?').run(req.params.id);
+  await db.prepare('DELETE FROM apple_pass_registrations WHERE serial_number = ?').run('fidelypass-' + req.params.id);
+  await db.prepare('DELETE FROM customers WHERE id = ?').run(req.params.id);
   res.json({ success: true });
 });
 
 app.post('/api/scan', requireShopAuth, async (req, res) => {
   const { customer_id, shop_id, amount } = req.body;
-  const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
-  const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(customer_id, shop_id);
+  const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
+  const customer = await db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(customer_id, shop_id);
   if (!shop || !customer) return res.status(404).json({ success: false, error: 'Introuvable' });
   const pointsPerEuro = shop.points_per_euro || 1;
   const pointsEarned = Math.floor((amount || 0) * pointsPerEuro);
   const newPoints = customer.points + pointsEarned;
   const rewardUnlocked = newPoints >= shop.points_goal;
-  db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1, last_visit = CURRENT_TIMESTAMP WHERE id = ?').run(newPoints, customer_id);
-  db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(customer_id, shop_id, pointsEarned);
+  await db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1, last_visit = CURRENT_TIMESTAMP WHERE id = ?').run(newPoints, customer_id);
+  await db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(customer_id, shop_id, pointsEarned);
   touchPassAndPush(customer_id);
   res.json({ success: true, customer_name: customer.name, points_before: customer.points, points_after: newPoints, points_added: pointsEarned, amount_paid: amount, reward_unlocked: rewardUnlocked, reward_text: shop.reward_text, points_goal: shop.points_goal, google_review_url: shop.google_review_url || null });
 
   // Notifie le client par push : récompense débloquée, ou simple progression
   if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-    const subs = db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(customer_id);
+    const subs = await db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(customer_id);
     let payload;
     if (rewardUnlocked) {
       const body = shop.google_review_url
@@ -381,28 +382,28 @@ app.post('/api/scan', requireShopAuth, async (req, res) => {
       webpush.sendNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
         payload
-      ).catch(err => {
+      ).catch(async err => {
         if (err.statusCode === 404 || err.statusCode === 410) {
-          db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
+          await db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
         }
       });
     }
   }
 });
 
-app.post('/api/reward/:customer_id', requireShopAuth, (req, res) => {
+app.post('/api/reward/:customer_id', requireShopAuth, async (req, res) => {
   const { shop_id } = req.body;
-  const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(req.params.customer_id, shop_id);
+  const customer = await db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(req.params.customer_id, shop_id);
   if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
-  const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
-  db.prepare('UPDATE customers SET points = 0 WHERE id = ?').run(req.params.customer_id);
-  db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(req.params.customer_id, shop_id, 0);
+  const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
+  await db.prepare('UPDATE customers SET points = 0 WHERE id = ?').run(req.params.customer_id);
+  await db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(req.params.customer_id, shop_id, 0);
   touchPassAndPush(req.params.customer_id);
   res.json({ success: true, google_review_url: shop.google_review_url || null });
 });
 
-app.get('/api/shops/:shop_id/customers', requireShopAuth, (req, res) => {
-  const customers = db.prepare('SELECT * FROM customers WHERE shop_id = ? ORDER BY points DESC').all(req.params.shop_id);
+app.get('/api/shops/:shop_id/customers', requireShopAuth, async (req, res) => {
+  const customers = await db.prepare('SELECT * FROM customers WHERE shop_id = ? ORDER BY points DESC').all(req.params.shop_id);
   res.json(customers);
 });
 
@@ -414,7 +415,7 @@ app.get('/api/customers/:id/qr', async (req, res) => {
 
 app.get('/api/customers/:id/wallet', async (req, res) => {
   try {
-    const customer = db.prepare(`
+    const customer = await db.prepare(`
       SELECT c.*, s.id as shop_id, s.name as shop_name, s.reward_text, s.points_goal, s.color,
              s.menu_url, s.google_review_url, s.logo_base64, s.phone, s.opening_hours,
              (s.menu_file_base64 IS NOT NULL) as has_menu_file
@@ -443,47 +444,47 @@ function customerIdFromSerial(serialNumber) {
   return /^\d+$/.test(id) ? Number(id) : null;
 }
 
-function checkApplePassAuth(req, customerId) {
+async function checkApplePassAuth(req, customerId) {
   const header = req.headers['authorization'] || '';
   const token = header.startsWith('ApplePass ') ? header.slice('ApplePass '.length) : null;
   if (!token) return false;
-  const customer = db.prepare('SELECT pass_auth_token FROM customers WHERE id = ?').get(customerId);
+  const customer = await db.prepare('SELECT pass_auth_token FROM customers WHERE id = ?').get(customerId);
   return !!customer && customer.pass_auth_token === token;
 }
 
 // Enregistrement d'un appareil pour recevoir les mises à jour push d'une carte
-app.post('/apple-wallet/v1/devices/:deviceLibraryIdentifier/registrations/:passTypeIdentifier/:serialNumber', (req, res) => {
+app.post('/apple-wallet/v1/devices/:deviceLibraryIdentifier/registrations/:passTypeIdentifier/:serialNumber', async (req, res) => {
   const { deviceLibraryIdentifier, passTypeIdentifier, serialNumber } = req.params;
   const customerId = customerIdFromSerial(serialNumber);
   if (passTypeIdentifier !== APPLE_PASS_TYPE_ID || !customerId) return res.status(404).end();
-  if (!checkApplePassAuth(req, customerId)) return res.status(401).end();
+  if (!await checkApplePassAuth(req, customerId)) return res.status(401).end();
   const pushToken = req.body && req.body.pushToken;
   if (!pushToken) return res.status(400).end();
-  const existing = db.prepare('SELECT id FROM apple_pass_registrations WHERE device_library_id = ? AND serial_number = ?').get(deviceLibraryIdentifier, serialNumber);
+  const existing = await db.prepare('SELECT id FROM apple_pass_registrations WHERE device_library_id = ? AND serial_number = ?').get(deviceLibraryIdentifier, serialNumber);
   if (existing) {
-    db.prepare('UPDATE apple_pass_registrations SET push_token = ? WHERE id = ?').run(pushToken, existing.id);
+    await db.prepare('UPDATE apple_pass_registrations SET push_token = ? WHERE id = ?').run(pushToken, existing.id);
     return res.status(200).end();
   }
-  db.prepare('INSERT INTO apple_pass_registrations (device_library_id, pass_type_id, serial_number, push_token) VALUES (?, ?, ?, ?)')
+  await db.prepare('INSERT INTO apple_pass_registrations (device_library_id, pass_type_id, serial_number, push_token) VALUES (?, ?, ?, ?)')
     .run(deviceLibraryIdentifier, passTypeIdentifier, serialNumber, pushToken);
   res.status(201).end();
 });
 
 // Désenregistrement d'un appareil
-app.delete('/apple-wallet/v1/devices/:deviceLibraryIdentifier/registrations/:passTypeIdentifier/:serialNumber', (req, res) => {
+app.delete('/apple-wallet/v1/devices/:deviceLibraryIdentifier/registrations/:passTypeIdentifier/:serialNumber', async (req, res) => {
   const { deviceLibraryIdentifier, passTypeIdentifier, serialNumber } = req.params;
   const customerId = customerIdFromSerial(serialNumber);
   if (passTypeIdentifier !== APPLE_PASS_TYPE_ID || !customerId) return res.status(404).end();
-  if (!checkApplePassAuth(req, customerId)) return res.status(401).end();
-  db.prepare('DELETE FROM apple_pass_registrations WHERE device_library_id = ? AND serial_number = ?').run(deviceLibraryIdentifier, serialNumber);
+  if (!await checkApplePassAuth(req, customerId)) return res.status(401).end();
+  await db.prepare('DELETE FROM apple_pass_registrations WHERE device_library_id = ? AND serial_number = ?').run(deviceLibraryIdentifier, serialNumber);
   res.status(200).end();
 });
 
 // Liste des cartes à mettre à jour pour un appareil donné
-app.get('/apple-wallet/v1/devices/:deviceLibraryIdentifier/registrations/:passTypeIdentifier', (req, res) => {
+app.get('/apple-wallet/v1/devices/:deviceLibraryIdentifier/registrations/:passTypeIdentifier', async (req, res) => {
   const { deviceLibraryIdentifier, passTypeIdentifier } = req.params;
   if (passTypeIdentifier !== APPLE_PASS_TYPE_ID) return res.status(404).end();
-  const rows = db.prepare('SELECT serial_number FROM apple_pass_registrations WHERE device_library_id = ?').all(deviceLibraryIdentifier);
+  const rows = await db.prepare('SELECT serial_number FROM apple_pass_registrations WHERE device_library_id = ?').all(deviceLibraryIdentifier);
   if (!rows.length) return res.status(204).end();
   res.json({ lastUpdated: String(Date.now()), serialNumbers: rows.map(r => r.serial_number) });
 });
@@ -494,8 +495,8 @@ app.get('/apple-wallet/v1/passes/:passTypeIdentifier/:serialNumber', async (req,
     const { passTypeIdentifier, serialNumber } = req.params;
     const customerId = customerIdFromSerial(serialNumber);
     if (passTypeIdentifier !== APPLE_PASS_TYPE_ID || !customerId) return res.status(404).end();
-    if (!checkApplePassAuth(req, customerId)) return res.status(401).end();
-    const customer = db.prepare(`
+    if (!await checkApplePassAuth(req, customerId)) return res.status(401).end();
+    const customer = await db.prepare(`
       SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.color,
              s.menu_url, s.latitude, s.longitude, s.logo_base64, s.phone, s.opening_hours,
              (s.menu_file_base64 IS NOT NULL) as has_menu_file
@@ -504,7 +505,7 @@ app.get('/apple-wallet/v1/passes/:passTypeIdentifier/:serialNumber', async (req,
     `).get(customerId);
     if (!customer) return res.status(404).end();
     if (customer.has_menu_file) customer.menu_url = 'https://fidelypass-production.up.railway.app/shops/' + customer.shop_id + '/menu-file';
-    customer.pass_auth_token = ensurePassAuthToken(customer.id);
+    customer.pass_auth_token = await ensurePassAuthToken(customer.id);
     const { createApplePassBuffer } = require('./wallet');
     const buffer = await createApplePassBuffer(customer);
     res.set('Content-Type', 'application/vnd.apple.pkpass');
@@ -524,7 +525,7 @@ app.post('/apple-wallet/v1/log', (req, res) => {
 
 app.get('/api/customers/:id/apple-wallet', async (req, res) => {
   try {
-    const customer = db.prepare(`
+    const customer = await db.prepare(`
       SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.color,
              s.menu_url, s.latitude, s.longitude, s.logo_base64, s.phone, s.opening_hours,
              (s.menu_file_base64 IS NOT NULL) as has_menu_file
@@ -533,7 +534,7 @@ app.get('/api/customers/:id/apple-wallet', async (req, res) => {
     `).get(req.params.id);
     if (!customer) return res.status(404).json({ error: 'Client introuvable' });
     if (customer.has_menu_file) customer.menu_url = 'https://fidelypass-production.up.railway.app/shops/' + customer.shop_id + '/menu-file';
-    customer.pass_auth_token = ensurePassAuthToken(customer.id);
+    customer.pass_auth_token = await ensurePassAuthToken(customer.id);
     const { createApplePassBuffer } = require('./wallet');
     const buffer = await createApplePassBuffer(customer);
     res.set('Content-Type', 'application/vnd.apple.pkpass');
@@ -553,18 +554,18 @@ app.get('/api/vapid-public-key', (req, res) => {
   res.json({ key: VAPID_PUBLIC_KEY });
 });
 
-app.post('/api/customers/:id/subscribe', (req, res) => {
+app.post('/api/customers/:id/subscribe', async (req, res) => {
   const { subscription } = req.body;
-  const customer = db.prepare('SELECT * FROM customers WHERE id = ?').get(req.params.id);
+  const customer = await db.prepare('SELECT * FROM customers WHERE id = ?').get(req.params.id);
   if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
   if (!subscription || !subscription.endpoint || !subscription.keys) {
     return res.status(400).json({ success: false, error: 'Abonnement invalide' });
   }
   try {
     // Évite les doublons pour le même endpoint
-    db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ? AND endpoint = ?')
+    await db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ? AND endpoint = ?')
       .run(req.params.id, subscription.endpoint);
-    db.prepare('INSERT INTO push_subscriptions (customer_id, endpoint, p256dh, auth) VALUES (?, ?, ?, ?)')
+    await db.prepare('INSERT INTO push_subscriptions (customer_id, endpoint, p256dh, auth) VALUES (?, ?, ?, ?)')
       .run(req.params.id, subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth);
     res.json({ success: true });
   } catch (err) {
@@ -572,13 +573,13 @@ app.post('/api/customers/:id/subscribe', (req, res) => {
   }
 });
 
-app.post('/api/customers/:id/unsubscribe', (req, res) => {
+app.post('/api/customers/:id/unsubscribe', async (req, res) => {
   const { endpoint } = req.body;
   try {
     if (endpoint) {
-      db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ? AND endpoint = ?').run(req.params.id, endpoint);
+      await db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ? AND endpoint = ?').run(req.params.id, endpoint);
     } else {
-      db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ?').run(req.params.id);
+      await db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ?').run(req.params.id);
     }
     res.json({ success: true });
   } catch (err) {
@@ -592,10 +593,10 @@ app.post('/api/shops/:id/notify', requireShopAuth, async (req, res) => {
   if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
     return res.status(500).json({ success: false, error: 'Clés VAPID non configurées côté serveur' });
   }
-  const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+  const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
   if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
 
-  const subs = db.prepare(`
+  const subs = await db.prepare(`
     SELECT ps.* FROM push_subscriptions ps
     JOIN customers c ON c.id = ps.customer_id
     WHERE c.shop_id = ?
@@ -615,7 +616,7 @@ app.post('/api/shops/:id/notify', requireShopAuth, async (req, res) => {
       failed++;
       // Abonnement expiré ou invalide → on le supprime
       if (err.statusCode === 404 || err.statusCode === 410) {
-        db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
+        await db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
       }
     }
   }
@@ -623,7 +624,7 @@ app.post('/api/shops/:id/notify', requireShopAuth, async (req, res) => {
   res.json({ success: true, sent, failed, total: subs.length });
 });
 
-app.get('/card/:id', (req, res) => {
+app.get('/card/:id', async (req, res) => {
   const id = req.params.id;
   const ua = req.headers['user-agent'] || '';
   const isAndroid = /Android/i.test(ua);
@@ -886,7 +887,7 @@ if ('serviceWorker' in navigator && Notification.permission === 'granted') {
 app.put('/api/shops/:id', async (req, res) => {
   const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours } = req.body;
   try {
-    const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+    const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
     let newPassword = shop.password;
     if (password && password.trim() !== '') {
@@ -904,7 +905,7 @@ app.put('/api/shops/:id', async (req, res) => {
         newMenuFileType = menuFile ? menuFile.mime : null;
       }
     }
-    db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=?, menu_file_base64=?, menu_file_type=?, phone=?, opening_hours=? WHERE id=?`)
+    await db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=?, menu_file_base64=?, menu_file_type=?, phone=?, opening_hours=? WHERE id=?`)
       .run(
         name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null,
         email || shop.email || null, referral_bonus_points != null ? referral_bonus_points : (shop.referral_bonus_points || 10),
@@ -923,28 +924,28 @@ app.put('/api/shops/:id', async (req, res) => {
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
-app.delete('/api/shops/:id', (req, res) => {
+app.delete('/api/shops/:id', async (req, res) => {
   try {
-    const customerIds = db.prepare('SELECT id FROM customers WHERE shop_id = ?').all(req.params.id).map(c => c.id);
+    const customerIds = (await db.prepare('SELECT id FROM customers WHERE shop_id = ?').all(req.params.id)).map(c => c.id);
     if (customerIds.length) {
       const placeholders = customerIds.map(() => '?').join(',');
-      db.prepare(`DELETE FROM push_subscriptions WHERE customer_id IN (${placeholders})`).run(...customerIds);
+      await db.prepare(`DELETE FROM push_subscriptions WHERE customer_id IN (${placeholders})`).run(...customerIds);
       const serials = customerIds.map(id => 'fidelypass-' + id);
       const serialPlaceholders = serials.map(() => '?').join(',');
-      db.prepare(`DELETE FROM apple_pass_registrations WHERE serial_number IN (${serialPlaceholders})`).run(...serials);
+      await db.prepare(`DELETE FROM apple_pass_registrations WHERE serial_number IN (${serialPlaceholders})`).run(...serials);
     }
-    db.prepare('DELETE FROM sessions_store WHERE shop_id = ?').run(req.params.id);
-    db.prepare('DELETE FROM scans WHERE shop_id = ?').run(req.params.id);
-    db.prepare('DELETE FROM customers WHERE shop_id = ?').run(req.params.id);
-    db.prepare('DELETE FROM shops WHERE id = ?').run(req.params.id);
+    await db.prepare('DELETE FROM sessions_store WHERE shop_id = ?').run(req.params.id);
+    await db.prepare('DELETE FROM scans WHERE shop_id = ?').run(req.params.id);
+    await db.prepare('DELETE FROM customers WHERE shop_id = ?').run(req.params.id);
+    await db.prepare('DELETE FROM shops WHERE id = ?').run(req.params.id);
     res.json({ success: true });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
 // Sert le logo de la boutique en tant que vraie image accessible publiquement (nécessaire pour
 // Google Wallet, qui exige une URL et n'accepte pas une image encodée en base64 directement)
-app.get('/shops/:id/logo-file', (req, res) => {
-  const shop = db.prepare('SELECT logo_base64 FROM shops WHERE id = ?').get(req.params.id);
+app.get('/shops/:id/logo-file', async (req, res) => {
+  const shop = await db.prepare('SELECT logo_base64 FROM shops WHERE id = ?').get(req.params.id);
   if (!shop || !shop.logo_base64) return res.status(404).send('Aucun logo disponible');
   const match = String(shop.logo_base64).match(/^data:([^;]+);base64,(.+)$/);
   const mime = match ? match[1] : 'image/png';
@@ -954,8 +955,8 @@ app.get('/shops/:id/logo-file', (req, res) => {
 });
 
 // Sert le fichier menu (image ou PDF) uploadé par la boutique, affiché inline dans le navigateur
-app.get('/shops/:id/menu-file', (req, res) => {
-  const shop = db.prepare('SELECT menu_file_base64, menu_file_type FROM shops WHERE id = ?').get(req.params.id);
+app.get('/shops/:id/menu-file', async (req, res) => {
+  const shop = await db.prepare('SELECT menu_file_base64, menu_file_type FROM shops WHERE id = ?').get(req.params.id);
   if (!shop || !shop.menu_file_base64) return res.status(404).send('Aucun menu disponible');
   const buffer = Buffer.from(shop.menu_file_base64, 'base64');
   res.set('Content-Type', shop.menu_file_type || 'application/octet-stream');
@@ -963,8 +964,8 @@ app.get('/shops/:id/menu-file', (req, res) => {
   res.send(buffer);
 });
 
-app.get('/join/:slug', (req, res) => {
-  const shop = db.prepare('SELECT * FROM shops WHERE slug = ?').get(req.params.slug);
+app.get('/join/:slug', async (req, res) => {
+  const shop = await db.prepare('SELECT * FROM shops WHERE slug = ?').get(req.params.slug);
   if (!shop) return res.status(404).send('Boutique introuvable');
   const id = shop.id;
   const name = shop.name;
@@ -985,12 +986,43 @@ app.get('/', (req, res) => {
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 
+// Protection anti brute-force sur l'accès admin (par IP)
+const adminFailedAttempts = {};
+const ADMIN_MAX_ATTEMPTS = 10;
+const ADMIN_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+
+// Nettoyage périodique pour éviter une fuite mémoire sur le tracker d'IP
+setInterval(() => {
+  const now = Date.now();
+  for (const ip in adminFailedAttempts) {
+    if (now - adminFailedAttempts[ip].firstFailAt > ADMIN_WINDOW_MS) delete adminFailedAttempts[ip];
+  }
+}, 60 * 60 * 1000);
+
 function requireAdmin(req, res, next) {
+  const ip = req.ip || 'unknown';
+  const now = Date.now();
+  const entry = adminFailedAttempts[ip];
+
+  if (entry && entry.count >= ADMIN_MAX_ATTEMPTS && (now - entry.firstFailAt) < ADMIN_WINDOW_MS) {
+    res.set('WWW-Authenticate', 'Basic realm="FidelyPass Admin"');
+    return res.status(429).send('Trop de tentatives. Réessayez dans quelques minutes.');
+  }
+
   const auth = req.headers['authorization'];
-  if (!auth || auth !== 'Basic ' + Buffer.from('admin:' + ADMIN_PASSWORD).toString('base64')) {
+  const valid = auth === 'Basic ' + Buffer.from('admin:' + ADMIN_PASSWORD).toString('base64');
+
+  if (!valid) {
+    if (!entry || (now - entry.firstFailAt) > ADMIN_WINDOW_MS) {
+      adminFailedAttempts[ip] = { count: 1, firstFailAt: now };
+    } else {
+      entry.count++;
+    }
     res.set('WWW-Authenticate', 'Basic realm="FidelyPass Admin"');
     return res.status(401).send('Acces refuse');
   }
+
+  delete adminFailedAttempts[ip];
   next();
 }
 
@@ -1008,13 +1040,13 @@ app.post('/api/leads', async (req, res) => {
     return res.status(400).json({ success: false, error: 'Nom et téléphone requis' });
   }
   try {
-    db.prepare('INSERT INTO leads (business_name, phone) VALUES (?, ?)')
+    await db.prepare('INSERT INTO leads (business_name, phone) VALUES (?, ?)')
       .run(business_name.trim(), phone.trim());
     res.json({ success: true });
 
     // Notifie l'admin par push (ne bloque pas la réponse au client)
     if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-      const admins = db.prepare('SELECT * FROM admin_subscriptions').all();
+      const admins = await db.prepare('SELECT * FROM admin_subscriptions').all();
       const payload = JSON.stringify({
         title: '📩 Nouvelle demande FidélyPass',
         body: business_name.trim() + ' souhaite être contacté'
@@ -1023,9 +1055,9 @@ app.post('/api/leads', async (req, res) => {
         webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
           payload
-        ).catch(err => {
+        ).catch(async err => {
           if (err.statusCode === 404 || err.statusCode === 410) {
-            db.prepare('DELETE FROM admin_subscriptions WHERE id = ?').run(sub.id);
+            await db.prepare('DELETE FROM admin_subscriptions WHERE id = ?').run(sub.id);
           }
         });
       }
@@ -1035,18 +1067,18 @@ app.post('/api/leads', async (req, res) => {
   }
 });
 
-app.get('/api/admin/leads', requireAdmin, (req, res) => {
-  const leads = db.prepare('SELECT * FROM leads ORDER BY created_at DESC').all();
+app.get('/api/admin/leads', requireAdmin, async (req, res) => {
+  const leads = await db.prepare('SELECT * FROM leads ORDER BY created_at DESC').all();
   res.json(leads);
 });
 
-app.put('/api/admin/leads/:id/seen', requireAdmin, (req, res) => {
-  db.prepare('UPDATE leads SET seen = 1 WHERE id = ?').run(req.params.id);
+app.put('/api/admin/leads/:id/seen', requireAdmin, async (req, res) => {
+  await db.prepare('UPDATE leads SET seen = 1 WHERE id = ?').run(req.params.id);
   res.json({ success: true });
 });
 
-app.delete('/api/admin/leads/:id', requireAdmin, (req, res) => {
-  db.prepare('DELETE FROM leads WHERE id = ?').run(req.params.id);
+app.delete('/api/admin/leads/:id', requireAdmin, async (req, res) => {
+  await db.prepare('DELETE FROM leads WHERE id = ?').run(req.params.id);
   res.json({ success: true });
 });
 
@@ -1054,14 +1086,14 @@ app.delete('/api/admin/leads/:id', requireAdmin, (req, res) => {
 // NOTIFICATIONS PUSH POUR L'ADMIN
 // ─────────────────────────────────────────────
 
-app.post('/api/admin/subscribe', requireAdmin, (req, res) => {
+app.post('/api/admin/subscribe', requireAdmin, async (req, res) => {
   const { subscription } = req.body;
   if (!subscription || !subscription.endpoint || !subscription.keys) {
     return res.status(400).json({ success: false, error: 'Abonnement invalide' });
   }
   try {
-    db.prepare('DELETE FROM admin_subscriptions WHERE endpoint = ?').run(subscription.endpoint);
-    db.prepare('INSERT INTO admin_subscriptions (endpoint, p256dh, auth) VALUES (?, ?, ?)')
+    await db.prepare('DELETE FROM admin_subscriptions WHERE endpoint = ?').run(subscription.endpoint);
+    await db.prepare('INSERT INTO admin_subscriptions (endpoint, p256dh, auth) VALUES (?, ?, ?)')
       .run(subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth);
     res.json({ success: true });
   } catch (err) {
@@ -1069,47 +1101,47 @@ app.post('/api/admin/subscribe', requireAdmin, (req, res) => {
   }
 });
 
-app.post('/api/admin/unsubscribe', requireAdmin, (req, res) => {
+app.post('/api/admin/unsubscribe', requireAdmin, async (req, res) => {
   const { endpoint } = req.body;
   try {
-    if (endpoint) db.prepare('DELETE FROM admin_subscriptions WHERE endpoint = ?').run(endpoint);
+    if (endpoint) await db.prepare('DELETE FROM admin_subscriptions WHERE endpoint = ?').run(endpoint);
     res.json({ success: true });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
   }
 });
 
-app.post('/api/admin/shops/:id/toggle-exempt', requireAdmin, (req, res) => {
+app.post('/api/admin/shops/:id/toggle-exempt', requireAdmin, async (req, res) => {
   try {
-    const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+    const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
     const newExempt = shop.payment_exempt === 1 ? 0 : 1;
     // Quand on exempte une boutique, on la réactive aussi immédiatement
     if (newExempt === 1) {
-      db.prepare('UPDATE shops SET payment_exempt = 1, active = 1 WHERE id = ?').run(shop.id);
+      await db.prepare('UPDATE shops SET payment_exempt = 1, active = 1 WHERE id = ?').run(shop.id);
     } else {
-      db.prepare('UPDATE shops SET payment_exempt = 0 WHERE id = ?').run(shop.id);
+      await db.prepare('UPDATE shops SET payment_exempt = 0 WHERE id = ?').run(shop.id);
     }
     res.json({ success: true, payment_exempt: newExempt });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
-app.post('/api/admin/shops/:id/toggle-setup-fee', requireAdmin, (req, res) => {
+app.post('/api/admin/shops/:id/toggle-setup-fee', requireAdmin, async (req, res) => {
   try {
-    const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+    const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
     const newWaive = shop.waive_setup_fee === 1 ? 0 : 1;
-    db.prepare('UPDATE shops SET waive_setup_fee = ? WHERE id = ?').run(newWaive, shop.id);
+    await db.prepare('UPDATE shops SET waive_setup_fee = ? WHERE id = ?').run(newWaive, shop.id);
     res.json({ success: true, waive_setup_fee: newWaive });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
 
-app.get('/api/admin/shops/:id/stats', requireAdmin, (req, res) => {
-  const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
-  const customers = db.prepare('SELECT COUNT(*) as count FROM customers WHERE shop_id = ?').get(req.params.id);
-  const scans = db.prepare('SELECT COUNT(*) as count FROM scans WHERE shop_id = ?').get(req.params.id);
-  const rewards = db.prepare("SELECT COUNT(*) as count FROM scans WHERE shop_id = ? AND points_added = 0").get(req.params.id);
-  res.json({ shop, total_customers: customers.count, total_scans: scans.count, total_rewards: rewards.count });
+app.get('/api/admin/shops/:id/stats', requireAdmin, async (req, res) => {
+  const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+  const customers = await db.prepare('SELECT COUNT(*) as count FROM customers WHERE shop_id = ?').get(req.params.id);
+  const scans = await db.prepare('SELECT COUNT(*) as count FROM scans WHERE shop_id = ?').get(req.params.id);
+  const rewards = await db.prepare("SELECT COUNT(*) as count FROM scans WHERE shop_id = ? AND points_added = 0").get(req.params.id);
+  res.json({ shop, total_customers: Number(customers.count), total_scans: Number(scans.count), total_rewards: Number(rewards.count) });
 });
 
 // ─────────────────────────────────────────────
@@ -1118,15 +1150,15 @@ app.get('/api/admin/shops/:id/stats', requireAdmin, (req, res) => {
 
 app.post('/api/shops/:id/create-payment', requireAdmin, async (req, res) => {
   try {
-    const shop = db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+    const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
 
     const email = (shop.email || req.body.email || '').trim().toLowerCase();
     if (!email) return res.status(400).json({ success: false, error: 'Email gérant requis' });
 
     // Compter les boutiques actives de ce gérant (même email, insensible à la casse) pour remise multi-boutiques
-    const shopCount = db.prepare("SELECT COUNT(*) as count FROM shops WHERE LOWER(TRIM(email)) = ? AND active = 1 AND id != ?").get(email, shop.id);
-    const isMulti = shopCount.count >= 1;
+    const shopCount = await db.prepare("SELECT COUNT(*) as count FROM shops WHERE LOWER(TRIM(email)) = ? AND active = 1 AND id != ?").get(email, shop.id);
+    const isMulti = Number(shopCount.count) >= 1;
     const monthlyPrice = isMulti ? 2400 : 2900; // centimes : 24€ ou 29€
 
     // Créer ou récupérer le client Stripe
@@ -1134,7 +1166,7 @@ app.post('/api/shops/:id/create-payment', requireAdmin, async (req, res) => {
     if (!stripeCustomerId) {
       const customer = await getStripe().customers.create({ email, name: shop.name, metadata: { shop_id: String(shop.id) } });
       stripeCustomerId = customer.id;
-      db.prepare('UPDATE shops SET stripe_customer_id = ?, email = ? WHERE id = ?').run(stripeCustomerId, email, shop.id);
+      await db.prepare('UPDATE shops SET stripe_customer_id = ?, email = ? WHERE id = ?').run(stripeCustomerId, email, shop.id);
     }
 
     // Créer session Stripe Checkout : 80€ installation (sauf si exemptée) + abonnement mensuel
@@ -1180,7 +1212,7 @@ app.post('/api/shops/:id/create-payment', requireAdmin, async (req, res) => {
 // STRIPE — Webhook
 // ─────────────────────────────────────────────
 
-app.post('/webhook', (req, res) => {
+app.post('/webhook', async (req, res) => {
   let event;
   try {
     event = STRIPE_WEBHOOK_SECRET
@@ -1197,7 +1229,7 @@ app.post('/webhook', (req, res) => {
     const shopId = session.metadata && session.metadata.shop_id;
     if (shopId) {
       const subId = session.subscription;
-      db.prepare('UPDATE shops SET active = 1, stripe_subscription_id = ? WHERE id = ?').run(subId || null, shopId);
+      await db.prepare('UPDATE shops SET active = 1, stripe_subscription_id = ? WHERE id = ?').run(subId || null, shopId);
       console.log('Boutique activée:', shopId);
     }
   }
@@ -1205,7 +1237,7 @@ app.post('/webhook', (req, res) => {
   if (event.type === 'invoice.payment_failed' || event.type === 'customer.subscription.deleted') {
     const subId = session.id || (session.subscription);
     if (subId) {
-      db.prepare('UPDATE shops SET active = 0 WHERE stripe_subscription_id = ?').run(subId);
+      await db.prepare('UPDATE shops SET active = 0 WHERE stripe_subscription_id = ?').run(subId);
       console.log('Boutique suspendue pour subscription:', subId);
     }
   }
@@ -1220,16 +1252,16 @@ app.post('/webhook', (req, res) => {
 async function checkInactiveCustomers() {
   if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
   try {
-    const inactive = db.prepare(`
+    const inactive = await db.prepare(`
       SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.logo_base64
       FROM customers c JOIN shops s ON s.id = c.shop_id
       WHERE c.last_visit IS NOT NULL
-        AND julianday('now') - julianday(c.last_visit) >= 30
+        AND c.last_visit <= NOW() - INTERVAL '30 days'
         AND (c.last_reminder_sent IS NULL OR c.last_reminder_sent < c.last_visit)
     `).all();
 
     for (const customer of inactive) {
-      const subs = db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(customer.id);
+      const subs = await db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(customer.id);
       if (!subs.length) continue;
       const payload = JSON.stringify({
         title: `👋 ${customer.shop_name}`,
@@ -1241,13 +1273,13 @@ async function checkInactiveCustomers() {
         webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
           payload
-        ).catch(err => {
+        ).catch(async err => {
           if (err.statusCode === 404 || err.statusCode === 410) {
-            db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
+            await db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id).catch(() => {});
           }
         });
       }
-      db.prepare('UPDATE customers SET last_reminder_sent = CURRENT_TIMESTAMP WHERE id = ?').run(customer.id);
+      await db.prepare('UPDATE customers SET last_reminder_sent = CURRENT_TIMESTAMP WHERE id = ?').run(customer.id);
     }
     if (inactive.length) console.log('Relance clients inactifs envoyée à', inactive.length, 'client(s)');
   } catch (err) {
@@ -1259,4 +1291,91 @@ async function checkInactiveCustomers() {
 setTimeout(checkInactiveCustomers, 2 * 60 * 1000);
 setInterval(checkInactiveCustomers, 24 * 60 * 60 * 1000);
 
-app.listen(PORT, () => console.log('FidelyPass tourne sur http://localhost:' + PORT));
+async function initDatabase() {
+  await db.initSchema();
+
+// Recharge les sessions existantes depuis la DB au démarrage (survit aux redéploiements)
+try {
+  const rows = await db.prepare('SELECT token, shop_id FROM sessions_store').all();
+  rows.forEach(r => { sessions[r.token] = r.shop_id; });
+  console.log('Sessions rechargées:', rows.length);
+} catch (e) {
+  console.log('Aucune session à recharger:', e.message);
+}
+
+// Migration DB : ajouter colonnes Stripe si elles n'existent pas
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN google_review_url TEXT").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN stripe_customer_id TEXT").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN stripe_subscription_id TEXT").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN active INTEGER DEFAULT 0").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN email TEXT").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN payment_exempt INTEGER DEFAULT 0").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN waive_setup_fee INTEGER DEFAULT 0").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN currency TEXT DEFAULT 'EUR'").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN menu_url TEXT").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN menu_file_base64 TEXT").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN menu_file_type TEXT").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN latitude REAL").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN longitude REAL").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN logo_base64 TEXT").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN phone TEXT").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE shops ADD COLUMN opening_hours TEXT").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE customers ADD COLUMN pass_auth_token TEXT").run();
+} catch(e) {}
+try {
+  await db.prepare("ALTER TABLE customers ADD COLUMN pass_updated_at TEXT").run();
+} catch(e) {}
+try {
+  await db.prepare(`
+    CREATE TABLE IF NOT EXISTS apple_pass_registrations (
+      id SERIAL PRIMARY KEY,
+      device_library_id TEXT NOT NULL,
+      pass_type_id TEXT NOT NULL,
+      serial_number TEXT NOT NULL,
+      push_token TEXT NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(device_library_id, serial_number)
+    )
+  `).run();
+} catch(e) {}
+}
+
+initDatabase().then(() => {
+  app.listen(PORT, () => console.log('FidelyPass tourne sur http://localhost:' + PORT));
+}).catch(async err => {
+  console.error('Erreur initialisation base de données:', err);
+  process.exit(1);
+});
