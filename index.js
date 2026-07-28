@@ -646,13 +646,12 @@ let OB_STEPS = [
   {icon:'🔖', title:'Ajoutez cette page à l\\'écran d\\'accueil', text:"Appuyez sur Partager ⬆️ en bas de l'écran, faites défiler la liste qui s'ouvre, et touchez l'option entourée tout en bas.", mock:'<img src="/onboarding-home-screen.png" alt="Ou trouver l\\'option Sur l\\'ecran d\\'accueil" style="width:100%;max-width:290px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);box-shadow:0 8px 24px rgba(0,0,0,0.35);margin-top:16px">', iosOnly:true},
   {icon:'ℹ️', title:'Au dos de votre carte', text:"Ouvrez l'app Wallet, appuyez sur votre carte FidélyPass, puis sur « Informations sur la carte » (le petit ⓘ) pour retrouver notre numéro de téléphone, le menu et nos horaires à tout moment.", mock:'<div class="ob-mock"><div class="ob-mock-hand">👆</div><div class="ob-mock-btn light" style="border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;padding:0;font-size:20px">ⓘ</div></div>'},
   {icon:'🔔', title:'Activez les notifications', text:"Appuyez sur le bouton 🔔 plus bas pour être prévenu de vos offres et de votre récompense.", mock:'<div class="ob-mock"><div class="ob-mock-hand">👆</div><div class="ob-mock-btn light">🔔 Activer les notifications</div></div>'},
+  {icon:'🤝', title:'Parrainez vos amis', text:"Plus bas, copiez votre lien de parrainage et partagez-le : votre ami reçoit des points, vous aussi !", mock:'<div class="ob-mock"><div class="ob-mock-hand">👆</div><div class="ob-mock-btn light">📋 Copier mon lien de parrainage</div></div>'},
   {icon:'⭐', title:'Montrez votre carte à chaque achat', text:"Présentez-la au comptoir à chaque passage pour cumuler des points automatiquement."},
   {icon:'🎁', title:'Vous êtes prêt !', text:"Une fois l'objectif atteint, votre récompense vous attend !"}
 ];
 if (!IS_IOS) { OB_STEPS = OB_STEPS.filter(s => !s.iosOnly); }
 let obIndex = 0;
-let obTimer = null;
-let obUserControl = false;
 
 function renderOnboardingDots() {
   const dots = document.getElementById('ob-dots');
@@ -682,20 +681,15 @@ function showObStep(i) {
 }
 
 function goObStep(delta) {
-  clearTimeout(obTimer);
-  obUserControl = true;
   const next = Math.max(0, Math.min(OB_STEPS.length - 1, obIndex + delta));
   showObStep(next);
 }
 
 function jumpObStep(i) {
-  clearTimeout(obTimer);
-  obUserControl = true;
   showObStep(i);
 }
 
 function dismissOnboarding() {
-  clearTimeout(obTimer);
   const overlay = document.getElementById('onboarding-overlay');
   if (!overlay) return;
   overlay.style.transition = 'opacity 0.4s ease';
@@ -710,17 +704,7 @@ function showOnboardingOverlay() {
   overlay.style.display = 'flex';
   overlay.style.transition = 'opacity 0.4s ease';
   overlay.style.opacity = '1';
-  obUserControl = false;
   showObStep(0);
-  (function next() {
-    if (obUserControl) return;
-    if (obIndex < OB_STEPS.length - 1) {
-      obTimer = setTimeout(() => {
-        if (obUserControl) return;
-        showObStep(obIndex + 1); next();
-      }, 3400);
-    }
-  })();
 }
 
 function startOnboarding() {
