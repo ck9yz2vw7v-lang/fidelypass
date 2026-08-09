@@ -267,32 +267,85 @@ app.get('/api/shops/:id/stats', requireShopAuth, async (req, res) => {
 // le gérant à ajuster sa stratégie (relances, offres ciblées, horaires de notif)
 app.get('/api/shops/:id/analytics', requireShopAuth, async (req, res) => {
   const shopId = req.params.id;
-  const shop = await db.prepare('SELECT points_goal FROM shops WHERE id = ?').get(shopId);
+  const shop = await db.prepare('SELECT points_goal, points_per_euro FROM shops WHERE id = ?').get(shopId);
   const goal = (shop && shop.points_goal) ? Number(shop.points_goal) : 0;
+  const pointsPerEuro = (shop && shop.points_per_euro) ? Number(shop.points_per_euro) : 1;
 
-  // 1. Santé du portefeuille : actifs (≤30j), à risque (30-60j), perdus (60j+)
-  const health = await db.prepare(`
-    SELECT
-      COUNT(*) FILTER (WHERE COALESCE(last_visit, created_at) >= NOW() - INTERVAL '30 days') as active,
-      COUNT(*) FILTER (WHERE COALESCE(last_visit, created_at) < NOW() - INTERVAL '30 days' AND COALESCE(last_visit, created_at) >= NOW() - INTERVAL '60 days') as at_risk,
-      COUNT(*) FILTER (WHERE COALESCE(last_visit, created_at) < NOW() - INTERVAL '60 days') as lost,
-      COUNT(*) as total
-    FROM customers WHERE shop_id = ?
-  `).get(shopId);
-
-  const atRiskList = await db.prepare(`
-    SELECT id, name, points, total_visits, COALESCE(last_visit, created_at) as last_seen
-    FROM customers
-    WHERE shop_id = ? AND COALESCE(last_visit, created_at) < NOW() - INTERVAL '30 days' AND COALESCE(last_visit, created_at) >= NOW() - INTERVAL '60 days'
-    ORDER BY last_seen ASC LIMIT 20
+  // 1. Santé du portefeuille — score de risque PERSONNALISÉ : on compare le nombre de jours
+  // depuis la dernière visite de CHAQUE client à SON PROPRE rythme moyen habituel (calculé à
+  // partir de l'écart moyen entre ses visites), pas un seuil fixe de 30 jours pour tout le monde.
+  // Un client qui vient tous les 3 jours et n'est pas revenu depuis 8 jours est déjà "à risque",
+  // alors qu'un client qui vient tous les 45 jours ne l'est pas encore à ce stade.
+  // Sous 3 visites, pas assez d'historique pour un rythme fiable : on retombe sur la règle à 30/60 jours.
+  const riskRows = await db.prepare(`
+    WITH intervals AS (
+      SELECT customer_id,
+             EXTRACT(EPOCH FROM (scanned_at - LAG(scanned_at) OVER (PARTITION BY customer_id ORDER BY scanned_at))) / 86400.0 as gap_days
+      FROM scans WHERE shop_id = ?
+    ),
+    avg_rhythm AS (
+      SELECT customer_id, AVG(gap_days) as avg_gap, COUNT(*) as nb_gaps
+      FROM intervals WHERE gap_days IS NOT NULL
+      GROUP BY customer_id
+    )
+    SELECT c.id, c.name, c.points, c.total_visits,
+           COALESCE(c.last_visit, c.created_at) as last_seen,
+           EXTRACT(EPOCH FROM (NOW() - COALESCE(c.last_visit, c.created_at))) / 86400.0 as days_since,
+           r.avg_gap, r.nb_gaps
+    FROM customers c
+    LEFT JOIN avg_rhythm r ON r.customer_id = c.id
+    WHERE c.shop_id = ?
   `).all(shopId);
+
+  let activeCount = 0, atRiskCount = 0, lostCount = 0;
+  const atRiskList = [];
+  for (const c of riskRows) {
+    const daysSince = Number(c.days_since);
+    let status;
+    if (c.nb_gaps >= 2 && c.avg_gap > 0) {
+      // Rythme personnel connu : à risque dès 1.5x son intervalle habituel, perdu dès 3x
+      const personalGap = Number(c.avg_gap);
+      if (daysSince <= personalGap * 1.5) status = 'active';
+      else if (daysSince <= personalGap * 3) status = 'at_risk';
+      else status = 'lost';
+    } else {
+      // Pas assez d'historique : règle classique à 30/60 jours
+      if (daysSince <= 30) status = 'active';
+      else if (daysSince <= 60) status = 'at_risk';
+      else status = 'lost';
+    }
+    if (status === 'active') activeCount++;
+    else if (status === 'at_risk') { atRiskCount++; atRiskList.push({ id: c.id, name: c.name, points: c.points, total_visits: c.total_visits, last_seen: c.last_seen, personal_rhythm_days: c.avg_gap ? Math.round(Number(c.avg_gap)) : null }); }
+    else lostCount++;
+  }
+  atRiskList.sort((a, b) => new Date(a.last_seen) - new Date(b.last_seen));
 
   // 2. Meilleurs clients
   const topByVisits = await db.prepare('SELECT id, name, total_visits, points FROM customers WHERE shop_id = ? ORDER BY total_visits DESC LIMIT 10').all(shopId);
   const topByPoints = await db.prepare('SELECT id, name, total_visits, points FROM customers WHERE shop_id = ? ORDER BY points DESC LIMIT 10').all(shopId);
   const avgStats = await db.prepare('SELECT AVG(total_visits) as avg_visits, AVG(points) as avg_points FROM customers WHERE shop_id = ?').get(shopId);
 
-  // 3. Fréquentation : par jour de semaine et par heure
+  // 2bis. Panier moyen, valeur client (LTV) et évolution du panier sur 8 semaines
+  const basketStats = await db.prepare(`
+    SELECT AVG(amount_paid) as avg_basket, SUM(amount_paid) as total_revenue, COUNT(*) FILTER (WHERE amount_paid > 0) as paid_scans
+    FROM scans WHERE shop_id = ? AND amount_paid IS NOT NULL AND amount_paid > 0
+  `).get(shopId);
+  const basketByWeek = await db.prepare(`
+    SELECT DATE_TRUNC('week', scanned_at)::date as week, AVG(amount_paid) as avg_basket
+    FROM scans WHERE shop_id = ? AND amount_paid > 0 AND scanned_at >= NOW() - INTERVAL '8 weeks'
+    GROUP BY week ORDER BY week
+  `).all(shopId);
+  const ltvRows = await db.prepare(`
+    SELECT c.id, COALESCE(SUM(s.amount_paid), 0) as total_spent,
+           EXTRACT(EPOCH FROM (NOW() - c.created_at)) / 86400.0 as days_since_signup
+    FROM customers c LEFT JOIN scans s ON s.customer_id = c.id AND s.amount_paid > 0
+    WHERE c.shop_id = ? GROUP BY c.id, c.created_at
+  `).all(shopId);
+  const avgLtv = ltvRows.length > 0 ? ltvRows.reduce((sum, r) => sum + Number(r.total_spent), 0) / ltvRows.length : 0;
+  const avgCustomerAgeDays = ltvRows.length > 0 ? ltvRows.reduce((sum, r) => sum + Number(r.days_since_signup), 0) / ltvRows.length : 0;
+  const projectedAnnualLtv = avgCustomerAgeDays > 0 ? (avgLtv / avgCustomerAgeDays) * 365 : 0;
+
+  // 3. Fréquentation : par jour de semaine, par heure, et grille combinée jour × heure
   const byDow = await db.prepare(`
     SELECT EXTRACT(DOW FROM scanned_at)::int as dow, COUNT(*) as count
     FROM scans WHERE shop_id = ? GROUP BY dow ORDER BY dow
@@ -300,6 +353,10 @@ app.get('/api/shops/:id/analytics', requireShopAuth, async (req, res) => {
   const byHour = await db.prepare(`
     SELECT EXTRACT(HOUR FROM scanned_at)::int as hour, COUNT(*) as count
     FROM scans WHERE shop_id = ? GROUP BY hour ORDER BY hour
+  `).all(shopId);
+  const heatmap = await db.prepare(`
+    SELECT EXTRACT(DOW FROM scanned_at)::int as dow, EXTRACT(HOUR FROM scanned_at)::int as hour, COUNT(*) as count
+    FROM scans WHERE shop_id = ? GROUP BY dow, hour
   `).all(shopId);
 
   // 4. Croissance : nouveaux clients par semaine (12 dernières semaines)
@@ -314,25 +371,113 @@ app.get('/api/shops/:id/analytics', requireShopAuth, async (req, res) => {
     ? await db.prepare('SELECT COUNT(*) as count FROM customers WHERE shop_id = ? AND points >= ?').get(shopId, goal)
     : { count: 0 };
 
-  const total = Number(health.total) || 0;
+  // 5. Comparaison réseau (anonymisée) — moyenne de TOUTES les boutiques actives sur FidélyPass,
+  // pour situer cette boutique par rapport à l'ensemble, sans jamais révéler qui sont les autres.
+  const networkAvg = await db.prepare(`
+    WITH per_shop AS (
+      SELECT s.id,
+             COUNT(c.id) FILTER (WHERE COALESCE(c.last_visit, c.created_at) >= NOW() - INTERVAL '30 days') as active,
+             COUNT(c.id) as total
+      FROM shops s LEFT JOIN customers c ON c.shop_id = s.id
+      WHERE s.active = 1
+      GROUP BY s.id
+      HAVING COUNT(c.id) >= 3
+    )
+    SELECT AVG(CASE WHEN total > 0 THEN (active::float / total) * 100 ELSE NULL END) as avg_retention_rate,
+           COUNT(*) as shops_compared
+    FROM per_shop
+  `).get();
+
+  // 6. Multi-boutiques du même gérant (regroupées par email) — vue consolidée si applicable
+  const shopEmail = await db.prepare('SELECT LOWER(TRIM(email)) as email FROM shops WHERE id = ?').get(shopId);
+  let multiShop = null;
+  if (shopEmail && shopEmail.email) {
+    const siblingShops = await db.prepare(`
+      SELECT s.id, s.name,
+             (SELECT COUNT(*) FROM customers WHERE shop_id = s.id) as customers_count,
+             (SELECT COUNT(*) FROM scans WHERE shop_id = s.id) as scans_count
+      FROM shops s WHERE LOWER(TRIM(s.email)) = ? AND s.active = 1
+      ORDER BY s.name
+    `).all(shopEmail.email);
+    if (siblingShops.length > 1) {
+      multiShop = siblingShops.map(s => ({ id: s.id, name: s.name, customers: Number(s.customers_count), scans: Number(s.scans_count) }));
+    }
+  }
+
+  const total = riskRows.length;
   res.json({
     health: {
-      active: Number(health.active), at_risk: Number(health.at_risk), lost: Number(health.lost), total,
-      retention_rate: total > 0 ? Math.round((Number(health.active) / total) * 1000) / 10 : 0
+      active: activeCount, at_risk: atRiskCount, lost: lostCount, total,
+      retention_rate: total > 0 ? Math.round((activeCount / total) * 1000) / 10 : 0
     },
-    at_risk_customers: atRiskList,
+    at_risk_customers: atRiskList.slice(0, 20),
     top_by_visits: topByVisits,
     top_by_points: topByPoints,
     avg_visits: avgStats.avg_visits ? Math.round(Number(avgStats.avg_visits) * 10) / 10 : 0,
     avg_points: avgStats.avg_points ? Math.round(Number(avgStats.avg_points) * 10) / 10 : 0,
+    avg_basket: basketStats.avg_basket ? Math.round(Number(basketStats.avg_basket) * 100) / 100 : null,
+    total_revenue_tracked: basketStats.total_revenue ? Math.round(Number(basketStats.total_revenue) * 100) / 100 : 0,
+    basket_by_week: basketByWeek.map(r => ({ week: r.week, avg_basket: r.avg_basket ? Math.round(Number(r.avg_basket) * 100) / 100 : 0 })),
+    avg_ltv: Math.round(avgLtv * 100) / 100,
+    projected_annual_ltv: Math.round(projectedAnnualLtv * 100) / 100,
     frequency_by_dow: byDow.map(r => ({ dow: r.dow, count: Number(r.count) })),
     frequency_by_hour: byHour.map(r => ({ hour: r.hour, count: Number(r.count) })),
+    heatmap: heatmap.map(r => ({ dow: r.dow, hour: r.hour, count: Number(r.count) })),
     growth_by_week: growth.map(r => ({ week: r.week, count: Number(r.count) })),
     referral_count: Number(referralCount.count),
     referral_rate: total > 0 ? Math.round((Number(referralCount.count) / total) * 1000) / 10 : 0,
     goal_reached_count: Number(reachedGoal.count),
-    goal_reached_rate: (total > 0 && goal > 0) ? Math.round((Number(reachedGoal.count) / total) * 1000) / 10 : 0
+    goal_reached_rate: (total > 0 && goal > 0) ? Math.round((Number(reachedGoal.count) / total) * 1000) / 10 : 0,
+    network_benchmark: {
+      your_retention_rate: total > 0 ? Math.round((activeCount / total) * 1000) / 10 : 0,
+      network_avg_retention_rate: networkAvg.avg_retention_rate ? Math.round(Number(networkAvg.avg_retention_rate) * 10) / 10 : null,
+      shops_compared: Number(networkAvg.shops_compared) || 0
+    },
+    multi_shop: multiShop
   });
+});
+
+// Export CSV des clients — pour la compta, un partenaire, ou juste garder une trace hors plateforme
+app.get('/api/shops/:id/export-customers.csv', requireShopAuth, async (req, res) => {
+  const shopId = req.params.id;
+  const customers = await db.prepare(`
+    SELECT name, points, total_visits, reward_cycles_completed, created_at, COALESCE(last_visit, created_at) as last_visit
+    FROM customers WHERE shop_id = ? ORDER BY created_at ASC
+  `).all(shopId);
+  const header = 'Nom,Points,Visites totales,Récompenses obtenues,Date inscription,Dernière visite\n';
+  const rows = customers.map(c => {
+    const esc = (v) => '"' + String(v).replace(/"/g, '""') + '"';
+    return [esc(c.name), c.points, c.total_visits, c.reward_cycles_completed || 0, new Date(c.created_at).toLocaleDateString('fr-FR'), new Date(c.last_visit).toLocaleDateString('fr-FR')].join(',');
+  }).join('\n');
+  res.set('Content-Type', 'text/csv; charset=utf-8');
+  res.set('Content-Disposition', 'attachment; filename="clients-fidelypass.csv"');
+  res.send('\uFEFF' + header + rows);
+});
+
+// Vérifie s'il y a des clients à risque et dépose une alerte dans la boîte de réception du
+// gérant (même système que la messagerie admin → gérants déjà en place) — déclenchable
+// manuellement ("Vérifier maintenant") ou automatiquement une fois par semaine (voir le
+// minuteur plus bas dans le fichier), sans dépendre d'un service d'email externe.
+async function runProactiveDigest(shopId) {
+  const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(shopId);
+  if (!shop) return { sent: false, reason: 'shop introuvable' };
+  const atRisk = await db.prepare(`
+    SELECT COUNT(*) as count FROM customers
+    WHERE shop_id = ? AND COALESCE(last_visit, created_at) < NOW() - INTERVAL '14 days' AND COALESCE(last_visit, created_at) >= NOW() - INTERVAL '60 days'
+  `).get(shopId);
+  const count = Number(atRisk.count);
+  await db.prepare('UPDATE shops SET last_digest_sent_at = NOW() WHERE id = ?').run(shopId);
+  if (count === 0) return { sent: false, reason: 'aucun client à risque' };
+
+  const title = '📊 Alerte hebdomadaire : ' + count + ' client' + (count > 1 ? 's' : '') + ' à risque';
+  const body = 'Vous avez ' + count + ' client' + (count > 1 ? 's' : '') + ' qui n\'' + (count > 1 ? 'ont' : 'a') + ' pas visité depuis 14 à 60 jours. Consultez vos statistiques pour les identifier et les relancer.';
+  await db.prepare('INSERT INTO admin_messages (title, body, target_shop_id) VALUES (?, ?, ?)').run(title, body, shopId);
+  return { sent: true, at_risk_count: count };
+}
+
+app.post('/api/shops/:id/run-digest', requireShopAuth, async (req, res) => {
+  const result = await runProactiveDigest(req.params.id);
+  res.json(result);
 });
 
 app.post('/api/customers', async (req, res) => {
@@ -442,7 +587,7 @@ app.post('/api/scan', requireShopAuth, async (req, res) => {
     ? (newlyCrossedTier ? newlyCrossedTier.reward_text : tiers[tiers.length - 1].reward_text)
     : shop.reward_text;
   await db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1, last_visit = CURRENT_TIMESTAMP WHERE id = ?').run(newPoints, customer_id);
-  await db.prepare('INSERT INTO scans (customer_id, shop_id, points_added) VALUES (?, ?, ?)').run(customer_id, shop_id, pointsEarned);
+  await db.prepare('INSERT INTO scans (customer_id, shop_id, points_added, amount_paid) VALUES (?, ?, ?, ?)').run(customer_id, shop_id, pointsEarned, amount || 0);
   touchPassAndPush(customer_id);
   res.json({ success: true, customer_name: customer.name, points_before: customer.points, points_after: newPoints, points_added: pointsEarned, amount_paid: amount, reward_unlocked: rewardUnlocked, reward_text: effectiveRewardText, points_goal: effectiveGoal, google_review_url: shop.google_review_url || null });
 
@@ -1614,6 +1759,20 @@ try {
 
 initDatabase().then(() => {
   app.listen(PORT, () => console.log('FidelyPass tourne sur http://localhost:' + PORT));
+
+  // Vérifie une fois par jour si une boutique active n'a pas eu son alerte hebdomadaire depuis
+  // 7 jours, et la déclenche si besoin. Volontairement simple (pas de vrai cron externe) puisque
+  // ce process Node tourne en continu sur Railway — largement suffisant pour un rythme hebdomadaire.
+  setInterval(async () => {
+    try {
+      const dueShops = await db.prepare(`
+        SELECT id FROM shops WHERE active = 1 AND (last_digest_sent_at IS NULL OR last_digest_sent_at < NOW() - INTERVAL '7 days')
+      `).all();
+      for (const s of dueShops) {
+        await runProactiveDigest(s.id).catch(() => {});
+      }
+    } catch (e) { console.error('Erreur digest hebdomadaire:', e.message); }
+  }, 24 * 60 * 60 * 1000);
 }).catch(async err => {
   console.error('Erreur initialisation base de données:', err);
   process.exit(1);

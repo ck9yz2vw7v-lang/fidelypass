@@ -108,12 +108,12 @@ html.has-custom-cursor, html.has-custom-cursor a, html.has-custom-cursor button{
 @media (prefers-reduced-motion:reduce){.hero h1 .word-inner{transform:none}}
 .hero p.lede{font-size:17px;font-weight:500;color:var(--text-dim);max-width:480px;margin-bottom:32px;line-height:1.6}
 .hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:26px}
-.hero-note{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);display:flex;flex-wrap:wrap;align-items:center;row-gap:8px;column-gap:14px}
-.hero-note span{white-space:nowrap;display:flex;align-items:center;gap:6px}
-.hero-note span::before{content:'•';color:var(--cyan)}
+.hero-note{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);display:flex;flex-wrap:wrap;align-items:center;row-gap:8px}
+.hero-note span{white-space:nowrap}
 .hero-note b{color:var(--text)}
 
 /* Terminal mock */
+.terminal-caption{font-size:11.5px;color:var(--text-dimmer);margin-bottom:10px;text-align:center}
 .terminal{
   background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:14px;overflow:hidden;
   box-shadow:0 30px 70px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
@@ -164,7 +164,24 @@ html.has-custom-cursor, html.has-custom-cursor a, html.has-custom-cursor button{
 .wallet-checks{display:flex;flex-direction:column;gap:10px;margin-top:18px}
 .wallet-checks div{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text-dim)}
 .wallet-checks span{color:var(--green)}
-.phone-mock{border-radius:22px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,0.5);border:1px solid var(--line-strong)}
+.phone-frame-wrap{position:relative;display:flex;justify-content:center;padding:30px 0}
+.phone-frame-wrap::before{
+  content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:320px;height:320px;border-radius:50%;
+  background:radial-gradient(circle, rgba(108,92,231,0.35), rgba(34,211,238,0.12) 55%, transparent 75%);
+  filter:blur(20px);z-index:0;
+}
+.phone-frame{
+  position:relative;z-index:1;max-width:280px;margin:0 auto;
+  padding:14px 14px 22px;background:linear-gradient(160deg,#1c2130,#0d0f16);
+  border-radius:36px;border:1px solid var(--line-strong);
+  box-shadow:0 50px 100px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.phone-frame::before{
+  content:'';position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  width:70px;height:6px;background:#000;border-radius:99px;z-index:2;
+}
+.phone-mock{border-radius:22px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
 
 /* ---------- TICKETS (condensed features) ---------- */
 .tickets{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -210,6 +227,7 @@ html.has-custom-cursor, html.has-custom-cursor a, html.has-custom-cursor button{
 .stats-mock .bars div{flex:1;background:var(--indigo);border-radius:3px 3px 0 0;opacity:0.35}
 .stats-mock .bars div.on{opacity:1;background:var(--cyan)}
 .stats-example-tag{font-family:'JetBrains Mono';font-size:10px;color:var(--text-dimmer);text-align:center;margin-top:10px}
+.stats-mini-label{font-size:10px;color:var(--text-dimmer);margin-bottom:6px;font-weight:600}
 
 /* ---------- CARD MOCK SECTION ---------- */
 .cardinfo-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
@@ -271,6 +289,15 @@ html.has-custom-cursor, html.has-custom-cursor a, html.has-custom-cursor button{
 
 /* ---------- FINAL CTA ---------- */
 .final{text-align:center;padding:90px 0 50px}
+.lead-form{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:560px;margin:0 auto 14px}
+.lead-form input{
+  flex:1;min-width:180px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;
+  padding:14px 16px;font-size:14px;color:var(--text);font-family:'Inter';
+}
+.lead-form input::placeholder{color:var(--text-dimmer)}
+.lead-form input:focus{outline:none;border-color:var(--indigo)}
+.lead-form .btn-primary{white-space:nowrap}
+.lead-success{color:var(--green);font-weight:600;font-size:14.5px;margin-bottom:14px}
 .final h2{font-size:38px;margin-bottom:14px}
 .final p{color:var(--text-dim);font-size:15.5px;margin-bottom:30px;max-width:520px;margin-left:auto;margin-right:auto}
 .final-note{font-family:'JetBrains Mono';font-size:12px;color:var(--text-dimmer);margin-top:18px}
@@ -284,7 +311,8 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
 @media (prefers-reduced-motion:reduce){.reveal-init{opacity:1;transform:none;transition:none}}
 
 @media (max-width:900px){
-  .hero-note{flex-direction:column;align-items:flex-start;row-gap:8px}
+  .hero-note span:nth-child(2), .hero-note span:nth-child(4) { display: none; }
+  .hero-note { flex-direction: column; align-items: flex-start; }
   .hero-inner{grid-template-columns:1fr;gap:36px}
   .hero h1{font-size:36px}
   .grid-4{grid-template-columns:1fr 1fr}
@@ -335,10 +363,11 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
         <button class="btn-primary" onclick="location.href='#contact'">Créer ma carte de fidélité →</button>
         <button class="btn-ghost" onclick="location.href='#comment'">Voir comment ça marche</button>
       </div>
-      <div class="hero-note"><span><b>2 min</b> d'installation</span><span><b>0€</b> pour vos clients</span><span><b>sans engagement</b></span></div>
+      <div class="hero-note"><span><b>2 min</b> d'installation</span><span>&nbsp;·&nbsp;</span><span><b>0€</b> pour vos clients</span><span>&nbsp;·&nbsp;</span><span><b>sans engagement</b></span></div>
     </div>
     <div class="hero-visual">
       <canvas id="seal-canvas" class="seal-canvas" aria-hidden="true"></canvas>
+      <div class="terminal-caption mono">ce qui se passe en coulisse, à chaque scan :</div>
       <div class="terminal reveal">
         <div class="terminal-bar">
           <div class="terminal-dot" style="background:#F87171"></div>
@@ -460,7 +489,7 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
           <div><span>✓</span> Apparaît sur l'écran verrouillé à proximité de votre boutique (iPhone)</div>
         </div>
       </div>
-      <div class="phone-mock"><img src="/screenshot-card.png" alt="Carte de fidélité FidélyPass sur smartphone"></div>
+      <div class="phone-frame-wrap"><div class="phone-frame"><div class="phone-mock"><img src="/screenshot-card.png" alt="Carte de fidélité FidélyPass sur smartphone"></div></div></div>
     </div>
   </div>
 </section>
@@ -550,15 +579,15 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
   <div class="wrap">
     <div class="stats-block reveal">
       <div>
-        <div class="section-tag">statistiques</div>
+        <div class="section-tag">statistiques avancées</div>
         <h2>Vous savez enfin ce qui se passe dans votre clientèle.</h2>
-        <p class="section-sub">Vous ne distribuez plus simplement des cartes. Vous comprenez votre clientèle.</p>
+        <p class="section-sub">Vous ne distribuez plus simplement des cartes. Vous comprenez votre clientèle — et vous savez exactement où agir.</p>
         <div class="wallet-checks">
-          <div><span>✓</span> Taux de rétention réel sur 30 jours</div>
-          <div><span>✓</span> Clients à risque de décrochage, nommés</div>
-          <div><span>✓</span> Classement de vos meilleurs clients</div>
-          <div><span>✓</span> Jours et heures de pointe</div>
-          <div><span>✓</span> Croissance et conversion du parrainage</div>
+          <div><span>✓</span> Score de risque personnalisé, selon le rythme de chaque client</div>
+          <div><span>✓</span> Comparaison anonymisée avec les autres boutiques du réseau</div>
+          <div><span>✓</span> Panier moyen, valeur client (LTV) et projection annuelle</div>
+          <div><span>✓</span> Carte de chaleur des jours et heures de pointe</div>
+          <div><span>✓</span> Export CSV et alertes automatiques</div>
         </div>
       </div>
       <div class="card stats-mock">
@@ -567,7 +596,13 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
           <div class="kpi o"><b><span class="count-num" data-count="14">0</span></b><span>À risque</span></div>
           <div class="kpi r"><b><span class="count-num" data-count="78">0</span>%</b><span>Rétention</span></div>
         </div>
-        <div class="note mono">$ pic d'affluence : vendredi</div>
+        <div class="note mono">$ vous : 74% · moyenne réseau : 61%</div>
+        <div class="stats-mini-label">Panier moyen · valeur client (LTV)</div>
+        <div class="row3" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
+          <div class="kpi"><b style="color:var(--text)">12,50€</b><span>Panier moyen</span></div>
+          <div class="kpi"><b style="color:var(--text)">145€</b><span>LTV estimée</span></div>
+        </div>
+        <div class="stats-mini-label">Fréquentation par créneau</div>
         <div class="bars">
           <div style="height:35%"></div><div style="height:55%"></div><div style="height:45%" class="on"></div>
           <div style="height:70%" class="on"></div><div style="height:100%" class="on"></div><div style="height:80%" class="on"></div>
@@ -583,7 +618,7 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
 <section class="section">
   <div class="wrap">
     <div class="cardinfo-grid reveal">
-      <div class="phone-mock"><img src="/screenshot-gerant.png" alt="Interface gérant FidélyPass"></div>
+      <div class="phone-frame-wrap"><div class="phone-frame"><div class="phone-mock"><img src="/screenshot-gerant.png" alt="Interface gérant FidélyPass"></div></div></div>
       <div>
         <div class="section-tag">la carte client</div>
         <h2>Toutes les informations, au même endroit.</h2>
@@ -793,25 +828,29 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
 <section class="final" id="contact">
   <div class="wrap">
     <h2>Votre prochaine carte de fidélité<br>n'a pas besoin d'être en papier.</h2>
-    <p>Passez à une fidélité digitale, automatisez vos relances et transformez vos clients réguliers en clients encore plus fidèles.</p>
-    <button class="btn-primary" onclick="location.href='mailto:contact@fidelypass.fr'">🚀 Créer mon programme de fidélité</button>
-    <div class="final-note">$ installation complète · sans engagement · dès 29€/mois</div>
+    <p>Laissez-nous votre contact — on vous installe FidélyPass dans la semaine.</p>
+    <form id="lead-form" class="lead-form">
+      <input type="text" id="lead-name" placeholder="Nom de votre commerce" required>
+      <input type="tel" id="lead-phone" placeholder="Votre numéro" required>
+      <button type="submit" class="btn-primary" id="lead-submit">Être contacté →</button>
+    </form>
+    <div id="lead-success" class="lead-success" style="display:none">✓ Merci ! On vous rappelle très vite.</div>
+    <div class="final-note">Réponse sous 24h · Aucun engagement</div>
   </div>
 </section>
 
 <footer>
   <div class="wrap foot-inner">
     <div>© 2026 FidélyPass — Tous droits réservés</div>
-    <div><a href="/mentions-legales.html">Mentions légales</a> · <a href="/confidentialite.html">Confidentialité</a></div>
+    <div><a href="mailto:contact@fidelypass.fr">contact@fidelypass.fr</a> · <a href="/mentions-legales.html">Mentions légales</a> · <a href="/confidentialite.html">Confidentialité</a></div>
   </div>
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script>
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const hasGSAP = typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined';
+const hasGSAP = typeof gsap !== 'undefined';
 const hasHover = window.matchMedia('(hover: hover)').matches;
 
 /* ---------- Curseur personnalisé ---------- */
@@ -872,8 +911,6 @@ if (hasHover && !prefersReducedMotion && hasGSAP) {
 })();
 
 if (hasGSAP) {
-  gsap.registerPlugin(ScrollTrigger);
-
   /* ---------- Hero entrance ---------- */
   const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
   heroTl
@@ -884,30 +921,49 @@ if (hasGSAP) {
     .from('.hero-note', { opacity: 0, duration: 0.5 }, '-=0.2')
     .from('.hero-visual .terminal', { opacity: 0, y: 20, scale: 0.97, duration: 0.7 }, '-=0.9');
 
-  /* ---------- Reveal en cascade au scroll ---------- */
-  const STAGGER_SELECTORS = ['.grid-4', '.howgrid', '.tickets', '.pricing-grid', '.axes', '.faq-list', '.simplicity-grid'];
-  document.querySelectorAll('.reveal').forEach(el => {
-    const isStagger = STAGGER_SELECTORS.some(sel => el.matches(sel));
-    gsap.from(isStagger ? el.children : el, {
-      opacity: 0, y: 26, duration: 0.6, stagger: isStagger ? 0.08 : 0, ease: 'power3.out',
-      scrollTrigger: { trigger: el, start: 'top 87%' }
-    });
-  });
+  /* ---------- Reveal en cascade au scroll — IntersectionObserver, pas ScrollTrigger ----------
+     ScrollTrigger calcule les positions de déclenchement à partir du scroll du navigateur, ce qui
+     entre en conflit avec `scroll-behavior:smooth` sur Safari réel (le scroll natif désynchronise
+     ses calculs) et peut laisser des sections bloquées invisibles indéfiniment. IntersectionObserver
+     ne dépend d'aucun calcul de position de scroll et est donc immunisé contre ce problème. */
+  if ('IntersectionObserver' in window) {
+    const STAGGER_SELECTORS = ['.grid-4', '.howgrid', '.tickets', '.pricing-grid', '.axes', '.faq-list', '.simplicity-grid'];
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const isStagger = STAGGER_SELECTORS.some(sel => el.matches(sel));
+        gsap.to(isStagger ? el.children : el, {
+          opacity: 1, y: 0, duration: 0.6, stagger: isStagger ? 0.08 : 0, ease: 'power3.out'
+        });
+        revealObserver.unobserve(el);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
 
-  /* ---------- Compteurs animés ---------- */
-  document.querySelectorAll('.count-num').forEach(el => {
-    ScrollTrigger.create({
-      trigger: el, start: 'top 90%', once: true,
-      onEnter: () => {
+    document.querySelectorAll('.reveal').forEach(el => {
+      const isStagger = STAGGER_SELECTORS.some(sel => el.matches(sel));
+      gsap.set(isStagger ? el.children : el, { opacity: 0, y: 26 });
+      revealObserver.observe(el);
+    });
+  }
+
+  /* ---------- Compteurs animés — IntersectionObserver, même raison ---------- */
+  if ('IntersectionObserver' in window) {
+    const countObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
         const target = parseInt(el.dataset.count, 10);
+        countObserver.unobserve(el);
         if (prefersReducedMotion) { el.textContent = target; return; }
         gsap.fromTo(el, { textContent: 0 }, {
           textContent: target, duration: 1, ease: 'power2.out', snap: { textContent: 1 },
           onUpdate: function () { el.textContent = Math.round(this.targets()[0].textContent); }
         });
-      }
-    });
-  });
+      });
+    }, { threshold: 0.4 });
+    document.querySelectorAll('.count-num').forEach(el => countObserver.observe(el));
+  }
 }
 
 /* ---------- Sceau 3D (Three.js) ---------- */
@@ -1003,6 +1059,42 @@ if (typeof THREE !== 'undefined') {
       btn.disabled = false;
     });
   }
+})();
+
+/* ---------- Formulaire de contact ---------- */
+(function () {
+  const form = document.getElementById('lead-form');
+  if (!form) return;
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const btn = document.getElementById('lead-submit');
+    const name = document.getElementById('lead-name').value.trim();
+    const phone = document.getElementById('lead-phone').value.trim();
+    if (!name || !phone) return;
+    btn.disabled = true;
+    btn.textContent = 'Envoi…';
+    fetch('/api/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ business_name: name, phone: phone })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          form.style.display = 'none';
+          document.getElementById('lead-success').style.display = 'block';
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Être contacté →';
+          alert(data.error || "Une erreur est survenue, réessayez.");
+        }
+      })
+      .catch(() => {
+        btn.disabled = false;
+        btn.textContent = 'Être contacté →';
+        alert("Une erreur est survenue, réessayez.");
+      });
+  });
 })();
 
 /* ---------- FAQ accordéon ---------- */

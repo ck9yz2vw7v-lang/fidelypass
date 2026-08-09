@@ -37,6 +37,22 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .empty{text-align:center;color:#9ca3af;font-size:13px;padding:16px 0}
 canvas{max-height:220px}
 .loading{text-align:center;padding:60px 0;color:#9ca3af;font-size:14px}
+.compare-bar{margin-top:10px}
+.compare-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.compare-label{font-size:11px;color:#6b7280;width:70px;flex-shrink:0}
+.compare-track{flex:1;height:20px;background:#f1f1f1;border-radius:6px;overflow:hidden;position:relative}
+.compare-fill{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:10px;font-weight:800;color:white}
+.compare-fill.you{background:#3b82f6}
+.compare-fill.network{background:#9ca3af}
+.heatmap{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font-size:9px}
+.heatmap-cell{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#9ca3af}
+.heatmap-label{display:flex;align-items:center;justify-content:center;color:#9ca3af;font-weight:700}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+.btn-action{flex:1;background:#f3f4f6;border:none;border-radius:10px;padding:10px;font-size:12px;font-weight:700;color:#374151;cursor:pointer;text-align:center;text-decoration:none;display:block}
+.btn-action:active{background:#e5e7eb}
+.badge-personal{font-size:9px;color:#9ca3af;margin-left:4px}
+.shop-mini-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f1f1;font-size:12.5px}
+.shop-mini-row:last-child{border-bottom:none}
 </style>
 </head>
 <body>
@@ -53,13 +69,42 @@ canvas{max-height:220px}
     <div class="block">
       <div class="block-title">🩺 Santé du portefeuille clients</div>
       <div class="grid3">
-        <div class="kpi green"><div class="kpi-val" id="k-active">–</div><div class="kpi-label">Actifs (≤30j)</div></div>
-        <div class="kpi orange"><div class="kpi-val" id="k-risk">–</div><div class="kpi-label">À risque (30-60j)</div></div>
-        <div class="kpi red"><div class="kpi-val" id="k-lost">–</div><div class="kpi-label">Perdus (60j+)</div></div>
+        <div class="kpi green"><div class="kpi-val" id="k-active">–</div><div class="kpi-label">Actifs</div></div>
+        <div class="kpi orange"><div class="kpi-val" id="k-risk">–</div><div class="kpi-label">À risque</div></div>
+        <div class="kpi red"><div class="kpi-val" id="k-lost">–</div><div class="kpi-label">Perdus</div></div>
       </div>
-      <div class="kpi blue" style="margin-top:10px"><div class="kpi-val" id="k-retention">–</div><div class="kpi-label">Taux de rétention (30j)</div></div>
+      <div class="kpi blue" style="margin-top:10px"><div class="kpi-val" id="k-retention">–</div><div class="kpi-label">Taux de rétention</div></div>
       <div class="advice" id="advice-health" style="display:none"></div>
       <div id="at-risk-list" style="margin-top:14px"></div>
+      <div class="btn-row">
+        <button class="btn-action" id="btn-digest">🔔 Vérifier maintenant</button>
+        <a class="btn-action" id="btn-export" href="#">⬇️ Export CSV</a>
+      </div>
+    </div>
+
+    <div class="block" id="network-block" style="display:none">
+      <div class="block-title">🌐 Comparaison réseau</div>
+      <div class="compare-bar">
+        <div class="compare-row">
+          <div class="compare-label">Toi</div>
+          <div class="compare-track"><div class="compare-fill you" id="net-you-bar"></div></div>
+        </div>
+        <div class="compare-row">
+          <div class="compare-label">Réseau</div>
+          <div class="compare-track"><div class="compare-fill network" id="net-avg-bar"></div></div>
+        </div>
+      </div>
+      <div class="advice" id="advice-network" style="display:none"></div>
+    </div>
+
+    <div class="block" id="basket-block" style="display:none">
+      <div class="block-title">💶 Panier moyen & valeur client</div>
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="kpi green"><div class="kpi-val" id="k-basket">–</div><div class="kpi-label">Panier moyen</div></div>
+        <div class="kpi blue"><div class="kpi-val" id="k-ltv">–</div><div class="kpi-label">Valeur client (LTV)</div></div>
+      </div>
+      <canvas id="chart-basket"></canvas>
+      <div class="advice" id="advice-ltv" style="display:none"></div>
     </div>
 
     <div class="block">
@@ -73,10 +118,17 @@ canvas{max-height:220px}
 
     <div class="block">
       <div class="block-title">⏰ Quand tes clients viennent</div>
+      <div id="heatmap" class="heatmap"></div>
+      <div style="height:16px"></div>
       <canvas id="chart-dow"></canvas>
       <div style="height:16px"></div>
       <canvas id="chart-hour"></canvas>
       <div class="advice" id="advice-timing" style="display:none"></div>
+    </div>
+
+    <div class="block" id="multishop-block" style="display:none">
+      <div class="block-title">🏪 Vos boutiques</div>
+      <div id="multishop-list"></div>
     </div>
 
     <div class="block">
@@ -110,7 +162,7 @@ fetch('/api/shops/' + shop.id + '/analytics', { headers: { 'x-shop-token': token
   });
 
 function render(d) {
-  // Santé
+  // Santé (score de risque personnalisé)
   document.getElementById('k-active').textContent = d.health.active;
   document.getElementById('k-risk').textContent = d.health.at_risk;
   document.getElementById('k-lost').textContent = d.health.lost;
@@ -119,7 +171,7 @@ function render(d) {
   if (d.health.retention_rate < 50 && d.health.total >= 5) {
     const adv = document.getElementById('advice-health');
     adv.style.display = 'block';
-    adv.textContent = '⚠️ Moins de la moitié de tes clients sont revenus ce mois-ci. Une notification ciblée pourrait relancer les clients à risque ci-dessous.';
+    adv.textContent = '⚠️ Moins de la moitié de tes clients sont revenus récemment (selon leur rythme habituel). Une notification ciblée pourrait relancer les clients à risque ci-dessous.';
   }
 
   const riskBox = document.getElementById('at-risk-list');
@@ -128,8 +180,71 @@ function render(d) {
   } else {
     riskBox.innerHTML = d.at_risk_customers.map(c => {
       const days = Math.round((Date.now() - new Date(c.last_seen)) / 86400000);
-      return '<div class="list-row"><div><div class="list-name">' + escapeHtml(c.name) + '</div><div class="list-sub">' + c.points + ' pts · dernière visite il y a ' + days + 'j</div></div></div>';
+      const rhythmTxt = c.personal_rhythm_days ? ('<span class="badge-personal">· revient d\'habitude tous les ' + c.personal_rhythm_days + 'j</span>') : '';
+      return '<div class="list-row"><div><div class="list-name">' + escapeHtml(c.name) + '</div><div class="list-sub">' + c.points + ' pts · dernière visite il y a ' + days + 'j' + rhythmTxt + '</div></div></div>';
     }).join('');
+  }
+
+  document.getElementById('btn-export').onclick = function (e) {
+    e.preventDefault();
+    fetch('/api/shops/' + shop.id + '/export-customers.csv', { headers: { 'x-shop-token': token } })
+      .then(r => r.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'clients-fidelypass.csv';
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      });
+  };
+  document.getElementById('btn-digest').onclick = function () {
+    this.textContent = '...';
+    fetch('/api/shops/' + shop.id + '/run-digest', { method: 'POST', headers: { 'x-shop-token': token } })
+      .then(r => r.json())
+      .then(res => {
+        this.textContent = res.sent ? '✓ Alerte envoyée' : '✓ Rien à signaler';
+        setTimeout(() => { this.textContent = '🔔 Vérifier maintenant'; }, 2500);
+      });
+  };
+
+  // Comparaison réseau
+  if (d.network_benchmark && d.network_benchmark.network_avg_retention_rate !== null && d.network_benchmark.shops_compared >= 3) {
+    document.getElementById('network-block').style.display = 'block';
+    const you = d.network_benchmark.your_retention_rate;
+    const avg = d.network_benchmark.network_avg_retention_rate;
+    const maxVal = Math.max(you, avg, 1);
+    document.getElementById('net-you-bar').style.width = Math.max(8, (you / maxVal) * 100) + '%';
+    document.getElementById('net-you-bar').textContent = you + '%';
+    document.getElementById('net-avg-bar').style.width = Math.max(8, (avg / maxVal) * 100) + '%';
+    document.getElementById('net-avg-bar').textContent = avg + '%';
+    const advNet = document.getElementById('advice-network');
+    advNet.style.display = 'block';
+    if (you > avg) advNet.textContent = '🎉 Ta rétention est meilleure que la moyenne des ' + d.network_benchmark.shops_compared + ' boutiques comparées sur FidélyPass.';
+    else advNet.textContent = '💡 La moyenne des boutiques similaires sur FidélyPass est de ' + avg + '% — il y a de la marge pour progresser.';
+  }
+
+  // Panier moyen & LTV
+  if (d.avg_basket !== null) {
+    document.getElementById('basket-block').style.display = 'block';
+    document.getElementById('k-basket').textContent = d.avg_basket.toFixed(2) + '€';
+    document.getElementById('k-ltv').textContent = d.avg_ltv.toFixed(0) + '€';
+    if (d.projected_annual_ltv > 0) {
+      const advLtv = document.getElementById('advice-ltv');
+      advLtv.style.display = 'block';
+      advLtv.textContent = '📈 À ce rythme, un client type vous rapporte environ ' + Math.round(d.projected_annual_ltv) + '€ sur un an.';
+    }
+    if (d.basket_by_week.length > 1) {
+      try {
+        new Chart(document.getElementById('chart-basket'), {
+          type: 'line',
+          data: {
+            labels: d.basket_by_week.map(r => new Date(r.week).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })),
+            datasets: [{ label: 'Panier moyen', data: d.basket_by_week.map(r => r.avg_basket), borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.1)', fill: true, tension: 0.3 }]
+          },
+          options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+      } catch (e) { console.error('Graphique panier indisponible', e); }
+    }
   }
 
   // VIP
@@ -145,43 +260,81 @@ function render(d) {
     }).join('');
   }
 
+  // Heatmap jour × heure (créneaux horaires groupés pour rester lisible)
+  const SLOTS = [{ label: '6-9h', start: 6, end: 9 }, { label: '9-12h', start: 9, end: 12 }, { label: '12-15h', start: 12, end: 15 }, { label: '15-18h', start: 15, end: 18 }, { label: '18-21h', start: 18, end: 21 }, { label: '21-24h', start: 21, end: 24 }];
+  const heatGrid = {};
+  let heatMax = 0;
+  (d.heatmap || []).forEach(r => {
+    const slot = SLOTS.findIndex(s => r.hour >= s.start && r.hour < s.end);
+    if (slot === -1) return;
+    const key = r.dow + '-' + slot;
+    heatGrid[key] = (heatGrid[key] || 0) + r.count;
+    if (heatGrid[key] > heatMax) heatMax = heatGrid[key];
+  });
+  const heatEl = document.getElementById('heatmap');
+  let heatHtml = '<div></div>' + SLOTS.map(s => '<div class="heatmap-label">' + s.label + '</div>').join('');
+  for (let dow = 0; dow < 7; dow++) {
+    heatHtml += '<div class="heatmap-label">' + DOW_NAMES[dow] + '</div>';
+    for (let slot = 0; slot < SLOTS.length; slot++) {
+      const val = heatGrid[dow + '-' + slot] || 0;
+      const intensity = heatMax > 0 ? val / heatMax : 0;
+      const bg = intensity === 0 ? '#f1f1f1' : 'rgba(59,130,246,' + (0.15 + intensity * 0.85) + ')';
+      const color = intensity > 0.5 ? 'white' : '#6b7280';
+      heatHtml += '<div class="heatmap-cell" style="background:' + bg + ';color:' + color + '">' + (val > 0 ? val : '') + '</div>';
+    }
+  }
+  heatEl.innerHTML = heatHtml;
+
   // Fréquentation
   const dowData = Array(7).fill(0);
   d.frequency_by_dow.forEach(r => dowData[r.dow] = r.count);
-  new Chart(document.getElementById('chart-dow'), {
-    type: 'bar',
-    data: { labels: DOW_NAMES, datasets: [{ label: 'Scans par jour', data: dowData, backgroundColor: '#3b82f6', borderRadius: 6 }] },
-    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
-  });
+  try {
+    new Chart(document.getElementById('chart-dow'), {
+      type: 'bar',
+      data: { labels: DOW_NAMES, datasets: [{ label: 'Scans par jour', data: dowData, backgroundColor: '#3b82f6', borderRadius: 6 }] },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+    });
+  } catch (e) { console.error('Graphique jour indisponible', e); }
 
   const hourData = Array(24).fill(0);
   d.frequency_by_hour.forEach(r => hourData[r.hour] = r.count);
-  new Chart(document.getElementById('chart-hour'), {
-    type: 'bar',
-    data: { labels: Array.from({length:24}, (_,i) => i + 'h'), datasets: [{ label: 'Scans par heure', data: hourData, backgroundColor: '#6B21A8', borderRadius: 6 }] },
-    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } } } }
-  });
+  try {
+    new Chart(document.getElementById('chart-hour'), {
+      type: 'bar',
+      data: { labels: Array.from({length:24}, (_,i) => i + 'h'), datasets: [{ label: 'Scans par heure', data: hourData, backgroundColor: '#6B21A8', borderRadius: 6 }] },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } } } }
+    });
+  } catch (e) { console.error('Graphique heure indisponible', e); }
 
   if (dowData.some(v => v > 0)) {
     const maxIdx = dowData.indexOf(Math.max(...dowData));
-    const minIdx = dowData.indexOf(Math.min(...dowData.filter((v,i) => dowData.some(x=>x>0) ? true : true)));
     const adv = document.getElementById('advice-timing');
     adv.style.display = 'block';
     adv.textContent = "💡 Ton pic d'affluence : " + DOW_NAMES[maxIdx] + ". C'est un bon jour pour une offre spéciale, ou au contraire cible tes notifs les jours plus calmes pour relancer.";
   }
 
   // Croissance
-  new Chart(document.getElementById('chart-growth'), {
-    type: 'line',
-    data: {
-      labels: d.growth_by_week.map(r => new Date(r.week).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })),
-      datasets: [{ label: 'Nouveaux clients', data: d.growth_by_week.map(r => r.count), borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.1)', fill: true, tension: 0.3 }]
-    },
-    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
-  });
+  try {
+    new Chart(document.getElementById('chart-growth'), {
+      type: 'line',
+      data: {
+        labels: d.growth_by_week.map(r => new Date(r.week).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })),
+        datasets: [{ label: 'Nouveaux clients', data: d.growth_by_week.map(r => r.count), borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.1)', fill: true, tension: 0.3 }]
+      },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+    });
+  } catch (e) { console.error('Graphique croissance indisponible', e); }
 
   document.getElementById('k-referral').textContent = d.referral_count + ' (' + d.referral_rate + '%)';
   document.getElementById('k-goal').textContent = d.goal_reached_count + ' (' + d.goal_reached_rate + '%)';
+
+  // Multi-boutiques
+  if (d.multi_shop && d.multi_shop.length > 1) {
+    document.getElementById('multishop-block').style.display = 'block';
+    document.getElementById('multishop-list').innerHTML = d.multi_shop.map(s =>
+      '<div class="shop-mini-row"><span>' + escapeHtml(s.name) + (s.id == shop.id ? ' (ici)' : '') + '</span><span>' + s.customers + ' clients · ' + s.scans + ' scans</span></div>'
+    ).join('');
+  }
 }
 
 function escapeHtml(s) {
