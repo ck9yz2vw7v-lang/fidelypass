@@ -1,40 +1,148 @@
-const Database = require('better-sqlite3');
-const path = require('path');
+const { Pool } = require('pg');
 
-const dbPath = process.env.RAILWAY_VOLUME_MOUNT_PATH 
-  ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'fidelypass.db')
-  : path.join(__dirname, 'fidelypass.db');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('localhost')
+    ? { rejectUnauthorized: false }
+    : false,
+  max: 20,                      // connexions simultanées max — large marge pour plusieurs boutiques actives en même temps
+  idleTimeoutMillis: 30000,     // libère les connexions inutilisées après 30s
+  connectionTimeoutMillis: 10000, // évite un blocage indéfini si la base est momentanément injoignable
+});
 
-const db = new Database(dbPath);
+// Sans ce listener, une coupure réseau ou un redémarrage de la base ferait planter
+// TOUT le serveur Node (comportement par défaut de pg sur un client idle en erreur).
+// On log l'erreur et on laisse le pool se reconnecter tout seul au prochain appel.
+pool.on('error', (err) => {
+  console.error('Erreur inattendue sur une connexion PostgreSQL inactive :', err.message);
+});
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS shops (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL, slug TEXT UNIQUE NOT NULL, password TEXT NOT NULL,
-    reward_text TEXT NOT NULL, points_per_euro REAL DEFAULT 1,
-    points_goal INTEGER DEFAULT 100, color TEXT DEFAULT '#b45309',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-  CREATE TABLE IF NOT EXISTS customers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, shop_id INTEGER NOT NULL,
-    name TEXT NOT NULL, points INTEGER DEFAULT 0, total_visits INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (shop_id) REFERENCES shops(id)
-  );
-  CREATE TABLE IF NOT EXISTS scans (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, customer_id INTEGER NOT NULL,
-    shop_id INTEGER NOT NULL, points_added INTEGER NOT NULL,
-    scanned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id)
-  );
-  CREATE TABLE IF NOT EXISTS push_subscriptions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, customer_id INTEGER NOT NULL,
-    endpoint TEXT NOT NULL, p256dh TEXT NOT NULL, auth TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id)
-  );
-`);
+// Convertit les points d'interrogation (?, ?, ...) utilisés partout dans le code existant
+// vers la syntaxe $1, $2, ... attendue par PostgreSQL — évite de réécrire à la main
+// chacune des 117 requêtes SQL du projet.
+function toPgQuery(sql) {
+  let i = 0;
+  return sql.replace(/\?/g, () => '$' + (++i));
+}
 
-try { db.exec('ALTER TABLE shops ADD COLUMN points_per_euro REAL DEFAULT 1'); } catch(e) {}
+// Fournit une API compatible avec celle de better-sqlite3 (prepare().get/.all/.run()),
+// mais asynchrone (Promise) puisque PostgreSQL ne peut pas fonctionner de façon
+// synchrone comme SQLite. Chaque appel existant doit donc être précédé de `await`.
+function prepare(sql) {
+  const pgSql = toPgQuery(sql);
+  return {
+    async get(...params) {
+      const result = await pool.query(pgSql, params);
+      return result.rows[0];
+    },
+    async all(...params) {
+      const result = await pool.query(pgSql, params);
+      return result.rows;
+    },
+    async run(...params) {
+      const result = await pool.query(pgSql, params);
+      return {
+        lastInsertRowid: result.rows[0] ? result.rows[0].id : undefined,
+        changes: result.rowCount,
+      };
+    },
+  };
+}
 
-module.exports = db;
+async function exec(sql) {
+  await pool.query(sql);
+}
+
+async function initSchema() {
+  await exec(`
+    CREATE TABLE IF NOT EXISTS shops (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL, slug TEXT UNIQUE NOT NULL, password TEXT NOT NULL,
+      reward_text TEXT NOT NULL, points_per_euro REAL DEFAULT 1,
+      points_goal INTEGER DEFAULT 100, color TEXT DEFAULT '#b45309',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS customers (
+      id SERIAL PRIMARY KEY, shop_id INTEGER NOT NULL,
+      name TEXT NOT NULL, points INTEGER DEFAULT 0, total_visits INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (shop_id) REFERENCES shops(id)
+    );
+    CREATE TABLE IF NOT EXISTS scans (
+      id SERIAL PRIMARY KEY, customer_id INTEGER NOT NULL,
+      shop_id INTEGER NOT NULL, points_added INTEGER NOT NULL,
+      scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (customer_id) REFERENCES customers(id)
+    );
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id SERIAL PRIMARY KEY, customer_id INTEGER NOT NULL,
+      endpoint TEXT NOT NULL, p256dh TEXT NOT NULL, auth TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (customer_id) REFERENCES customers(id)
+    );
+    CREATE TABLE IF NOT EXISTS sessions_store (
+      token TEXT PRIMARY KEY, shop_id INTEGER NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS leads (
+      id SERIAL PRIMARY KEY,
+      business_name TEXT NOT NULL, phone TEXT NOT NULL,
+      seen INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS admin_subscriptions (
+      id SERIAL PRIMARY KEY,
+      endpoint TEXT NOT NULL UNIQUE, p256dh TEXT NOT NULL, auth TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS admin_messages (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL, body TEXT NOT NULL,
+      target_shop_id INTEGER,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS reward_tiers (
+      id SERIAL PRIMARY KEY,
+      shop_id INTEGER NOT NULL,
+      threshold_points INTEGER NOT NULL,
+      reward_text TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (shop_id) REFERENCES shops(id)
+    );
+  `);
+
+  const alterStatements = [
+    'ALTER TABLE shops ADD COLUMN IF NOT EXISTS points_per_euro REAL DEFAULT 1',
+    'ALTER TABLE shops ADD COLUMN IF NOT EXISTS referral_bonus_points INTEGER DEFAULT 10',
+    'ALTER TABLE customers ADD COLUMN IF NOT EXISTS last_visit TIMESTAMP',
+    'ALTER TABLE customers ADD COLUMN IF NOT EXISTS last_reminder_sent TIMESTAMP',
+    'ALTER TABLE customers ADD COLUMN IF NOT EXISTS referred_by INTEGER',
+    'ALTER TABLE shops ADD COLUMN IF NOT EXISTS last_message_read_at TIMESTAMP',
+    'ALTER TABLE customers ADD COLUMN IF NOT EXISTS reward_cycles_completed INTEGER DEFAULT 0',
+  ];
+  for (const stmt of alterStatements) {
+    try { await exec(stmt); } catch (e) {}
+  }
+  try { await exec("UPDATE customers SET last_visit = created_at WHERE last_visit IS NULL"); } catch (e) {}
+
+  // Index de performance — indispensables dès que le volume de boutiques/clients/scans grandit,
+  // sinon chaque requête (liste clients, scan, stats, login) fait un parcours complet de table.
+  // CREATE INDEX IF NOT EXISTS est sûr à rejouer à chaque démarrage, aucun impact sur les données.
+  const indexStatements = [
+    'CREATE INDEX IF NOT EXISTS idx_customers_shop_id ON customers(shop_id)',
+    'CREATE INDEX IF NOT EXISTS idx_customers_referred_by ON customers(referred_by)',
+    'CREATE INDEX IF NOT EXISTS idx_scans_shop_id ON scans(shop_id)',
+    'CREATE INDEX IF NOT EXISTS idx_scans_customer_id ON scans(customer_id)',
+    'CREATE INDEX IF NOT EXISTS idx_scans_shop_scanned_at ON scans(shop_id, scanned_at)',
+    'CREATE INDEX IF NOT EXISTS idx_reward_tiers_shop_id ON reward_tiers(shop_id)',
+    'CREATE INDEX IF NOT EXISTS idx_push_subscriptions_customer_id ON push_subscriptions(customer_id)',
+    'CREATE INDEX IF NOT EXISTS idx_admin_messages_target_shop_id ON admin_messages(target_shop_id)',
+    'CREATE INDEX IF NOT EXISTS idx_shops_slug ON shops(slug)',
+    'CREATE INDEX IF NOT EXISTS idx_shops_email ON shops(email)',
+  ];
+  for (const stmt of indexStatements) {
+    try { await exec(stmt); } catch (e) {}
+  }
+}
+
+module.exports = { prepare, exec, pool, initSchema };
