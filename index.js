@@ -178,6 +178,11 @@ app.get('/card/:id', (req, res) => {
   const ua = req.headers['user-agent'] || '';
   const isAndroid = /Android/i.test(ua);
 
+  const cardShop = await db.prepare('SELECT s.id as shop_id, s.name as shop_name, s.logo_base64 FROM customers c JOIN shops s ON s.id = c.shop_id WHERE c.id = ?').get(id);
+  const shopName = (cardShop && cardShop.shop_name) ? cardShop.shop_name : 'FidélyPass';
+  const shopIcon = (cardShop && cardShop.logo_base64) ? ('/shops/' + cardShop.shop_id + '/logo-file') : '/icon-192.png';
+  const manifestUrl = cardShop ? ('/manifest/' + cardShop.shop_id + '.json') : '/manifest.json';
+
   let walletHtml = '';
   if (!isAndroid) {
     walletHtml = '<p style="margin-top:16px;font-size:13px;color:#9ca3af">🍎 Apple Wallet bientôt disponible</p>';
