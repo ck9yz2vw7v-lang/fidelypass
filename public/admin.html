@@ -28,8 +28,6 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 .form-group label{font-size:12px;color:#94a3b8;font-weight:600}
 .form-group input{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:14px}
 .form-group input:focus{outline:none;border-color:#3b82f6}
-.form-group select{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:14px}
-.form-group select:focus{outline:none;border-color:#3b82f6}
 .form-full{grid-column:1/-1}
 .shops-list{display:flex;flex-direction:column;gap:12px}
 .shop-item{background:#0f172a;border-radius:10px;padding:16px 20px;border:1px solid #1e293b}
@@ -42,12 +40,6 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 .shop-stat-mini-label{font-size:10px;color:#64748b;margin-top:2px}
 .badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#dcfce7;color:#166534}
 .badge-inactive{background:#fee2e2;color:#991b1b}
-.badge-exempt{background:#e0e7ff;color:#3730a3}
-.btn-exempt{background:#6366f1;color:white}
-.btn-exempt-on{background:#4338ca;color:white}
-.badge-nosetup{background:#fce7f3;color:#9d174d}
-.btn-nosetup{background:#ec4899;color:white}
-.btn-nosetup-on{background:#be185d;color:white}
 .empty{text-align:center;color:#64748b;padding:40px}
 .msg{padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px;display:none}
 .success{background:#dcfce7;color:#166534}
@@ -83,17 +75,11 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 <div class="container">
   <div class="page-title">Dashboard Admin</div>
   <div class="page-sub">Gérez tous vos clients depuis ici — Bonjour Walyd 👋</div>
-  <button id="admin-notif-btn" onclick="toggleAdminNotifs()" style="background:#f3f4f6;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;color:#374151;cursor:pointer;margin-bottom:16px">🔔 Activer les notifications de demandes</button>
   <div class="stats">
     <div class="stat"><div class="stat-val" id="total-shops">0</div><div class="stat-label">Boutiques actives</div></div>
     <div class="stat"><div class="stat-val" id="total-customers">0</div><div class="stat-label">Clients totaux</div></div>
     <div class="stat"><div class="stat-val" id="total-scans">0</div><div class="stat-label">Scans total</div></div>
     <div class="stat"><div class="stat-val" id="revenue">0€</div><div class="stat-label">Revenus mensuels</div></div>
-  </div>
-
-  <div class="card" id="leads-card" style="display:none">
-    <div class="card-title">📩 Demandes de contact <span id="leads-count" style="font-size:13px;color:#64748b"></span></div>
-    <div class="shops-list" id="leads-list"></div>
   </div>
 
   <div class="card">
@@ -105,42 +91,18 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>Identifiant unique</label><input type="text" id="slug" placeholder="Ex: boulangerie-martin"></div>
       <div class="form-group"><label>Mot de passe gérant</label><input type="password" id="password" placeholder="Mot de passe"></div>
       <div class="form-group"><label>Email gérant</label><input type="email" id="email" placeholder="gerant@boutique.fr"></div>
-      <div class="form-group"><label>Points par unité dépensée</label><input type="number" id="points_per_euro" value="1" step="0.1"></div>
-      <div class="form-group"><label>💱 Devise de la boutique</label>
-        <select id="currency">
-          <option value="EUR">€ Euro (France, Belgique, Italie)</option>
-          <option value="CHF">CHF Franc suisse (Suisse)</option>
-          <option value="XOF">CFA Franc CFA (Burkina Faso)</option>
-        </select>
-      </div>
+      <div class="form-group"><label>Points par euro dépensé</label><input type="number" id="points_per_euro" value="1" step="0.1"></div>
       <div class="form-group"><label>Objectif points</label><input type="number" id="points_goal" value="100"></div>
-      <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="referral_bonus_points" value="10"></div>
       <div class="form-group"><label>Couleur carte</label><input type="color" id="color" value="#b45309"></div>
       <div class="form-group form-full"><label>Récompense offerte</label><input type="text" id="reward_text" placeholder="Ex: 1 sandwich offert"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis (optionnel)</label><input type="url" id="google_review_url" placeholder="https://g.page/r/..."></div>
-      <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="menu_url" placeholder="https://..."></div>
-      <div class="form-group"><label>📞 Téléphone (optionnel)</label><input type="tel" id="phone" placeholder="06 12 34 56 78"></div>
-      <div class="form-group"><label>🕒 Horaires (optionnel)</label><input type="text" id="opening_hours" placeholder="Lun-Sam 9h-19h"></div>
-      <div class="form-group form-full">
-        <label>📄 Ou fichier menu — image/PDF (optionnel, prioritaire sur le lien)</label>
-        <input type="file" id="menu_file" accept="image/png,image/jpeg,image/webp,application/pdf">
-        <div id="menu-file-preview-wrap" style="display:none;margin-top:8px;font-size:13px;color:#94a3b8">
-          📎 <span id="menu-file-preview-name"></span>
-          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearMenuFileInput()">Retirer</button>
-        </div>
-      </div>
-      <div class="form-group"><label>📍 Latitude (optionnel)</label><input type="text" id="latitude" placeholder="Ex: 45.7640"></div>
-      <div class="form-group"><label>📍 Longitude (optionnel)</label><input type="text" id="longitude" placeholder="Ex: 4.8357"></div>
-      <div class="form-group form-full">
-        <label>🖼️ Logo de la boutique (PNG, optionnel)</label>
-        <input type="file" id="logo_file" accept="image/png">
-        <div id="logo-preview-wrap" style="display:none;margin-top:8px">
-          <img id="logo-preview" style="max-height:60px;border-radius:8px;background:#0f172a;padding:6px">
-          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearLogoInput()">Retirer</button>
-        </div>
-      </div>
       <div class="form-full"><button class="btn btn-primary" onclick="createShop()">Créer la boutique</button></div>
     </div>
+  </div>
+
+  <div class="card" id="leads-card" style="display:none">
+    <div class="card-title">📩 Demandes de contact <span id="leads-count" style="font-size:13px;color:#64748b"></span></div>
+    <div class="shops-list" id="leads-list"></div>
   </div>
 
   <div class="card">
@@ -158,40 +120,11 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>Nom</label><input type="text" id="edit-name"></div>
       <div class="form-group"><label>Identifiant</label><input type="text" id="edit-slug"></div>
       <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="edit-password" placeholder="Laisser vide = inchangé"></div>
-      <div class="form-group"><label>Points par unité dépensée</label><input type="number" id="edit-points-per-euro" step="0.1"></div>
-      <div class="form-group"><label>💱 Devise de la boutique</label>
-        <select id="edit-currency">
-          <option value="EUR">€ Euro (France, Belgique, Italie)</option>
-          <option value="CHF">CHF Franc suisse (Suisse)</option>
-          <option value="XOF">CFA Franc CFA (Burkina Faso)</option>
-        </select>
-      </div>
+      <div class="form-group"><label>Points par euro</label><input type="number" id="edit-points-per-euro" step="0.1"></div>
       <div class="form-group"><label>Objectif points</label><input type="number" id="edit-points-goal"></div>
-      <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="edit-referral-bonus"></div>
       <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
-      <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="edit-menu-url" placeholder="https://..."></div>
-      <div class="form-group"><label>📞 Téléphone (optionnel)</label><input type="tel" id="edit-phone" placeholder="06 12 34 56 78"></div>
-      <div class="form-group"><label>🕒 Horaires (optionnel)</label><input type="text" id="edit-opening-hours" placeholder="Lun-Sam 9h-19h"></div>
-      <div class="form-group form-full">
-        <label>📄 Ou fichier menu — image/PDF (optionnel, prioritaire sur le lien)</label>
-        <input type="file" id="edit-menu-file" accept="image/png,image/jpeg,image/webp,application/pdf">
-        <div id="edit-menu-file-preview-wrap" style="display:none;margin-top:8px;font-size:13px;color:#94a3b8">
-          📎 <span id="edit-menu-file-preview-name"></span>
-          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearEditMenuFileInput()">Retirer</button>
-        </div>
-      </div>
-      <div class="form-group"><label>📍 Latitude (optionnel)</label><input type="text" id="edit-latitude" placeholder="Ex: 45.7640"></div>
-      <div class="form-group"><label>📍 Longitude (optionnel)</label><input type="text" id="edit-longitude" placeholder="Ex: 4.8357"></div>
-      <div class="form-group form-full">
-        <label>🖼️ Logo de la boutique (PNG, optionnel)</label>
-        <input type="file" id="edit-logo-file" accept="image/png">
-        <div id="edit-logo-preview-wrap" style="display:none;margin-top:8px">
-          <img id="edit-logo-preview" style="max-height:60px;border-radius:8px;background:#0f172a;padding:6px">
-          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearEditLogoInput()">Retirer</button>
-        </div>
-      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal('modal-edit')">Annuler</button>
@@ -304,10 +237,6 @@ async function deleteLead(id) {
   loadLeads();
 }
 
-function currencySymbol(code) {
-  return { EUR: '€', CHF: 'CHF', XOF: 'CFA' }[code] || '€';
-}
-
 async function loadShops() {
   const res   = await fetch('/api/shops');
   const shops = await res.json();
@@ -320,19 +249,15 @@ async function loadShops() {
     <div class="shop-item">
       <div class="shop-item-top">
         <div>
-          <div class="shop-name">${s.has_logo ? `<span style="display:inline-block;width:20px;height:20px;vertical-align:middle;border-radius:4px;margin-right:6px;background:#334155;text-align:center;line-height:20px;font-size:11px">🖼️</span>` : ''}${s.name}</div>
-          <div class="shop-meta">Slug: ${s.slug} · ${s.points_per_euro || 1} pts/${currencySymbol(s.currency)} · Objectif: ${s.points_goal} pts · 🎁 ${s.reward_text}${s.google_review_url ? ' · ⭐ Avis Google configuré' : ''}${(s.menu_url || s.has_menu_file) ? ' · 📋 Menu configuré' : ''}</div>
+          <div class="shop-name">${s.name}</div>
+          <div class="shop-meta">Slug: ${s.slug} · ${s.points_per_euro || 1} pts/€ · Objectif: ${s.points_goal} pts · 🎁 ${s.reward_text}${s.google_review_url ? ' · ⭐ Avis Google configuré' : ''}</div>
         </div>
         <div class="shop-actions">
           <span class="badge ${s.active === 0 ? 'badge-inactive' : ''}">${s.active === 0 ? 'Suspendu' : 'Actif'}</span>
-          ${s.payment_exempt === 1 ? '<span class="badge badge-exempt">🎁 Gratuit</span>' : ''}
-          ${s.waive_setup_fee === 1 ? '<span class="badge badge-nosetup">🏷️ Sans les 80€</span>' : ''}
-          <button class="btn-sm ${s.payment_exempt === 1 ? 'btn-exempt-on' : 'btn-exempt'}" onclick="toggleExempt(${s.id}, ${s.payment_exempt === 1})">${s.payment_exempt === 1 ? '🎁 Retirer gratuité' : '🎁 Rendre gratuit'}</button>
-          <button class="btn-sm ${s.waive_setup_fee === 1 ? 'btn-nosetup-on' : 'btn-nosetup'}" onclick="toggleSetupFee(${s.id}, ${s.waive_setup_fee === 1})">${s.waive_setup_fee === 1 ? '🏷️ Remettre les 80€' : '🏷️ Retirer les 80€'}</button>
           <button class="btn-sm btn-stripe" onclick="openStripe(${s.id}, '${(s.email||'').replace(/'/g,"\\'")}')">💳 Paiement</button>
           <button class="btn-sm btn-view" onclick="window.open('/gerant.html?shop=${s.slug}','_blank')">Vue gérant</button>
           <button class="btn-sm btn-qr" onclick="showQR('${s.slug}','${s.name}',${s.id})">QR Comptoir</button>
-          <button class="btn-sm btn-edit" onclick="openEdit(${s.id})">Modifier</button>
+          <button class="btn-sm btn-edit" onclick="openEdit(${JSON.stringify(s).replace(/"/g,'&quot;')})">Modifier</button>
           <button class="btn-sm btn-delete" onclick="openDelete(${s.id}, '${s.name.replace(/'/g,"\\'")}')">Supprimer</button>
         </div>
       </div>
@@ -363,56 +288,6 @@ async function loadShops() {
   document.getElementById('total-scans').textContent = grandTotalScans;
 }
 
-let pendingLogoBase64Create = null;
-
-document.getElementById('logo_file').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (!file) { pendingLogoBase64Create = null; document.getElementById('logo-preview-wrap').style.display = 'none'; return; }
-  if (file.size > 2 * 1024 * 1024) {
-    alert('❌ Ce logo est trop lourd (max 2 Mo). Choisis une image plus légère.');
-    e.target.value = '';
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    pendingLogoBase64Create = ev.target.result;
-    document.getElementById('logo-preview').src = pendingLogoBase64Create;
-    document.getElementById('logo-preview-wrap').style.display = 'block';
-  };
-  reader.readAsDataURL(file);
-});
-
-function clearLogoInput() {
-  pendingLogoBase64Create = null;
-  document.getElementById('logo_file').value = '';
-  document.getElementById('logo-preview-wrap').style.display = 'none';
-}
-
-let pendingMenuFileBase64Create = null;
-
-document.getElementById('menu_file').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (!file) { pendingMenuFileBase64Create = null; document.getElementById('menu-file-preview-wrap').style.display = 'none'; return; }
-  if (file.size > 8 * 1024 * 1024) {
-    alert('❌ Ce fichier est trop lourd (max 8 Mo). Choisis un fichier plus léger.');
-    e.target.value = '';
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    pendingMenuFileBase64Create = ev.target.result;
-    document.getElementById('menu-file-preview-name').textContent = file.name;
-    document.getElementById('menu-file-preview-wrap').style.display = 'block';
-  };
-  reader.readAsDataURL(file);
-});
-
-function clearMenuFileInput() {
-  pendingMenuFileBase64Create = null;
-  document.getElementById('menu_file').value = '';
-  document.getElementById('menu-file-preview-wrap').style.display = 'none';
-}
-
 async function createShop() {
   const data = {
     name:               document.getElementById('name').value,
@@ -420,69 +295,22 @@ async function createShop() {
     password:           document.getElementById('password').value,
     email:              document.getElementById('email').value || null,
     points_per_euro:    parseFloat(document.getElementById('points_per_euro').value),
-    currency:           document.getElementById('currency').value,
     points_goal:        parseInt(document.getElementById('points_goal').value),
-    referral_bonus_points: parseInt(document.getElementById('referral_bonus_points').value),
     color:              document.getElementById('color').value,
     reward_text:        document.getElementById('reward_text').value,
-    google_review_url:  document.getElementById('google_review_url').value || null,
-    menu_url:           document.getElementById('menu_url').value || null,
-    phone:              document.getElementById('phone').value || null,
-    opening_hours:      document.getElementById('opening_hours').value || null,
-    latitude:           document.getElementById('latitude').value || null,
-    longitude:          document.getElementById('longitude').value || null,
-    logo_base64:        pendingLogoBase64Create,
-    menu_file_base64:   pendingMenuFileBase64Create
+    google_review_url:  document.getElementById('google_review_url').value || null
   };
   const res    = await fetch('/api/shops', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
   const result = await res.json();
   if (result.success) {
     document.getElementById('success-msg').style.display = 'block';
     setTimeout(() => document.getElementById('success-msg').style.display = 'none', 3000);
-    ['name','slug','password','email','reward_text','google_review_url','menu_url','latitude','longitude','phone','opening_hours'].forEach(id => document.getElementById(id).value = '');
-    clearLogoInput();
-    clearMenuFileInput();
+    ['name','slug','password','email','reward_text','google_review_url'].forEach(id => document.getElementById(id).value = '');
     loadShops();
   } else {
     const err = document.getElementById('error-msg');
     err.textContent = '❌ ' + result.error;
     err.style.display = 'block';
-  }
-}
-
-async function toggleExempt(shopId, isCurrentlyExempt) {
-  const msg = isCurrentlyExempt
-    ? 'Retirer la gratuité de cette boutique ? Elle redeviendra soumise au paiement.'
-    : 'Rendre cette boutique gratuite ? Elle fonctionnera même sans paiement.';
-  if (!confirm(msg)) return;
-  try {
-    const res = await fetch('/api/admin/shops/' + shopId + '/toggle-exempt', { method: 'POST' });
-    const result = await res.json();
-    if (result.success) {
-      loadShops();
-    } else {
-      alert('❌ ' + result.error);
-    }
-  } catch (err) {
-    alert('❌ Erreur réseau');
-  }
-}
-
-async function toggleSetupFee(shopId, isCurrentlyWaived) {
-  const msg = isCurrentlyWaived
-    ? 'Remettre les 80€ d\'installation pour cette boutique ? Le prochain lien de paiement les inclura à nouveau.'
-    : 'Retirer les 80€ d\'installation pour cette boutique ? Le prochain lien de paiement ne contiendra plus que les 29€/mois.';
-  if (!confirm(msg)) return;
-  try {
-    const res = await fetch('/api/admin/shops/' + shopId + '/toggle-setup-fee', { method: 'POST' });
-    const result = await res.json();
-    if (result.success) {
-      loadShops();
-    } else {
-      alert('❌ ' + result.error);
-    }
-  } catch (err) {
-    alert('❌ Erreur réseau');
   }
 }
 
@@ -558,156 +386,44 @@ function resetEditModal() {
       <div class="form-group"><label>Nom</label><input type="text" id="edit-name"></div>
       <div class="form-group"><label>Identifiant</label><input type="text" id="edit-slug"></div>
       <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="edit-password" placeholder="Laisser vide = inchangé"></div>
-      <div class="form-group"><label>Points par unité dépensée</label><input type="number" id="edit-points-per-euro" step="0.1"></div>
-      <div class="form-group"><label>💱 Devise de la boutique</label>
-        <select id="edit-currency">
-          <option value="EUR">€ Euro (France, Belgique, Italie)</option>
-          <option value="CHF">CHF Franc suisse (Suisse)</option>
-          <option value="XOF">CFA Franc CFA (Burkina Faso)</option>
-        </select>
-      </div>
+      <div class="form-group"><label>Points par euro</label><input type="number" id="edit-points-per-euro" step="0.1"></div>
       <div class="form-group"><label>Objectif points</label><input type="number" id="edit-points-goal"></div>
-      <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="edit-referral-bonus"></div>
       <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
-      <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="edit-menu-url" placeholder="https://..."></div>
-      <div class="form-group"><label>📞 Téléphone (optionnel)</label><input type="tel" id="edit-phone" placeholder="06 12 34 56 78"></div>
-      <div class="form-group"><label>🕒 Horaires (optionnel)</label><input type="text" id="edit-opening-hours" placeholder="Lun-Sam 9h-19h"></div>
-      <div class="form-group form-full">
-        <label>📄 Ou fichier menu — image/PDF (optionnel, prioritaire sur le lien)</label>
-        <input type="file" id="edit-menu-file" accept="image/png,image/jpeg,image/webp,application/pdf">
-        <div id="edit-menu-file-preview-wrap" style="display:none;margin-top:8px;font-size:13px;color:#94a3b8">
-          📎 <span id="edit-menu-file-preview-name"></span>
-          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearEditMenuFileInput()">Retirer</button>
-        </div>
-      </div>
-      <div class="form-group"><label>📍 Latitude (optionnel)</label><input type="text" id="edit-latitude" placeholder="Ex: 45.7640"></div>
-      <div class="form-group"><label>📍 Longitude (optionnel)</label><input type="text" id="edit-longitude" placeholder="Ex: 4.8357"></div>
-      <div class="form-group form-full">
-        <label>🖼️ Logo de la boutique (PNG, optionnel)</label>
-        <input type="file" id="edit-logo-file" accept="image/png">
-        <div id="edit-logo-preview-wrap" style="display:none;margin-top:8px">
-          <img id="edit-logo-preview" style="max-height:60px;border-radius:8px;background:#0f172a;padding:6px">
-          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearEditLogoInput()">Retirer</button>
-        </div>
-      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal('modal-edit')">Annuler</button>
       <button class="btn btn-primary" onclick="saveEdit()">Enregistrer</button>
     </div>
   `;
-  attachEditLogoListener();
 }
 
-let editLogoBase64; // undefined = pas de changement, '' = suppression explicite, dataURL = nouveau logo
-let editMenuFileBase64; // undefined = pas de changement, '' = suppression explicite, dataURL = nouveau fichier
-
-function attachEditLogoListener() {
-  const input = document.getElementById('edit-logo-file');
-  if (!input) return;
-  input.addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      alert('❌ Ce logo est trop lourd (max 2 Mo). Choisis une image plus légère.');
-      e.target.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      editLogoBase64 = ev.target.result;
-      document.getElementById('edit-logo-preview').src = editLogoBase64;
-      document.getElementById('edit-logo-preview-wrap').style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-  });
-
-  const menuInput = document.getElementById('edit-menu-file');
-  if (!menuInput) return;
-  menuInput.addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 8 * 1024 * 1024) {
-      alert('❌ Ce fichier est trop lourd (max 8 Mo). Choisis un fichier plus léger.');
-      e.target.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      editMenuFileBase64 = ev.target.result;
-      document.getElementById('edit-menu-file-preview-name').textContent = file.name;
-      document.getElementById('edit-menu-file-preview-wrap').style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-function clearEditLogoInput() {
-  editLogoBase64 = '';
-  document.getElementById('edit-logo-file').value = '';
-  document.getElementById('edit-logo-preview-wrap').style.display = 'none';
-}
-
-function clearEditMenuFileInput() {
-  editMenuFileBase64 = '';
-  document.getElementById('edit-menu-file').value = '';
-  document.getElementById('edit-menu-file-preview-wrap').style.display = 'none';
-}
-
-async function openEdit(shopId) {
+function openEdit(shop) {
   resetEditModal();
-  editLogoBase64 = undefined;
-  editMenuFileBase64 = undefined;
-  const shop = await (await fetch('/api/admin/shops/' + shopId + '/full')).json();
   document.getElementById('edit-id').value              = shop.id;
   document.getElementById('edit-name').value            = shop.name;
   document.getElementById('edit-slug').value            = shop.slug;
   document.getElementById('edit-password').value        = '';
   document.getElementById('edit-points-per-euro').value = shop.points_per_euro || 1;
-  document.getElementById('edit-currency').value        = shop.currency || 'EUR';
   document.getElementById('edit-points-goal').value     = shop.points_goal;
-  document.getElementById('edit-referral-bonus').value  = shop.referral_bonus_points != null ? shop.referral_bonus_points : 10;
   document.getElementById('edit-color').value           = shop.color;
   document.getElementById('edit-reward').value          = shop.reward_text;
   document.getElementById('edit-google-review').value   = shop.google_review_url || '';
-  document.getElementById('edit-menu-url').value        = shop.menu_url || '';
-  document.getElementById('edit-phone').value            = shop.phone || '';
-  document.getElementById('edit-opening-hours').value    = shop.opening_hours || '';
-  document.getElementById('edit-latitude').value        = shop.latitude != null ? shop.latitude : '';
-  document.getElementById('edit-longitude').value       = shop.longitude != null ? shop.longitude : '';
-  if (shop.logo_base64) {
-    document.getElementById('edit-logo-preview').src = shop.logo_base64;
-    document.getElementById('edit-logo-preview-wrap').style.display = 'block';
-  }
-  if (shop.menu_file_base64) {
-    document.getElementById('edit-menu-file-preview-name').textContent = 'Fichier déjà configuré (' + (shop.menu_file_type || 'fichier') + ')';
-    document.getElementById('edit-menu-file-preview-wrap').style.display = 'block';
-  }
   document.getElementById('modal-edit').classList.add('show');
 }
 
 async function saveEdit() {
   const id   = document.getElementById('edit-id').value;
   const data = {
-    name:                  document.getElementById('edit-name').value,
-    slug:                  document.getElementById('edit-slug').value,
-    password:              document.getElementById('edit-password').value,
-    points_per_euro:       parseFloat(document.getElementById('edit-points-per-euro').value),
-    currency:              document.getElementById('edit-currency').value,
-    points_goal:           parseInt(document.getElementById('edit-points-goal').value),
-    referral_bonus_points: parseInt(document.getElementById('edit-referral-bonus').value),
-    color:                 document.getElementById('edit-color').value,
-    reward_text:           document.getElementById('edit-reward').value,
-    google_review_url:     document.getElementById('edit-google-review').value || null,
-    menu_url:              document.getElementById('edit-menu-url').value || null,
-    phone:                 document.getElementById('edit-phone').value || null,
-    opening_hours:         document.getElementById('edit-opening-hours').value || null,
-    latitude:              document.getElementById('edit-latitude').value || null,
-    longitude:             document.getElementById('edit-longitude').value || null,
-    logo_base64:           editLogoBase64,
-    menu_file_base64:      editMenuFileBase64
+    name:              document.getElementById('edit-name').value,
+    slug:              document.getElementById('edit-slug').value,
+    password:          document.getElementById('edit-password').value,
+    points_per_euro:   parseFloat(document.getElementById('edit-points-per-euro').value),
+    points_goal:       parseInt(document.getElementById('edit-points-goal').value),
+    color:             document.getElementById('edit-color').value,
+    reward_text:       document.getElementById('edit-reward').value,
+    google_review_url: document.getElementById('edit-google-review').value || null
   };
   const res = await fetch('/api/shops/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
   const result = await res.json();
@@ -735,72 +451,6 @@ function closeModal(id) {
 
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('show'); });
-});
-
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = atob(base64);
-  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
-}
-
-async function toggleAdminNotifs() {
-  const btn = document.getElementById('admin-notif-btn');
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    alert('Notifications non supportées sur ce navigateur.');
-    return;
-  }
-  try {
-    const reg = await navigator.serviceWorker.register('/sw.js');
-    await navigator.serviceWorker.ready;
-    const existing = await reg.pushManager.getSubscription();
-
-    if (existing) {
-      await fetch('/api/admin/unsubscribe', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ endpoint: existing.endpoint })
-      });
-      await existing.unsubscribe();
-      btn.textContent = '🔔 Activer les notifications de demandes';
-      btn.style.background = '#f3f4f6';
-      btn.style.color = '#374151';
-      return;
-    }
-
-    const perm = await Notification.requestPermission();
-    if (perm !== 'granted') { alert('Notifications refusées.'); return; }
-    const { key } = await fetch('/api/vapid-public-key').then(r => r.json());
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(key)
-    });
-    await fetch('/api/admin/subscribe', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ subscription: sub })
-    });
-    btn.textContent = '🔔 Notifications activées';
-    btn.style.background = '#dcfce7';
-    btn.style.color = '#16a34a';
-  } catch (err) {
-    console.error(err);
-    alert("Impossible d'activer les notifications.");
-  }
-}
-
-// Vérifie l'état actuel au chargement
-if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-  navigator.serviceWorker.getRegistration('/sw.js').then(reg => {
-    if (reg) reg.pushManager.getSubscription().then(sub => {
-      if (sub) {
-        const btn = document.getElementById('admin-notif-btn');
-        btn.textContent = '🔔 Notifications activées';
-        btn.style.background = '#dcfce7';
-        btn.style.color = '#16a34a';
-      }
-    });
-  });
-}
-
 loadLeads();
 loadShops();
 </script>

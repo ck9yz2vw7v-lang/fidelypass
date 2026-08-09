@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistiques — FidélyPass</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-serif;min-height:100vh;color:#1a1a1a}
+.header{background:white;padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:10}
+.back-btn{background:#f3f4f6;border:none;width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.header h1{font-size:16px;font-weight:800}
+.container{max-width:520px;margin:0 auto;padding:20px 16px 60px}
+.block{background:white;border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.block-title{font-size:14px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.kpi{background:#f8fafc;border-radius:14px;padding:12px;text-align:center}
+.kpi-val{font-size:22px;font-weight:900}
+.kpi-label{font-size:10px;color:#6b7280;margin-top:2px}
+.kpi.green .kpi-val{color:#059669}
+.kpi.orange .kpi-val{color:#d97706}
+.kpi.red .kpi-val{color:#dc2626}
+.kpi.blue .kpi-val{color:#3b82f6}
+.advice{margin-top:12px;background:#fef3c7;border-radius:12px;padding:12px 14px;font-size:12.5px;color:#92400e;line-height:1.5}
+.list-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f1f1;font-size:13px}
+.list-row:last-child{border-bottom:none}
+.list-name{font-weight:700}
+.list-sub{font-size:11px;color:#9ca3af}
+.badge{background:#f3f4f6;color:#374151;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px}
+.badge.vip{background:#fef3c7;color:#b45309}
+.rank{width:22px;height:22px;border-radius:50%;background:#1a1a1a;color:white;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.rank.gold{background:#f59e0b}
+.rank.silver{background:#9ca3af}
+.rank.bronze{background:#b45309}
+.empty{text-align:center;color:#9ca3af;font-size:13px;padding:16px 0}
+canvas{max-height:220px}
+.loading{text-align:center;padding:60px 0;color:#9ca3af;font-size:14px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" onclick="window.location.href='/gerant.html'">←</button>
+  <h1>📊 Statistiques</h1>
+</div>
+
+<div class="container">
+  <div id="loading" class="loading">Chargement des statistiques…</div>
+  <div id="content" style="display:none">
+
+    <div class="block">
+      <div class="block-title">🩺 Santé du portefeuille clients</div>
+      <div class="grid3">
+        <div class="kpi green"><div class="kpi-val" id="k-active">–</div><div class="kpi-label">Actifs (≤30j)</div></div>
+        <div class="kpi orange"><div class="kpi-val" id="k-risk">–</div><div class="kpi-label">À risque (30-60j)</div></div>
+        <div class="kpi red"><div class="kpi-val" id="k-lost">–</div><div class="kpi-label">Perdus (60j+)</div></div>
+      </div>
+      <div class="kpi blue" style="margin-top:10px"><div class="kpi-val" id="k-retention">–</div><div class="kpi-label">Taux de rétention (30j)</div></div>
+      <div class="advice" id="advice-health" style="display:none"></div>
+      <div id="at-risk-list" style="margin-top:14px"></div>
+    </div>
+
+    <div class="block">
+      <div class="block-title">🏆 Meilleurs clients</div>
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="kpi"><div class="kpi-val" id="k-avg-visits">–</div><div class="kpi-label">Visites moy. / client</div></div>
+        <div class="kpi"><div class="kpi-val" id="k-avg-points">–</div><div class="kpi-label">Points moy. / client</div></div>
+      </div>
+      <div id="top-list"></div>
+    </div>
+
+    <div class="block">
+      <div class="block-title">⏰ Quand tes clients viennent</div>
+      <canvas id="chart-dow"></canvas>
+      <div style="height:16px"></div>
+      <canvas id="chart-hour"></canvas>
+      <div class="advice" id="advice-timing" style="display:none"></div>
+    </div>
+
+    <div class="block">
+      <div class="block-title">📈 Croissance & bouche-à-oreille</div>
+      <canvas id="chart-growth"></canvas>
+      <div class="grid2" style="margin-top:14px">
+        <div class="kpi"><div class="kpi-val" id="k-referral">–</div><div class="kpi-label">Clients via parrainage</div></div>
+        <div class="kpi"><div class="kpi-val" id="k-goal">–</div><div class="kpi-label">Ont atteint leur récompense</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const shop = JSON.parse(localStorage.getItem('fp_shop') || 'null');
+const token = localStorage.getItem('fp_token');
+if (!shop || !token) window.location.href = '/gerant.html';
+
+const DOW_NAMES = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+
+fetch('/api/shops/' + shop.id + '/analytics', { headers: { 'x-shop-token': token } })
+  .then(r => r.json())
+  .then(d => {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    render(d);
+  })
+  .catch(() => {
+    document.getElementById('loading').textContent = 'Erreur de chargement. Réessaie plus tard.';
+  });
+
+function render(d) {
+  // Santé
+  document.getElementById('k-active').textContent = d.health.active;
+  document.getElementById('k-risk').textContent = d.health.at_risk;
+  document.getElementById('k-lost').textContent = d.health.lost;
+  document.getElementById('k-retention').textContent = d.health.retention_rate + '%';
+
+  if (d.health.retention_rate < 50 && d.health.total >= 5) {
+    const adv = document.getElementById('advice-health');
+    adv.style.display = 'block';
+    adv.textContent = '⚠️ Moins de la moitié de tes clients sont revenus ce mois-ci. Une notification ciblée pourrait relancer les clients à risque ci-dessous.';
+  }
+
+  const riskBox = document.getElementById('at-risk-list');
+  if (d.at_risk_customers.length === 0) {
+    riskBox.innerHTML = '<div class="empty">Aucun client à risque en ce moment 🎉</div>';
+  } else {
+    riskBox.innerHTML = d.at_risk_customers.map(c => {
+      const days = Math.round((Date.now() - new Date(c.last_seen)) / 86400000);
+      return '<div class="list-row"><div><div class="list-name">' + escapeHtml(c.name) + '</div><div class="list-sub">' + c.points + ' pts · dernière visite il y a ' + days + 'j</div></div></div>';
+    }).join('');
+  }
+
+  // VIP
+  document.getElementById('k-avg-visits').textContent = d.avg_visits;
+  document.getElementById('k-avg-points').textContent = d.avg_points;
+  const topBox = document.getElementById('top-list');
+  if (d.top_by_visits.length === 0) {
+    topBox.innerHTML = '<div class="empty">Pas encore assez de données</div>';
+  } else {
+    topBox.innerHTML = d.top_by_visits.slice(0, 5).map((c, i) => {
+      const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+      return '<div class="list-row"><div style="display:flex;align-items:center;gap:10px"><div class="rank ' + rankClass + '">' + (i + 1) + '</div><div><div class="list-name">' + escapeHtml(c.name) + '</div><div class="list-sub">' + c.points + ' pts</div></div></div><span class="badge vip">' + c.total_visits + ' visites</span></div>';
+    }).join('');
+  }
+
+  // Fréquentation
+  const dowData = Array(7).fill(0);
+  d.frequency_by_dow.forEach(r => dowData[r.dow] = r.count);
+  new Chart(document.getElementById('chart-dow'), {
+    type: 'bar',
+    data: { labels: DOW_NAMES, datasets: [{ label: 'Scans par jour', data: dowData, backgroundColor: '#3b82f6', borderRadius: 6 }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+  });
+
+  const hourData = Array(24).fill(0);
+  d.frequency_by_hour.forEach(r => hourData[r.hour] = r.count);
+  new Chart(document.getElementById('chart-hour'), {
+    type: 'bar',
+    data: { labels: Array.from({length:24}, (_,i) => i + 'h'), datasets: [{ label: 'Scans par heure', data: hourData, backgroundColor: '#6B21A8', borderRadius: 6 }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } } } }
+  });
+
+  if (dowData.some(v => v > 0)) {
+    const maxIdx = dowData.indexOf(Math.max(...dowData));
+    const minIdx = dowData.indexOf(Math.min(...dowData.filter((v,i) => dowData.some(x=>x>0) ? true : true)));
+    const adv = document.getElementById('advice-timing');
+    adv.style.display = 'block';
+    adv.textContent = "💡 Ton pic d'affluence : " + DOW_NAMES[maxIdx] + ". C'est un bon jour pour une offre spéciale, ou au contraire cible tes notifs les jours plus calmes pour relancer.";
+  }
+
+  // Croissance
+  new Chart(document.getElementById('chart-growth'), {
+    type: 'line',
+    data: {
+      labels: d.growth_by_week.map(r => new Date(r.week).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })),
+      datasets: [{ label: 'Nouveaux clients', data: d.growth_by_week.map(r => r.count), borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.1)', fill: true, tension: 0.3 }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+  });
+
+  document.getElementById('k-referral').textContent = d.referral_count + ' (' + d.referral_rate + '%)';
+  document.getElementById('k-goal').textContent = d.goal_reached_count + ' (' + d.goal_reached_rate + '%)';
+}
+
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
