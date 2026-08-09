@@ -165,23 +165,16 @@ html.has-custom-cursor, html.has-custom-cursor a, html.has-custom-cursor button{
 .wallet-checks div{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text-dim)}
 .wallet-checks span{color:var(--green)}
 .phone-frame-wrap{position:relative;display:flex;justify-content:center;padding:30px 0}
-.phone-frame-wrap::before{
-  content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:320px;height:320px;border-radius:50%;
-  background:radial-gradient(circle, rgba(108,92,231,0.35), rgba(34,211,238,0.12) 55%, transparent 75%);
-  filter:blur(20px);z-index:0;
-}
 .phone-frame{
   position:relative;z-index:1;max-width:280px;margin:0 auto;
-  padding:14px 14px 22px;background:linear-gradient(160deg,#1c2130,#0d0f16);
+  padding:14px 14px 22px;background:#000;
   border-radius:36px;border:1px solid var(--line-strong);
-  box-shadow:0 50px 100px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.03), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 .phone-frame::before{
   content:'';position:absolute;top:14px;left:50%;transform:translateX(-50%);
-  width:70px;height:6px;background:#000;border-radius:99px;z-index:2;
+  width:70px;height:6px;background:#1a1a1a;border-radius:99px;z-index:2;
 }
-.phone-mock{border-radius:22px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
+.phone-mock{border-radius:22px;overflow:hidden}
 
 /* ---------- TICKETS (condensed features) ---------- */
 .tickets{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
