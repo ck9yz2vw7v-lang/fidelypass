@@ -406,15 +406,17 @@ function renderCustomersList(customers) {
     return;
   }
   const goal = (currentShop && currentShop.points_goal) || 100;
+  const statusLabel = { active: '🟢 Actif', at_risk: '🟠 À risque', lost: '🔴 Perdu' };
   listEl.innerHTML = customers.map(c => {
     const initials = c.name.slice(0,2).toUpperCase();
     const ratio = goal > 0 ? Math.max(0, Math.min(1, c.points / goal)) : 0;
     const maskWidth = 100 - (ratio * 100);
+    const badge = statusLabel[c.status] || '';
     return '<div class="customer-row" id="row-' + c.id + '">' +
       '<div class="customer-avatar">' + initials + '</div>' +
       '<div class="customer-info">' +
         '<div class="customer-name">' + c.name + '</div>' +
-        '<div class="customer-meta">' + (c.total_visits || 0) + ' visite' + ((c.total_visits || 0) > 1 ? 's' : '') + '</div>' +
+        '<div class="customer-meta">' + (c.total_visits || 0) + ' visite' + ((c.total_visits || 0) > 1 ? 's' : '') + (badge ? ' · ' + badge : '') + '</div>' +
         '<div class="customer-gauge-wrap"><div class="customer-gauge-mask" style="width:' + maskWidth + '%"></div></div>' +
       '</div>' +
       '<div class="customer-points" id="pts-display-' + c.id + '">' + c.points + ' pts</div>' +
