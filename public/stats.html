@@ -74,6 +74,7 @@ canvas{max-height:220px}
         <div class="kpi red"><div class="kpi-val" id="k-lost">–</div><div class="kpi-label">Perdus</div></div>
       </div>
       <div class="kpi blue" style="margin-top:10px"><div class="kpi-val" id="k-retention">–</div><div class="kpi-label">Taux de rétention</div></div>
+      <div id="threshold-note" style="font-size:11px;color:#9ca3af;margin-top:8px;text-align:center"></div>
       <div class="advice" id="advice-health" style="display:none"></div>
       <div id="at-risk-list" style="margin-top:14px"></div>
       <div class="btn-row">
@@ -167,6 +168,10 @@ function render(d) {
   document.getElementById('k-risk').textContent = d.health.at_risk;
   document.getElementById('k-lost').textContent = d.health.lost;
   document.getElementById('k-retention').textContent = d.health.retention_rate + '%';
+  if (d.health.risk_threshold_days) {
+    document.getElementById('threshold-note').textContent =
+      'Seuils fixés pour votre boutique : à risque dès ' + d.health.risk_threshold_days + ' j sans visite, perdu dès ' + d.health.lost_threshold_days + ' j (modifiable en admin)';
+  }
 
   if (d.health.retention_rate < 50 && d.health.total >= 5) {
     const adv = document.getElementById('advice-health');

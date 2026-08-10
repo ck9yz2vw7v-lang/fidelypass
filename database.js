@@ -121,6 +121,8 @@ async function initSchema() {
     'ALTER TABLE customers ADD COLUMN IF NOT EXISTS reward_cycles_completed INTEGER DEFAULT 0',
     'ALTER TABLE scans ADD COLUMN IF NOT EXISTS amount_paid REAL',
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS last_digest_sent_at TIMESTAMP',
+    'ALTER TABLE shops ADD COLUMN IF NOT EXISTS risk_threshold_days INTEGER DEFAULT 30',
+    'ALTER TABLE shops ADD COLUMN IF NOT EXISTS lost_threshold_days INTEGER DEFAULT 60',
   ];
   for (const stmt of alterStatements) {
     try { await exec(stmt); } catch (e) {}

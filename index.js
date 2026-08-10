@@ -267,9 +267,11 @@ app.get('/api/shops/:id/stats', requireShopAuth, async (req, res) => {
 // le gérant à ajuster sa stratégie (relances, offres ciblées, horaires de notif)
 app.get('/api/shops/:id/analytics', requireShopAuth, async (req, res) => {
   const shopId = req.params.id;
-  const shop = await db.prepare('SELECT points_goal, points_per_euro FROM shops WHERE id = ?').get(shopId);
+  const shop = await db.prepare('SELECT points_goal, points_per_euro, risk_threshold_days, lost_threshold_days FROM shops WHERE id = ?').get(shopId);
   const goal = (shop && shop.points_goal) ? Number(shop.points_goal) : 0;
   const pointsPerEuro = (shop && shop.points_per_euro) ? Number(shop.points_per_euro) : 1;
+  const riskDays = (shop && shop.risk_threshold_days) ? Number(shop.risk_threshold_days) : 30;
+  const lostDays = (shop && shop.lost_threshold_days) ? Number(shop.lost_threshold_days) : 60;
 
   // 1. Santé du portefeuille — score de risque PERSONNALISÉ : on compare le nombre de jours
   // depuis la dernière visite de CHAQUE client à SON PROPRE rythme moyen habituel (calculé à
@@ -308,9 +310,10 @@ app.get('/api/shops/:id/analytics', requireShopAuth, async (req, res) => {
       else if (daysSince <= personalGap * 3) status = 'at_risk';
       else status = 'lost';
     } else {
-      // Pas assez d'historique : règle classique à 30/60 jours
-      if (daysSince <= 30) status = 'active';
-      else if (daysSince <= 60) status = 'at_risk';
+      // Pas assez d'historique pour un rythme personnel fiable : on retombe sur les seuils
+      // fixés par l'admin pour CETTE boutique (par défaut 30/60 jours si jamais configurés).
+      if (daysSince <= riskDays) status = 'active';
+      else if (daysSince <= lostDays) status = 'at_risk';
       else status = 'lost';
     }
     if (status === 'active') activeCount++;
@@ -407,7 +410,8 @@ app.get('/api/shops/:id/analytics', requireShopAuth, async (req, res) => {
   res.json({
     health: {
       active: activeCount, at_risk: atRiskCount, lost: lostCount, total,
-      retention_rate: total > 0 ? Math.round((activeCount / total) * 1000) / 10 : 0
+      retention_rate: total > 0 ? Math.round((activeCount / total) * 1000) / 10 : 0,
+      risk_threshold_days: riskDays, lost_threshold_days: lostDays
     },
     at_risk_customers: atRiskList.slice(0, 20),
     top_by_visits: topByVisits,
@@ -648,6 +652,9 @@ app.post('/api/reward/:customer_id', requireShopAuth, async (req, res) => {
 
 app.get('/api/shops/:shop_id/customers', requireShopAuth, async (req, res) => {
   const shopId = req.params.shop_id;
+  const shopThresholds = await db.prepare('SELECT risk_threshold_days, lost_threshold_days FROM shops WHERE id = ?').get(shopId);
+  const riskDays = (shopThresholds && shopThresholds.risk_threshold_days) ? Number(shopThresholds.risk_threshold_days) : 30;
+  const lostDays = (shopThresholds && shopThresholds.lost_threshold_days) ? Number(shopThresholds.lost_threshold_days) : 60;
   // Même logique de statut personnalisé que la page Statistiques : on compare le nombre de
   // jours depuis la dernière visite de CHAQUE client à SON PROPRE rythme moyen habituel.
   const customers = await db.prepare(`
@@ -678,8 +685,8 @@ app.get('/api/shops/:shop_id/customers', requireShopAuth, async (req, res) => {
       else if (daysSince <= personalGap * 3) c.status = 'at_risk';
       else c.status = 'lost';
     } else {
-      if (daysSince <= 30) c.status = 'active';
-      else if (daysSince <= 60) c.status = 'at_risk';
+      if (daysSince <= riskDays) c.status = 'active';
+      else if (daysSince <= lostDays) c.status = 'at_risk';
       else c.status = 'lost';
     }
     delete c.avg_gap; delete c.nb_gaps; delete c.days_since_visit;
@@ -1201,7 +1208,7 @@ if ('serviceWorker' in navigator && Notification.permission === 'granted') {
 });
 
 app.put('/api/shops/:id', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, manual_shop_count } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, manual_shop_count, risk_threshold_days, lost_threshold_days } = req.body;
   try {
     const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
@@ -1221,7 +1228,7 @@ app.put('/api/shops/:id', async (req, res) => {
         newMenuFileType = menuFile ? menuFile.mime : null;
       }
     }
-    await db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=?, menu_file_base64=?, menu_file_type=?, phone=?, opening_hours=?, manual_shop_count=? WHERE id=?`)
+    await db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=?, menu_file_base64=?, menu_file_type=?, phone=?, opening_hours=?, manual_shop_count=?, risk_threshold_days=?, lost_threshold_days=? WHERE id=?`)
       .run(
         name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null,
         email || shop.email || null, referral_bonus_points != null ? referral_bonus_points : (shop.referral_bonus_points || 10),
@@ -1235,6 +1242,8 @@ app.put('/api/shops/:id', async (req, res) => {
         phone !== undefined ? (phone || null) : shop.phone,
         opening_hours !== undefined ? (opening_hours || null) : shop.opening_hours,
         manual_shop_count !== undefined && manual_shop_count !== '' ? (manual_shop_count != null ? parseInt(manual_shop_count, 10) : null) : shop.manual_shop_count,
+        risk_threshold_days !== undefined && risk_threshold_days !== '' ? parseInt(risk_threshold_days, 10) : (shop.risk_threshold_days || 30),
+        lost_threshold_days !== undefined && lost_threshold_days !== '' ? parseInt(lost_threshold_days, 10) : (shop.lost_threshold_days || 60),
         req.params.id
       );
     res.json({ success: true });
