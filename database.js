@@ -123,6 +123,7 @@ async function initSchema() {
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS last_digest_sent_at TIMESTAMP',
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS risk_threshold_days INTEGER DEFAULT 30',
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS lost_threshold_days INTEGER DEFAULT 60',
+    "ALTER TABLE admin_messages ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'admin'",
   ];
   for (const stmt of alterStatements) {
     try { await exec(stmt); } catch (e) {}

@@ -474,7 +474,7 @@ async function runProactiveDigest(shopId) {
 
   const title = '📊 Alerte hebdomadaire : ' + count + ' client' + (count > 1 ? 's' : '') + ' à risque';
   const body = 'Vous avez ' + count + ' client' + (count > 1 ? 's' : '') + ' qui n\'' + (count > 1 ? 'ont' : 'a') + ' pas visité depuis 14 à 60 jours. Consultez vos statistiques pour les identifier et les relancer.';
-  await db.prepare('INSERT INTO admin_messages (title, body, target_shop_id) VALUES (?, ?, ?)').run(title, body, shopId);
+  await db.prepare("INSERT INTO admin_messages (title, body, target_shop_id, source) VALUES (?, ?, ?, 'digest')").run(title, body, shopId);
   return { sent: true, at_risk_count: count };
 }
 
@@ -1507,6 +1507,7 @@ app.get('/api/admin/messages', requireAdmin, async (req, res) => {
   const messages = await db.prepare(`
     SELECT m.*, s.name as shop_name
     FROM admin_messages m LEFT JOIN shops s ON s.id = m.target_shop_id
+    WHERE m.source = 'admin'
     ORDER BY m.created_at DESC LIMIT 100
   `).all();
   res.json(messages);
