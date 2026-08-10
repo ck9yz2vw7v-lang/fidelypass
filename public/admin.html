@@ -156,6 +156,8 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       </div>
       <div class="form-group"><label>Objectif points</label><input type="number" id="points_goal" value="100"></div>
       <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="referral_bonus_points" value="10"></div>
+      <div class="form-group"><label>⚠️ Seuil "à risque" (jours sans visite)</label><input type="number" id="risk_threshold_days" min="1" placeholder="30"></div>
+      <div class="form-group"><label>🔴 Seuil "perdu" (jours sans visite)</label><input type="number" id="lost_threshold_days" min="1" placeholder="60"></div>
       <div class="form-group"><label>Couleur carte</label><input type="color" id="color" value="#b45309"></div>
       <div class="form-group form-full"><label>Récompense offerte</label><input type="text" id="reward_text" placeholder="Ex: 1 sandwich offert"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis (optionnel)</label><input type="url" id="google_review_url" placeholder="https://g.page/r/..."></div>
@@ -486,6 +488,8 @@ async function createShop() {
     currency:           document.getElementById('currency').value,
     points_goal:        parseInt(document.getElementById('points_goal').value),
     referral_bonus_points: parseInt(document.getElementById('referral_bonus_points').value),
+    risk_threshold_days: document.getElementById('risk_threshold_days').value || null,
+    lost_threshold_days: document.getElementById('lost_threshold_days').value || null,
     color:              document.getElementById('color').value,
     reward_text:        document.getElementById('reward_text').value,
     google_review_url:  document.getElementById('google_review_url').value || null,
@@ -502,7 +506,7 @@ async function createShop() {
   if (result.success) {
     document.getElementById('success-msg').style.display = 'block';
     setTimeout(() => document.getElementById('success-msg').style.display = 'none', 3000);
-    ['name','slug','password','email','reward_text','google_review_url','menu_url','latitude','longitude','phone','opening_hours'].forEach(id => document.getElementById(id).value = '');
+    ['name','slug','password','email','reward_text','google_review_url','menu_url','latitude','longitude','phone','opening_hours','risk_threshold_days','lost_threshold_days'].forEach(id => document.getElementById(id).value = '');
     clearLogoInput();
     clearMenuFileInput();
     loadShops();

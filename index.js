@@ -201,12 +201,12 @@ app.post('/api/admin/migrate-to-postgres', requireAdmin, async (req, res) => {
 });
 
 app.post('/api/shops', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, risk_threshold_days, lost_threshold_days } = req.body;
   try {
     const menuFile = parseDataUrl(menu_file_base64);
     const hashedPassword = await bcrypt.hash(password, 10);
-    const stmt = await db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, phone, opening_hours, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) RETURNING id`);
-    const result = await stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null, phone || null, opening_hours || null);
+    const stmt = await db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, phone, opening_hours, risk_threshold_days, lost_threshold_days, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) RETURNING id`);
+    const result = await stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null, phone || null, opening_hours || null, risk_threshold_days ? parseInt(risk_threshold_days, 10) : 30, lost_threshold_days ? parseInt(lost_threshold_days, 10) : 60);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
