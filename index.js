@@ -296,6 +296,7 @@ app.get('/api/shops/:id/analytics', requireShopAuth, async (req, res) => {
     LEFT JOIN avg_rhythm r ON r.customer_id = c.id
     WHERE c.shop_id = ?
   `).all(shopId, shopId);
+  let activeCount = 0, atRiskCount = 0, lostCount = 0;
   const atRiskList = [];
   for (const c of riskRows) {
     const daysSince = Number(c.days_since);
