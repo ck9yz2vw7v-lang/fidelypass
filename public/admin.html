@@ -384,9 +384,7 @@ async function loadShops() {
         </div>
         <div class="shop-actions">
           <span class="badge ${s.active === 0 ? 'badge-inactive' : ''}">${s.active === 0 ? 'Suspendu' : 'Actif'}</span>
-          ${s.payment_exempt === 1 ? '<span class="badge badge-exempt">🎁 Gratuit</span>' : ''}
           ${s.waive_setup_fee === 1 ? '<span class="badge badge-nosetup">🏷️ Sans les 80€</span>' : ''}
-          <button class="btn-sm ${s.payment_exempt === 1 ? 'btn-exempt-on' : 'btn-exempt'}" onclick="toggleExempt(${s.id}, ${s.payment_exempt === 1})">${s.payment_exempt === 1 ? '🎁 Retirer gratuité' : '🎁 Rendre gratuit'}</button>
           <button class="btn-sm ${s.waive_setup_fee === 1 ? 'btn-nosetup-on' : 'btn-nosetup'}" onclick="toggleSetupFee(${s.id}, ${s.waive_setup_fee === 1})">${s.waive_setup_fee === 1 ? '🏷️ Remettre les 80€' : '🏷️ Retirer les 80€'}</button>
           <button class="btn-sm btn-stripe" onclick="openStripe(${s.id}, '${(s.email||'').replace(/'/g,"\\'")}')">💳 Paiement</button>
           <button class="btn-sm btn-view" onclick="window.open('/gerant.html?shop=${s.slug}','_blank')">Vue gérant</button>
