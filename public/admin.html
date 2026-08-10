@@ -138,7 +138,11 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
   <div class="tab-panel" id="tab-shops">
 
   <div class="card">
-    <div class="card-title">➕ Ajouter une boutique</div>
+    <div class="card-title" onclick="toggleAddShopForm()" style="cursor:pointer;user-select:none">
+      <span>➕ Ajouter une boutique</span>
+      <span id="add-shop-chevron" style="font-size:14px;color:#64748b;transition:transform .2s">▸</span>
+    </div>
+    <div id="add-shop-form-wrap" style="display:none">
     <div class="msg success" id="success-msg">✅ Boutique créée avec succès !</div>
     <div class="msg error-msg" id="error-msg"></div>
     <div class="form-grid">
@@ -183,6 +187,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
         </div>
       </div>
       <div class="form-full"><button class="btn btn-primary" onclick="createShop()">Créer la boutique</button></div>
+    </div>
     </div>
   </div>
 
@@ -875,6 +880,14 @@ if ('serviceWorker' in navigator && Notification.permission === 'granted') {
       }
     });
   });
+}
+
+function toggleAddShopForm() {
+  const wrap = document.getElementById('add-shop-form-wrap');
+  const chevron = document.getElementById('add-shop-chevron');
+  const isOpen = wrap.style.display !== 'none';
+  wrap.style.display = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
 }
 
 function switchTab(name) {
