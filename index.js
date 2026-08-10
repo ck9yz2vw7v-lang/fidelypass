@@ -1579,12 +1579,12 @@ app.post('/api/shops/:id/create-payment', requireAdmin, async (req, res) => {
     if (!email) return res.status(400).json({ success: false, error: 'Email gérant requis' });
 
     // Nombre de boutiques du gérant, saisi manuellement dans l'admin.
-    // 1 seule boutique (ou champ vide) → 29€ flat. 2+ boutiques → 27€ × ce nombre, en une seule ligne à quantité N.
+    // 1 seule boutique (ou champ vide) → 29€ flat. 2+ boutiques → 24€ × ce nombre, en une seule ligne à quantité N.
     const shopCount = (shop.manual_shop_count !== null && shop.manual_shop_count !== undefined && Number(shop.manual_shop_count) > 0)
       ? Number(shop.manual_shop_count)
       : 1;
     const isMulti = shopCount >= 2;
-    const unitPrice = isMulti ? 2700 : 2900; // centimes : 27€ ou 29€
+    const unitPrice = isMulti ? 2400 : 2900; // centimes : 24€ ou 29€
     const monthlyPrice = unitPrice * (isMulti ? shopCount : 1); // juste pour l'affichage/retour JSON
 
     // Créer ou récupérer le client Stripe
