@@ -295,9 +295,7 @@ app.get('/api/shops/:id/analytics', requireShopAuth, async (req, res) => {
     FROM customers c
     LEFT JOIN avg_rhythm r ON r.customer_id = c.id
     WHERE c.shop_id = ?
-  `).all(shopId);
-
-  let activeCount = 0, atRiskCount = 0, lostCount = 0;
+  `).all(shopId, shopId);
   const atRiskList = [];
   for (const c of riskRows) {
     const daysSince = Number(c.days_since);
@@ -648,7 +646,44 @@ app.post('/api/reward/:customer_id', requireShopAuth, async (req, res) => {
 });
 
 app.get('/api/shops/:shop_id/customers', requireShopAuth, async (req, res) => {
-  const customers = await db.prepare('SELECT * FROM customers WHERE shop_id = ? ORDER BY points DESC').all(req.params.shop_id);
+  const shopId = req.params.shop_id;
+  // Même logique de statut personnalisé que la page Statistiques : on compare le nombre de
+  // jours depuis la dernière visite de CHAQUE client à SON PROPRE rythme moyen habituel.
+  const customers = await db.prepare(`
+    WITH intervals AS (
+      SELECT customer_id,
+             EXTRACT(EPOCH FROM (scanned_at - LAG(scanned_at) OVER (PARTITION BY customer_id ORDER BY scanned_at))) / 86400.0 as gap_days
+      FROM scans WHERE shop_id = ?
+    ),
+    avg_rhythm AS (
+      SELECT customer_id, AVG(gap_days) as avg_gap, COUNT(*) as nb_gaps
+      FROM intervals WHERE gap_days IS NOT NULL
+      GROUP BY customer_id
+    )
+    SELECT c.*,
+           EXTRACT(EPOCH FROM (NOW() - COALESCE(c.last_visit, c.created_at))) / 86400.0 as days_since_visit,
+           r.avg_gap, r.nb_gaps
+    FROM customers c
+    LEFT JOIN avg_rhythm r ON r.customer_id = c.id
+    WHERE c.shop_id = ?
+    ORDER BY c.points DESC
+  `).all(shopId, shopId);
+
+  for (const c of customers) {
+    const daysSince = Number(c.days_since_visit);
+    if (c.nb_gaps >= 2 && c.avg_gap > 0) {
+      const personalGap = Number(c.avg_gap);
+      if (daysSince <= personalGap * 1.5) c.status = 'active';
+      else if (daysSince <= personalGap * 3) c.status = 'at_risk';
+      else c.status = 'lost';
+    } else {
+      if (daysSince <= 30) c.status = 'active';
+      else if (daysSince <= 60) c.status = 'at_risk';
+      else c.status = 'lost';
+    }
+    delete c.avg_gap; delete c.nb_gaps; delete c.days_since_visit;
+  }
+
   res.json(customers);
 });
 
