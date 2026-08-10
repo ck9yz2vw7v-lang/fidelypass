@@ -201,12 +201,12 @@ app.post('/api/admin/migrate-to-postgres', requireAdmin, async (req, res) => {
 });
 
 app.post('/api/shops', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, risk_threshold_days, lost_threshold_days } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count } = req.body;
   try {
     const menuFile = parseDataUrl(menu_file_base64);
     const hashedPassword = await bcrypt.hash(password, 10);
-    const stmt = await db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, phone, opening_hours, risk_threshold_days, lost_threshold_days, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) RETURNING id`);
-    const result = await stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null, phone || null, opening_hours || null, risk_threshold_days ? parseInt(risk_threshold_days, 10) : 30, lost_threshold_days ? parseInt(lost_threshold_days, 10) : 60);
+    const stmt = await db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) RETURNING id`);
+    const result = await stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null, phone || null, opening_hours || null, risk_threshold_days ? parseInt(risk_threshold_days, 10) : 30, lost_threshold_days ? parseInt(lost_threshold_days, 10) : 60, manual_shop_count ? parseInt(manual_shop_count, 10) : null);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -1579,12 +1579,12 @@ app.post('/api/shops/:id/create-payment', requireAdmin, async (req, res) => {
     if (!email) return res.status(400).json({ success: false, error: 'Email gérant requis' });
 
     // Nombre de boutiques du gérant, saisi manuellement dans l'admin.
-    // 1 seule boutique (ou champ vide) → 29€ flat. 2+ boutiques → 24€ × ce nombre, en une seule ligne à quantité N.
+    // 1 seule boutique (ou champ vide) → 29€ flat. 2+ boutiques → 27€ × ce nombre, en une seule ligne à quantité N.
     const shopCount = (shop.manual_shop_count !== null && shop.manual_shop_count !== undefined && Number(shop.manual_shop_count) > 0)
       ? Number(shop.manual_shop_count)
       : 1;
     const isMulti = shopCount >= 2;
-    const unitPrice = isMulti ? 2400 : 2900; // centimes : 24€ ou 29€
+    const unitPrice = isMulti ? 2700 : 2900; // centimes : 27€ ou 29€
     const monthlyPrice = unitPrice * (isMulti ? shopCount : 1); // juste pour l'affichage/retour JSON
 
     // Créer ou récupérer le client Stripe

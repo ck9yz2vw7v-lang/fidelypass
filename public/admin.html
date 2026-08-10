@@ -162,6 +162,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="referral_bonus_points" value="10"></div>
       <div class="form-group"><label>⚠️ Seuil "à risque" (jours sans visite)</label><input type="number" id="risk_threshold_days" min="1" placeholder="30"></div>
       <div class="form-group"><label>🔴 Seuil "perdu" (jours sans visite)</label><input type="number" id="lost_threshold_days" min="1" placeholder="60"></div>
+      <div class="form-group"><label>🏪 Nombre de boutiques du gérant</label><input type="number" id="manual_shop_count" min="1" placeholder="1"><div style="font-size:11px;color:#94a3b8;margin-top:4px">Si ≥ 2, un seul abonnement Stripe facturé 27€ × ce nombre</div></div>
       <div class="form-group"><label>Couleur carte</label><input type="color" id="color" value="#b45309"></div>
       <div class="form-group form-full"><label>Récompense offerte</label><input type="text" id="reward_text" placeholder="Ex: 1 sandwich offert"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis (optionnel)</label><input type="url" id="google_review_url" placeholder="https://g.page/r/..."></div>
@@ -223,7 +224,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="edit-menu-url" placeholder="https://..."></div>
       <div class="form-group"><label>📞 Téléphone (optionnel)</label><input type="tel" id="edit-phone" placeholder="06 12 34 56 78"></div>
       <div class="form-group"><label>🕒 Horaires (optionnel)</label><input type="text" id="edit-opening-hours" placeholder="Lun-Sam 9h-19h"></div>
-      <div class="form-group"><label>🏪 Nombre de boutiques du gérant</label><input type="number" id="edit-manual-shop-count" min="1" placeholder="1"><div style="font-size:11px;color:#94a3b8;margin-top:4px">Si ≥ 2, un seul abonnement Stripe facturé 24€ × ce nombre</div></div>
+      <div class="form-group"><label>🏪 Nombre de boutiques du gérant</label><input type="number" id="edit-manual-shop-count" min="1" placeholder="1"><div style="font-size:11px;color:#94a3b8;margin-top:4px">Si ≥ 2, un seul abonnement Stripe facturé 27€ × ce nombre</div></div>
       <div class="form-group"><label>⚠️ Seuil "à risque" (jours sans visite)</label><input type="number" id="edit-risk-threshold" min="1" placeholder="30"></div>
       <div class="form-group"><label>🔴 Seuil "perdu" (jours sans visite)</label><input type="number" id="edit-lost-threshold" min="1" placeholder="60"></div>
       <div class="form-group form-full">
@@ -272,7 +273,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
   <div class="modal">
     <div class="modal-title">💳 Générer un lien de paiement</div>
     <input type="hidden" id="stripe-shop-id">
-    <p style="color:#94a3b8;font-size:13px;margin-bottom:16px">Le gérant recevra un lien pour payer <strong style="color:#f1f5f9">80€</strong> d'installation + <strong style="color:#f1f5f9">29€/mois</strong> d'abonnement.</p>
+    <p id="stripe-desc" style="color:#94a3b8;font-size:13px;margin-bottom:16px">Le gérant recevra un lien pour payer <strong style="color:#f1f5f9">80€</strong> d'installation + <strong style="color:#f1f5f9">29€/mois</strong> d'abonnement.</p>
     <div class="form-group" style="margin-bottom:16px">
       <label>Email du gérant</label>
       <input type="email" id="stripe-email" placeholder="gerant@boutique.fr">
@@ -307,14 +308,17 @@ function copyStripeLink() {
 function emailStripeLink() {
   const url   = document.getElementById('stripe-link').href;
   const email = document.getElementById('stripe-email').value;
+  const waived = document.getElementById('stripe-shop-id').dataset.waived === '1';
   const subject = encodeURIComponent('Votre accès FidélyPass — Paiement installation');
+  const paymentLines = waived
+    ? '- 29€/mois d\'abonnement\n\n'
+    : '- 80€ d\'installation (one-shot)\n- 29€/mois d\'abonnement\n\n';
   const body    = encodeURIComponent(
     'Bonjour,\n\n' +
     'Voici votre lien pour activer votre carte de fidélité FidélyPass :\n\n' +
     url + '\n\n' +
     'Ce lien vous permet de régler :\n' +
-    '- 80€ d\'installation (one-shot)\n' +
-    '- 29€/mois d\'abonnement\n\n' +
+    paymentLines +
     'Une fois le paiement effectué, votre boutique sera activée automatiquement.\n\n' +
     'Bonne journée,\nWalyd — FidélyPass'
   );
@@ -386,7 +390,7 @@ async function loadShops() {
           <span class="badge ${s.active === 0 ? 'badge-inactive' : ''}">${s.active === 0 ? 'Suspendu' : 'Actif'}</span>
           ${s.waive_setup_fee === 1 ? '<span class="badge badge-nosetup">🏷️ Sans les 80€</span>' : ''}
           <button class="btn-sm ${s.waive_setup_fee === 1 ? 'btn-nosetup-on' : 'btn-nosetup'}" onclick="toggleSetupFee(${s.id}, ${s.waive_setup_fee === 1})">${s.waive_setup_fee === 1 ? '🏷️ Remettre les 80€' : '🏷️ Retirer les 80€'}</button>
-          <button class="btn-sm btn-stripe" onclick="openStripe(${s.id}, '${(s.email||'').replace(/'/g,"\\'")}')">💳 Paiement</button>
+          <button class="btn-sm btn-stripe" onclick="openStripe(${s.id}, '${(s.email||'').replace(/'/g,"\\'")}', ${s.waive_setup_fee === 1})">💳 Paiement</button>
           <button class="btn-sm btn-view" onclick="window.open('/gerant.html?shop=${s.slug}','_blank')">Vue gérant</button>
           <button class="btn-sm btn-qr" onclick="showQR('${s.slug}','${s.name}',${s.id})">QR Comptoir</button>
           <button class="btn-sm btn-edit" onclick="openEdit(${s.id})">Modifier</button>
@@ -493,6 +497,7 @@ async function createShop() {
     referral_bonus_points: parseInt(document.getElementById('referral_bonus_points').value),
     risk_threshold_days: document.getElementById('risk_threshold_days').value || null,
     lost_threshold_days: document.getElementById('lost_threshold_days').value || null,
+    manual_shop_count: document.getElementById('manual_shop_count').value || null,
     color:              document.getElementById('color').value,
     reward_text:        document.getElementById('reward_text').value,
     google_review_url:  document.getElementById('google_review_url').value || null,
@@ -509,7 +514,7 @@ async function createShop() {
   if (result.success) {
     document.getElementById('success-msg').style.display = 'block';
     setTimeout(() => document.getElementById('success-msg').style.display = 'none', 3000);
-    ['name','slug','password','email','reward_text','google_review_url','menu_url','latitude','longitude','phone','opening_hours','risk_threshold_days','lost_threshold_days'].forEach(id => document.getElementById(id).value = '');
+    ['name','slug','password','email','reward_text','google_review_url','menu_url','latitude','longitude','phone','opening_hours','risk_threshold_days','lost_threshold_days','manual_shop_count'].forEach(id => document.getElementById(id).value = '');
     clearLogoInput();
     clearMenuFileInput();
     loadShops();
@@ -556,13 +561,17 @@ async function toggleSetupFee(shopId, isCurrentlyWaived) {
   }
 }
 
-function openStripe(shopId, email) {
+function openStripe(shopId, email, waiveSetupFee) {
   document.getElementById('stripe-shop-id').value = shopId;
   document.getElementById('stripe-email').value = email || '';
   document.getElementById('stripe-result').style.display = 'none';
   document.getElementById('stripe-error').style.display = 'none';
   document.getElementById('stripe-btn').textContent = 'Générer le lien 💳';
   document.getElementById('stripe-btn').disabled = false;
+  document.getElementById('stripe-shop-id').dataset.waived = waiveSetupFee ? '1' : '0';
+  document.getElementById('stripe-desc').innerHTML = waiveSetupFee
+    ? 'Le gérant recevra un lien pour payer <strong style="color:#f1f5f9">29€/mois</strong> d\'abonnement (installation offerte pour cette boutique).'
+    : 'Le gérant recevra un lien pour payer <strong style="color:#f1f5f9">80€</strong> d\'installation + <strong style="color:#f1f5f9">29€/mois</strong> d\'abonnement.';
   document.getElementById('modal-stripe').classList.add('show');
 }
 
@@ -644,7 +653,7 @@ function resetEditModal() {
       <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="edit-menu-url" placeholder="https://..."></div>
       <div class="form-group"><label>📞 Téléphone (optionnel)</label><input type="tel" id="edit-phone" placeholder="06 12 34 56 78"></div>
       <div class="form-group"><label>🕒 Horaires (optionnel)</label><input type="text" id="edit-opening-hours" placeholder="Lun-Sam 9h-19h"></div>
-      <div class="form-group"><label>🏪 Nombre de boutiques du gérant</label><input type="number" id="edit-manual-shop-count" min="1" placeholder="1"><div style="font-size:11px;color:#94a3b8;margin-top:4px">Si ≥ 2, un seul abonnement Stripe facturé 24€ × ce nombre</div></div>
+      <div class="form-group"><label>🏪 Nombre de boutiques du gérant</label><input type="number" id="edit-manual-shop-count" min="1" placeholder="1"><div style="font-size:11px;color:#94a3b8;margin-top:4px">Si ≥ 2, un seul abonnement Stripe facturé 27€ × ce nombre</div></div>
       <div class="form-group"><label>⚠️ Seuil "à risque" (jours sans visite)</label><input type="number" id="edit-risk-threshold" min="1" placeholder="30"></div>
       <div class="form-group"><label>🔴 Seuil "perdu" (jours sans visite)</label><input type="number" id="edit-lost-threshold" min="1" placeholder="60"></div>
       <div class="form-group form-full">
