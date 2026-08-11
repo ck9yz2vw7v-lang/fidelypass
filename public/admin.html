@@ -309,6 +309,7 @@ function emailStripeLink() {
   const url   = document.getElementById('stripe-link').href;
   const email = document.getElementById('stripe-email').value;
   const waived = document.getElementById('stripe-shop-id').dataset.waived === '1';
+  const cgvUrl = window.location.origin + '/cgv.html';
   const subject = encodeURIComponent('Votre accès FidélyPass — Paiement installation');
   const paymentLines = waived
     ? '- 29€/mois d\'abonnement\n\n'
@@ -320,6 +321,14 @@ function emailStripeLink() {
     'Ce lien vous permet de régler :\n' +
     paymentLines +
     'Une fois le paiement effectué, votre boutique sera activée automatiquement.\n\n' +
+    '— — —\n' +
+    'Points clés du contrat :\n' +
+    '• Sans engagement de durée : résiliable à tout moment, sans frais\n' +
+    '• Aucune donnée bancaire stockée par FidélyPass (paiement 100% géré par Stripe)\n' +
+    '• Vos données et celles de vos clients traitées conformément au RGPD\n\n' +
+    'Conditions générales de vente complètes : ' + cgvUrl + '\n' +
+    'En réglant via le lien ci-dessus, vous acceptez ces conditions.\n' +
+    '— — —\n\n' +
     'Bonne journée,\nWalyd — FidélyPass'
   );
   window.location.href = 'mailto:' + email + '?subject=' + subject + '&body=' + body;
