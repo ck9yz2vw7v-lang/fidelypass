@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confidentialité — FidélyPass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C11; --bg-elev:#12151D; --bg-elev2:#181C26;
+  --text:#EDEFF5; --text-dim:#B0B8CC; --text-dimmer:#7C8499;
+  --indigo:#6C5CE7; --cyan:#22D3EE; --line:#1E2230; --line-strong:#262B3B;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;line-height:1.7;min-height:100vh}
+h1,h2{font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-0.01em}
+.header{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(10,12,17,0.9);backdrop-filter:blur(8px);z-index:10}
+.brand{display:flex;align-items:center;gap:9px;font-family:'Space Grotesk';font-weight:700;font-size:17px;text-decoration:none;color:var(--text)}
+.brand-mark{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--indigo),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#0A0C11}
+.back-link{font-size:13px;color:var(--text-dim);text-decoration:none}
+.back-link:hover{color:var(--text)}
+.wrap{max-width:720px;margin:0 auto;padding:60px 24px 100px}
+h1{font-size:32px;margin-bottom:8px}
+.updated{font-size:13px;color:var(--text-dimmer);margin-bottom:44px}
+h2{font-size:19px;margin-top:38px;margin-bottom:12px;color:var(--text)}
+p,li{font-size:14.5px;color:var(--text-dim)}
+ul{margin:8px 0 8px 20px}
+li{margin-bottom:6px}
+a{color:var(--cyan)}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{color:var(--text-dimmer);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:0.03em}
+td{color:var(--text-dim)}
+footer{border-top:1px solid var(--line);padding:24px;text-align:center;font-size:12.5px;color:var(--text-dimmer)}
+</style>
+</head>
+<body>
+  <div class="header">
+    <a class="brand" href="/"><span class="brand-mark">F</span>FidélyPass</a>
+    <a class="back-link" href="/">← Retour à l'accueil</a>
+  </div>
+
+  <div class="wrap">
+    <h1>Politique de confidentialité</h1>
+    <div class="updated">Dernière mise à jour : août 2026</div>
+
+    <p>FidélyPass attache une grande importance à la protection de vos données personnelles. Cette page explique quelles données sont collectées, pourquoi, et comment vous pouvez exercer vos droits, conformément au Règlement Général sur la Protection des Données (RGPD).</p>
+
+    <h2>Quelles données sont collectées</h2>
+    <table>
+      <tr><th>Donnée</th><th>Qui</th><th>Pourquoi</th></tr>
+      <tr><td>Prénom</td><td>Client final</td><td>Identifier votre carte de fidélité</td></tr>
+      <tr><td>Points, visites, historique</td><td>Client final</td><td>Faire fonctionner le programme de fidélité</td></tr>
+      <tr><td>Abonnement notifications push</td><td>Client final</td><td>Vous envoyer des alertes (offres, récompenses)</td></tr>
+      <tr><td>Nom du commerce, email, téléphone</td><td>Gérant</td><td>Gérer le compte boutique et la facturation</td></tr>
+      <tr><td>Nom du commerce, numéro de téléphone</td><td>Prospect (formulaire de contact)</td><td>Vous recontacter suite à votre demande</td></tr>
+    </table>
+    <p>FidélyPass ne demande jamais d'adresse email ou de mot de passe aux clients finaux — seul un prénom est nécessaire pour créer une carte.</p>
+
+    <h2>Qui a accès à ces données</h2>
+    <ul>
+      <li><strong>Le commerce concerné</strong> voit les données de ses propres clients uniquement (jamais celles des clients d'un autre commerce).</li>
+      <li><strong>Stripe</strong> traite les paiements des commerçants (installation et abonnement) — FidélyPass ne stocke aucune donnée bancaire.</li>
+      <li><strong>Apple et Google</strong> reçoivent les informations nécessaires à l'affichage de la carte dans Apple Wallet ou Google Wallet (nom du commerce, points, logo).</li>
+      <li>FidélyPass ne vend ni ne partage vos données à des tiers à des fins publicitaires.</li>
+    </ul>
+
+    <h2>Durée de conservation</h2>
+    <p>Les données d'un client sont conservées tant que sa carte de fidélité est active. Un client peut demander la suppression de sa carte à tout moment auprès du commerce concerné ou directement auprès de FidélyPass.</p>
+
+    <h2>Vos droits</h2>
+    <p>Conformément au RGPD, vous disposez des droits suivants sur vos données personnelles :</p>
+    <ul>
+      <li>Droit d'accès à vos données</li>
+      <li>Droit de rectification en cas d'erreur</li>
+      <li>Droit à l'effacement ("droit à l'oubli")</li>
+      <li>Droit d'opposition au traitement</li>
+      <li>Droit à la portabilité de vos données</li>
+    </ul>
+    <p>Pour exercer l'un de ces droits, contactez-nous à <a href="mailto:contact@fidelypass.fr">contact@fidelypass.fr</a>. Nous répondons sous 30 jours maximum.</p>
+
+    <h2>Cookies et traceurs</h2>
+    <p>FidélyPass utilise uniquement des cookies techniques nécessaires au fonctionnement du site (maintien de connexion). Aucun cookie publicitaire ou de tracking tiers n'est utilisé.</p>
+
+    <h2>Sécurité</h2>
+    <p>Les mots de passe sont stockés de façon chiffrée. Les échanges entre votre navigateur et nos serveurs sont sécurisés (HTTPS).</p>
+
+    <h2>Contact</h2>
+    <p>Pour toute question relative à cette politique de confidentialité : <a href="mailto:contact@fidelypass.fr">contact@fidelypass.fr</a></p>
+  </div>
+
+  <footer>© 2026 FidélyPass — Tous droits réservés</footer>
+</body>
+</html>
