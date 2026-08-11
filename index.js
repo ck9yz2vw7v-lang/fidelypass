@@ -1322,7 +1322,7 @@ app.get('/join/:slug', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.redirect('/gerant.html');
+  res.redirect('/landing.html');
 });
 
 // ─────────────────────────────────────────────
