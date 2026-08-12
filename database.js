@@ -145,6 +145,7 @@ async function initSchema() {
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS booking_enabled INTEGER DEFAULT 0',
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS booking_slot_minutes INTEGER DEFAULT 30',
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS last_appointment_seen_at TIMESTAMP',
+    'ALTER TABLE scans ADD COLUMN IF NOT EXISTS is_manual INTEGER DEFAULT 0',
   ];
   for (const stmt of alterStatements) {
     try { await exec(stmt); } catch (e) {}

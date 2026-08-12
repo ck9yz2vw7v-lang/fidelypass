@@ -542,7 +542,7 @@ app.get('/api/customers/:id', async (req, res) => {
 
 app.get('/api/customers/:id/history', async (req, res) => {
   const history = await db.prepare(`
-    SELECT points_added, scanned_at FROM scans
+    SELECT points_added, scanned_at, is_manual FROM scans
     WHERE customer_id = ? ORDER BY scanned_at DESC LIMIT 10
   `).all(req.params.id);
   res.json(history);
@@ -552,7 +552,11 @@ app.put('/api/customers/:id/points', requireShopAuth, async (req, res) => {
   const { points, shop_id } = req.body;
   const customer = await db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(req.params.id, shop_id);
   if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
+  const diff = Number(points) - Number(customer.points);
   await db.prepare('UPDATE customers SET points = ? WHERE id = ?').run(points, req.params.id);
+  if (diff !== 0) {
+    await db.prepare('INSERT INTO scans (customer_id, shop_id, points_added, is_manual) VALUES (?, ?, ?, 1)').run(req.params.id, shop_id, diff);
+  }
   res.json({ success: true });
 });
 
@@ -1295,12 +1299,16 @@ fetch("/api/customers/${id}").then(r=>r.json()).then(c => {
 });
 
 fetch("/api/customers/${id}/history").then(r=>r.json()).then(rows => {
-  if (!rows || !rows.length) return;
   document.getElementById('history-box').style.display = 'block';
+  if (!rows || !rows.length) {
+    document.getElementById('history-list').innerHTML = '<div style="font-size:13px;color:#9ca3af;text-align:center;padding:8px 0">Aucune visite pour l\\'instant</div>';
+    return;
+  }
   document.getElementById('history-list').innerHTML = rows.map(r => {
     const d = new Date(r.scanned_at);
     const dateStr = d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit', year:'2-digit'});
-    return '<div class="history-row"><span>' + dateStr + '</span><span>+' + r.points_added + ' pts</span></div>';
+    const label = r.is_manual === 1 ? dateStr + ' · ajustement manuel' : dateStr;
+    return '<div class="history-row"><span>' + label + '</span><span>+' + r.points_added + ' pts</span></div>';
   }).join('');
 });
 
