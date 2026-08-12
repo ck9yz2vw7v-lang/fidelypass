@@ -196,18 +196,42 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 
   <div class="add-client-card">
     <div class="add-client-title">✂️ Mes prestations</div>
-    <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Chaque prestation a sa propre durée — le client la choisit avant de voir les créneaux disponibles.</div>
-    <div id="services-list" style="margin-bottom:12px"></div>
-    <div class="add-row" style="flex-wrap:wrap;gap:8px">
-      <input class="input" type="text" id="service-name" placeholder="Ex : Coupe homme" style="flex:2;min-width:140px">
-      <input class="input" type="number" id="service-duration" placeholder="Durée (min)" min="5" style="flex:1;min-width:90px">
-      <input class="input" type="number" id="service-price" placeholder="Prix (optionnel)" min="0" step="0.01" style="flex:1;min-width:90px">
-    </div>
-    <button class="btn-add" style="width:100%;margin-top:8px" onclick="addService()">Ajouter cette prestation</button>
+    <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Fixées par votre conseiller FidélyPass. Besoin d'un changement ? Contactez-le directement.</div>
+    <div id="services-list"></div>
   </div>
 
   <div class="add-client-card">
-    <div class="add-client-title">🗓️ Mes créneaux hebdomadaires</div>
+    <div class="add-client-title">👥 Mon équipe</div>
+    <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Ajoutez chaque coiffeur/coiffeuse, puis touchez son nom pour définir ses jours de présence.</div>
+    <div id="staff-list" style="margin-bottom:12px"></div>
+    <div class="add-row">
+      <input class="input" type="text" id="new-staff-name" placeholder="Ex : Julie" style="flex:1">
+      <button class="btn-add" onclick="addStaffMember()">Ajouter</button>
+    </div>
+  </div>
+
+  <div class="add-client-card" id="staff-planning-card" style="display:none">
+    <div class="add-client-title">🗓️ Planning de <span id="planning-staff-name"></span></div>
+    <div id="staff-availability-list" style="margin-bottom:12px"></div>
+    <div class="add-row" style="flex-wrap:wrap;gap:8px">
+      <select class="input" id="staff-avail-day" style="flex:1;min-width:110px">
+        <option value="1">Lundi</option>
+        <option value="2">Mardi</option>
+        <option value="3">Mercredi</option>
+        <option value="4">Jeudi</option>
+        <option value="5">Vendredi</option>
+        <option value="6">Samedi</option>
+        <option value="0">Dimanche</option>
+      </select>
+      <input class="input" type="time" id="staff-avail-start" value="09:00" style="flex:1;min-width:90px">
+      <input class="input" type="time" id="staff-avail-end" value="18:00" style="flex:1;min-width:90px">
+    </div>
+    <button class="btn-add" style="width:100%;margin-top:8px" onclick="addStaffAvailability()">Ajouter ce créneau</button>
+  </div>
+
+  <div class="add-client-card">
+    <div class="add-client-title">🗓️ Créneaux généraux de la boutique</div>
+    <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Utilisés uniquement si aucun coiffeur n'est configuré ci-dessus.</div>
     <div id="availability-list" style="margin-bottom:12px"></div>
     <div class="add-row" style="flex-wrap:wrap;gap:8px">
       <select class="input" id="avail-day" style="flex:1;min-width:110px">
@@ -229,6 +253,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
   <div class="add-client-card">
     <div class="add-client-title">📋 Rendez-vous à venir</div>
     <div id="appointments-list"><div class="empty-list">Chargement…</div></div>
+
   </div>
 </div>
 
@@ -377,6 +402,7 @@ const DOW_NAMES_FR = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','
 function showBookingScreen() {
   showScreen('booking');
   loadServices();
+  loadStaff();
   loadAvailability();
   loadAppointments();
   fetch('/api/shops/' + currentShop.id + '/appointments/mark-seen', { method: 'POST', headers: { 'x-shop-token': shopToken } });
@@ -388,34 +414,86 @@ async function loadServices() {
   const rows = await res.json();
   const el = document.getElementById('services-list');
   if (!rows.length) {
-    el.innerHTML = '<div class="empty-list">Aucune prestation configurée pour l\'instant</div>';
+    el.innerHTML = '<div class="empty-list">Aucune prestation configurée pour l\'instant — contactez votre conseiller FidélyPass.</div>';
     return;
   }
   el.innerHTML = rows.map(s =>
-    '<div class="list-row"><div><div class="list-name">' + s.name + '</div><div class="list-sub">' + s.duration_minutes + ' min' + (s.price ? ' · ' + s.price + '€' : '') + '</div></div><button class="btn-back" onclick="deleteService(' + s.id + ')">Retirer</button></div>'
+    '<div class="list-row"><div><div class="list-name">' + s.name + '</div><div class="list-sub">' + s.duration_minutes + ' min' + (s.price ? ' · ' + s.price + '€' : '') + '</div></div></div>'
   ).join('');
 }
 
-async function addService() {
-  const name = document.getElementById('service-name').value.trim();
-  const duration_minutes = document.getElementById('service-duration').value;
-  const price = document.getElementById('service-price').value;
-  if (!name || !duration_minutes) { alert('Le nom et la durée sont requis.'); return; }
-  const res = await fetch('/api/shops/' + currentShop.id + '/services', {
+let currentPlanningStaffId = null;
+
+async function loadStaff() {
+  const res = await fetch('/api/shops/' + currentShop.id + '/staff', { headers: { 'x-shop-token': shopToken } });
+  const rows = await res.json();
+  const el = document.getElementById('staff-list');
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty-list">Aucun coiffeur ajouté pour l\'instant</div>';
+    return;
+  }
+  el.innerHTML = rows.map(s =>
+    '<div class="list-row" style="cursor:pointer" onclick="openStaffPlanning(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><div><div class="list-name">👤 ' + s.name + '</div><div class="list-sub">Touchez pour définir son planning</div></div><button class="btn-back" onclick="event.stopPropagation(); deleteStaffMember(' + s.id + ')">Retirer</button></div>'
+  ).join('');
+}
+
+async function addStaffMember() {
+  const name = document.getElementById('new-staff-name').value.trim();
+  if (!name) { alert('Le nom est requis.'); return; }
+  const res = await fetch('/api/shops/' + currentShop.id + '/staff', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
-    body: JSON.stringify({ name, duration_minutes, price: price || null })
+    body: JSON.stringify({ name })
   });
   const data = await res.json();
   if (!data.success) { alert(data.error || 'Erreur'); return; }
-  document.getElementById('service-name').value = '';
-  document.getElementById('service-duration').value = '';
-  document.getElementById('service-price').value = '';
-  loadServices();
+  document.getElementById('new-staff-name').value = '';
+  loadStaff();
 }
 
-async function deleteService(id) {
-  await fetch('/api/shops/' + currentShop.id + '/services/' + id, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
-  loadServices();
+async function deleteStaffMember(id) {
+  if (!confirm('Retirer ce membre de l\'équipe ? Son planning sera aussi supprimé.')) return;
+  await fetch('/api/shops/' + currentShop.id + '/staff/' + id, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
+  if (currentPlanningStaffId === id) document.getElementById('staff-planning-card').style.display = 'none';
+  loadStaff();
+}
+
+function openStaffPlanning(staffId, staffName) {
+  currentPlanningStaffId = staffId;
+  document.getElementById('planning-staff-name').textContent = staffName;
+  document.getElementById('staff-planning-card').style.display = 'block';
+  document.getElementById('staff-planning-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  loadStaffAvailability();
+}
+
+async function loadStaffAvailability() {
+  const res = await fetch('/api/shops/' + currentShop.id + '/staff/' + currentPlanningStaffId + '/availability', { headers: { 'x-shop-token': shopToken } });
+  const rows = await res.json();
+  const el = document.getElementById('staff-availability-list');
+  const dowNames = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty-list">Aucun créneau défini pour ce coiffeur</div>';
+    return;
+  }
+  el.innerHTML = rows.map(r =>
+    '<div class="list-row"><div><div class="list-name">' + dowNames[r.day_of_week] + '</div><div class="list-sub">' + r.start_time.slice(0,5) + ' – ' + r.end_time.slice(0,5) + '</div></div><button class="btn-back" onclick="deleteStaffAvailability(' + r.id + ')">Retirer</button></div>'
+  ).join('');
+}
+
+async function addStaffAvailability() {
+  const day_of_week = document.getElementById('staff-avail-day').value;
+  const start_time = document.getElementById('staff-avail-start').value;
+  const end_time = document.getElementById('staff-avail-end').value;
+  if (!start_time || !end_time || start_time >= end_time) { alert('Vérifiez les horaires (début avant fin).'); return; }
+  await fetch('/api/shops/' + currentShop.id + '/staff/' + currentPlanningStaffId + '/availability', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ day_of_week, start_time, end_time })
+  });
+  loadStaffAvailability();
+}
+
+async function deleteStaffAvailability(availId) {
+  await fetch('/api/shops/' + currentShop.id + '/staff/' + currentPlanningStaffId + '/availability/' + availId, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
+  loadStaffAvailability();
 }
 
 async function checkUnseenAppointments() {
@@ -477,7 +555,8 @@ async function loadAppointments() {
     const dateStr = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
     const timeStr = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     const serviceLabel = r.service_name ? ' · ' + r.service_name : '';
-    return '<div class="list-row"><div><div class="list-name">' + r.customer_name + serviceLabel + '</div><div class="list-sub">' + dateStr + ' à ' + timeStr + '</div></div><button class="btn-back" onclick="cancelAppointment(' + r.id + ')">Annuler</button></div>';
+    const staffLabel = r.staff_name ? ' · avec ' + r.staff_name : '';
+    return '<div class="list-row"><div><div class="list-name">' + r.customer_name + serviceLabel + '</div><div class="list-sub">' + dateStr + ' à ' + timeStr + staffLabel + '</div></div><button class="btn-back" onclick="cancelAppointment(' + r.id + ')">Annuler</button></div>';
   }).join('');
 }
 

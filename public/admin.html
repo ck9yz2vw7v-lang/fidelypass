@@ -229,6 +229,16 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>⚠️ Seuil "à risque" (jours sans visite)</label><input type="number" id="edit-risk-threshold" min="1" placeholder="30"></div>
       <div class="form-group"><label>🔴 Seuil "perdu" (jours sans visite)</label><input type="number" id="edit-lost-threshold" min="1" placeholder="60"></div>
       <div class="form-group" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="edit-booking-enabled" style="width:auto"><label for="edit-booking-enabled" style="margin:0">💇 Coiffeur / Institut (rendez-vous avec prestations)</label></div>
+      <div class="form-group" id="edit-services-wrap" style="grid-column:1/-1">
+        <label>✂️ Prestations de cette boutique (durée + prix)</label>
+        <div id="edit-services-list" style="margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" id="new-service-name" placeholder="Ex: Coupe homme" style="flex:2;min-width:140px">
+          <input type="number" id="new-service-duration" placeholder="Durée (min)" min="5" style="flex:1;min-width:100px">
+          <input type="number" id="new-service-price" placeholder="Prix (optionnel)" min="0" step="0.01" style="flex:1;min-width:100px">
+          <button type="button" class="btn btn-cancel" onclick="addAdminService()">Ajouter</button>
+        </div>
+      </div>
       <div class="form-group form-full">
         <label>📄 Ou fichier menu — image/PDF (optionnel, prioritaire sur le lien)</label>
         <input type="file" id="edit-menu-file" accept="image/png,image/jpeg,image/webp,application/pdf">
@@ -669,6 +679,16 @@ function resetEditModal() {
       <div class="form-group"><label>⚠️ Seuil "à risque" (jours sans visite)</label><input type="number" id="edit-risk-threshold" min="1" placeholder="30"></div>
       <div class="form-group"><label>🔴 Seuil "perdu" (jours sans visite)</label><input type="number" id="edit-lost-threshold" min="1" placeholder="60"></div>
       <div class="form-group" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="edit-booking-enabled" style="width:auto"><label for="edit-booking-enabled" style="margin:0">💇 Coiffeur / Institut (rendez-vous avec prestations)</label></div>
+      <div class="form-group" id="edit-services-wrap" style="grid-column:1/-1">
+        <label>✂️ Prestations de cette boutique (durée + prix)</label>
+        <div id="edit-services-list" style="margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" id="new-service-name" placeholder="Ex: Coupe homme" style="flex:2;min-width:140px">
+          <input type="number" id="new-service-duration" placeholder="Durée (min)" min="5" style="flex:1;min-width:100px">
+          <input type="number" id="new-service-price" placeholder="Prix (optionnel)" min="0" step="0.01" style="flex:1;min-width:100px">
+          <button type="button" class="btn btn-cancel" onclick="addAdminService()">Ajouter</button>
+        </div>
+      </div>
       <div class="form-group form-full">
         <label>📄 Ou fichier menu — image/PDF (optionnel, prioritaire sur le lien)</label>
         <input type="file" id="edit-menu-file" accept="image/png,image/jpeg,image/webp,application/pdf">
@@ -751,6 +771,47 @@ function clearEditMenuFileInput() {
   document.getElementById('edit-menu-file-preview-wrap').style.display = 'none';
 }
 
+let currentEditShopId = null;
+
+async function loadAdminServices(shopId) {
+  currentEditShopId = shopId;
+  const res = await fetch('/api/admin/shops/' + shopId + '/services');
+  const rows = await res.json();
+  const el = document.getElementById('edit-services-list');
+  if (!rows.length) {
+    el.innerHTML = '<div style="font-size:12px;color:#94a3b8">Aucune prestation configurée pour l\'instant</div>';
+    return;
+  }
+  el.innerHTML = rows.map(s =>
+    '<div style="display:flex;justify-content:space-between;align-items:center;background:#0f172a;border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:12.5px">' +
+    '<span>' + s.name + ' · ' + s.duration_minutes + ' min' + (s.price ? ' · ' + s.price + '€' : '') + '</span>' +
+    '<button type="button" class="btn-sm" style="background:#7f1d1d;color:#fecaca" onclick="deleteAdminService(' + s.id + ')">Retirer</button>' +
+    '</div>'
+  ).join('');
+}
+
+async function addAdminService() {
+  const name = document.getElementById('new-service-name').value.trim();
+  const duration_minutes = document.getElementById('new-service-duration').value;
+  const price = document.getElementById('new-service-price').value;
+  if (!name || !duration_minutes) { alert('Le nom et la durée sont requis.'); return; }
+  const res = await fetch('/api/admin/shops/' + currentEditShopId + '/services', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, duration_minutes, price: price || null })
+  });
+  const data = await res.json();
+  if (!data.success) { alert(data.error || 'Erreur'); return; }
+  document.getElementById('new-service-name').value = '';
+  document.getElementById('new-service-duration').value = '';
+  document.getElementById('new-service-price').value = '';
+  loadAdminServices(currentEditShopId);
+}
+
+async function deleteAdminService(id) {
+  await fetch('/api/admin/shops/' + currentEditShopId + '/services/' + id, { method: 'DELETE' });
+  loadAdminServices(currentEditShopId);
+}
+
 async function openEdit(shopId) {
   resetEditModal();
   editLogoBase64 = undefined;
@@ -772,6 +833,7 @@ async function openEdit(shopId) {
   document.getElementById('edit-opening-hours').value    = shop.opening_hours || '';
   document.getElementById('edit-manual-shop-count').value = shop.manual_shop_count || '';
   document.getElementById('edit-booking-enabled').checked = shop.booking_enabled === 1;
+  loadAdminServices(shopId);
   document.getElementById('edit-risk-threshold').value  = shop.risk_threshold_days || '';
   document.getElementById('edit-lost-threshold').value  = shop.lost_threshold_days || '';
   document.getElementById('edit-latitude').value        = shop.latitude != null ? shop.latitude : '';

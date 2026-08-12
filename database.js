@@ -136,6 +136,21 @@ async function initSchema() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (shop_id) REFERENCES shops(id)
     );
+    CREATE TABLE IF NOT EXISTS staff_members (
+      id SERIAL PRIMARY KEY,
+      shop_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (shop_id) REFERENCES shops(id)
+    );
+    CREATE TABLE IF NOT EXISTS staff_availability (
+      id SERIAL PRIMARY KEY,
+      staff_id INTEGER NOT NULL,
+      day_of_week INTEGER NOT NULL,
+      start_time TEXT NOT NULL,
+      end_time TEXT NOT NULL,
+      FOREIGN KEY (staff_id) REFERENCES staff_members(id)
+    );
   `);
 
   const alterStatements = [
@@ -156,6 +171,7 @@ async function initSchema() {
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS last_appointment_seen_at TIMESTAMP',
     'ALTER TABLE scans ADD COLUMN IF NOT EXISTS is_manual INTEGER DEFAULT 0',
     'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS service_id INTEGER',
+    'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS staff_id INTEGER',
   ];
   for (const stmt of alterStatements) {
     try { await exec(stmt); } catch (e) {}
@@ -181,6 +197,8 @@ async function initSchema() {
     'CREATE INDEX IF NOT EXISTS idx_appointments_customer_id ON appointments(customer_id)',
     'CREATE INDEX IF NOT EXISTS idx_appointments_time ON appointments(shop_id, appointment_time)',
     'CREATE INDEX IF NOT EXISTS idx_services_shop_id ON services(shop_id)',
+    'CREATE INDEX IF NOT EXISTS idx_staff_members_shop_id ON staff_members(shop_id)',
+    'CREATE INDEX IF NOT EXISTS idx_staff_availability_staff_id ON staff_availability(staff_id)',
   ];
   for (const stmt of indexStatements) {
     try { await exec(stmt); } catch (e) {}

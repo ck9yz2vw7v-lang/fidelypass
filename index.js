@@ -971,14 +971,14 @@ app.put('/api/shops/:id/booking-settings', requireShopAuth, async (req, res) => 
   res.json({ success: true });
 });
 
-// Gérant : consulter ses prestations (coupe, coupe+couleur...)
-app.get('/api/shops/:id/services', requireShopAuth, async (req, res) => {
+// Admin : consulter les prestations d'une boutique (durée + prix fixés par l'équipe FidélyPass)
+app.get('/api/admin/shops/:id/services', requireAdmin, async (req, res) => {
   const rows = await db.prepare('SELECT * FROM services WHERE shop_id = ? ORDER BY duration_minutes ASC').all(req.params.id);
   res.json(rows);
 });
 
-// Gérant : ajouter une prestation
-app.post('/api/shops/:id/services', requireShopAuth, async (req, res) => {
+// Admin : ajouter une prestation
+app.post('/api/admin/shops/:id/services', requireAdmin, async (req, res) => {
   const { name, duration_minutes, price } = req.body;
   if (!name || !name.trim() || !duration_minutes || duration_minutes < 5) {
     return res.status(400).json({ success: false, error: 'Nom et durée (minimum 5 min) requis' });
@@ -988,9 +988,71 @@ app.post('/api/shops/:id/services', requireShopAuth, async (req, res) => {
   res.json({ success: true, id: result.lastInsertRowid });
 });
 
-// Gérant : retirer une prestation
-app.delete('/api/shops/:id/services/:serviceId', requireShopAuth, async (req, res) => {
+// Admin : retirer une prestation
+app.delete('/api/admin/shops/:id/services/:serviceId', requireAdmin, async (req, res) => {
   await db.prepare('DELETE FROM services WHERE id = ? AND shop_id = ?').run(req.params.serviceId, req.params.id);
+  res.json({ success: true });
+});
+
+// Gérant : lecture seule de ses prestations (configurées par l'équipe FidélyPass, pas modifiables ici)
+app.get('/api/shops/:id/services', requireShopAuth, async (req, res) => {
+  const rows = await db.prepare('SELECT * FROM services WHERE shop_id = ? ORDER BY duration_minutes ASC').all(req.params.id);
+  res.json(rows);
+});
+
+// ─────────────────────────────────────────────
+// ÉQUIPE (plusieurs coiffeurs/coiffeuses, chacun avec son propre planning)
+// ─────────────────────────────────────────────
+
+// Gérant : consulter son équipe
+app.get('/api/shops/:id/staff', requireShopAuth, async (req, res) => {
+  const rows = await db.prepare('SELECT * FROM staff_members WHERE shop_id = ? ORDER BY name ASC').all(req.params.id);
+  res.json(rows);
+});
+
+// Gérant : ajouter un membre d'équipe
+app.post('/api/shops/:id/staff', requireShopAuth, async (req, res) => {
+  const { name } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ success: false, error: 'Nom requis' });
+  const result = await db.prepare('INSERT INTO staff_members (shop_id, name) VALUES (?, ?) RETURNING id').run(req.params.id, name.trim());
+  res.json({ success: true, id: result.lastInsertRowid });
+});
+
+// Gérant : retirer un membre d'équipe (et ses créneaux associés)
+app.delete('/api/shops/:id/staff/:staffId', requireShopAuth, async (req, res) => {
+  await db.prepare('DELETE FROM staff_availability WHERE staff_id = ?').run(req.params.staffId);
+  await db.prepare('DELETE FROM staff_members WHERE id = ? AND shop_id = ?').run(req.params.staffId, req.params.id);
+  res.json({ success: true });
+});
+
+// Client (public) : voir l'équipe avant de choisir avec qui prendre rendez-vous
+app.get('/api/shops/:id/staff-public', async (req, res) => {
+  const rows = await db.prepare('SELECT id, name FROM staff_members WHERE shop_id = ? ORDER BY name ASC').all(req.params.id);
+  res.json(rows);
+});
+
+// Gérant : consulter le planning hebdomadaire d'un membre d'équipe précis
+app.get('/api/shops/:id/staff/:staffId/availability', requireShopAuth, async (req, res) => {
+  const staff = await db.prepare('SELECT id FROM staff_members WHERE id = ? AND shop_id = ?').get(req.params.staffId, req.params.id);
+  if (!staff) return res.status(404).json({ error: 'Membre introuvable' });
+  const rows = await db.prepare('SELECT * FROM staff_availability WHERE staff_id = ? ORDER BY day_of_week, start_time').all(req.params.staffId);
+  res.json(rows);
+});
+
+// Gérant : ajouter un créneau au planning d'un membre d'équipe
+app.post('/api/shops/:id/staff/:staffId/availability', requireShopAuth, async (req, res) => {
+  const staff = await db.prepare('SELECT id FROM staff_members WHERE id = ? AND shop_id = ?').get(req.params.staffId, req.params.id);
+  if (!staff) return res.status(404).json({ success: false, error: 'Membre introuvable' });
+  const { day_of_week, start_time, end_time } = req.body;
+  if (day_of_week == null || !start_time || !end_time) return res.status(400).json({ success: false, error: 'Champs manquants' });
+  const result = await db.prepare('INSERT INTO staff_availability (staff_id, day_of_week, start_time, end_time) VALUES (?, ?, ?, ?) RETURNING id')
+    .run(req.params.staffId, day_of_week, start_time, end_time);
+  res.json({ success: true, id: result.lastInsertRowid });
+});
+
+// Gérant : retirer un créneau du planning d'un membre d'équipe
+app.delete('/api/shops/:id/staff/:staffId/availability/:availId', requireShopAuth, async (req, res) => {
+  await db.prepare('DELETE FROM staff_availability WHERE id = ? AND staff_id = ?').run(req.params.availId, req.params.staffId);
   res.json({ success: true });
 });
 
@@ -1020,10 +1082,11 @@ app.delete('/api/shops/:id/availability/:availId', requireShopAuth, async (req, 
 // Gérant : liste des rendez-vous à venir
 app.get('/api/shops/:id/appointments', requireShopAuth, async (req, res) => {
   const rows = await db.prepare(`
-    SELECT a.*, c.name as customer_name, sv.name as service_name, sv.duration_minutes as service_duration
+    SELECT a.*, c.name as customer_name, sv.name as service_name, sv.duration_minutes as service_duration, st.name as staff_name
     FROM appointments a
     JOIN customers c ON c.id = a.customer_id
     LEFT JOIN services sv ON sv.id = a.service_id
+    LEFT JOIN staff_members st ON st.id = a.staff_id
     WHERE a.shop_id = ? AND a.status = 'confirmed' AND a.appointment_time >= NOW()
     ORDER BY a.appointment_time ASC
   `).all(req.params.id);
@@ -1095,8 +1158,17 @@ app.get('/api/shops/:id/available-slots', async (req, res) => {
     const service = await db.prepare('SELECT duration_minutes FROM services WHERE id = ? AND shop_id = ?').get(req.query.service_id, req.params.id);
     if (service) slotMinutes = service.duration_minutes;
   }
-  const availabilityRows = await db.prepare('SELECT * FROM shop_availability WHERE shop_id = ?').all(req.params.id);
-  const booked = await db.prepare("SELECT appointment_time FROM appointments WHERE shop_id = ? AND status = 'confirmed' AND appointment_time >= NOW()").all(req.params.id);
+  let availabilityRows, booked;
+  if (req.query.staff_id) {
+    // Planning propre à ce membre d'équipe, et on ne bloque que SES créneaux déjà pris
+    // (deux coiffeurs différents peuvent avoir un rendez-vous au même horaire, c'est normal)
+    availabilityRows = await db.prepare('SELECT * FROM staff_availability WHERE staff_id = ?').all(req.query.staff_id);
+    booked = await db.prepare("SELECT appointment_time FROM appointments WHERE shop_id = ? AND staff_id = ? AND status = 'confirmed' AND appointment_time >= NOW()").all(req.params.id, req.query.staff_id);
+  } else {
+    // Pas de coiffeur précisé (boutique sans équipe configurée) : ancien comportement, planning de la boutique
+    availabilityRows = await db.prepare('SELECT * FROM shop_availability WHERE shop_id = ?').all(req.params.id);
+    booked = await db.prepare("SELECT appointment_time FROM appointments WHERE shop_id = ? AND status = 'confirmed' AND appointment_time >= NOW()").all(req.params.id);
+  }
   const bookedIsoSet = new Set(booked.map(b => new Date(b.appointment_time).toISOString()));
   const slotsByDate = computeAvailableSlots(availabilityRows, bookedIsoSet, slotMinutes, 14);
   res.json({ slot_minutes: slotMinutes, slots_by_date: slotsByDate });
@@ -1105,17 +1177,20 @@ app.get('/api/shops/:id/available-slots', async (req, res) => {
 // Client (public) : réserver un créneau
 app.post('/api/shops/:id/appointments', async (req, res) => {
   const shopId = req.params.id;
-  const { customer_id, appointment_time, service_id } = req.body;
+  const { customer_id, appointment_time, service_id, staff_id } = req.body;
   if (!customer_id || !appointment_time) return res.status(400).json({ success: false, error: 'Champs manquants' });
   const shop = await db.prepare('SELECT booking_enabled FROM shops WHERE id = ?').get(shopId);
   if (!shop || shop.booking_enabled !== 1) return res.status(404).json({ success: false, error: 'Rendez-vous non disponibles' });
   const customer = await db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(customer_id, shopId);
   if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
-  // Empêche un double-booking du même créneau (course entre deux clients qui réservent en même temps)
-  const clash = await db.prepare("SELECT id FROM appointments WHERE shop_id = ? AND appointment_time = ? AND status = 'confirmed'").get(shopId, appointment_time);
+  // Empêche un double-booking du même créneau (course entre deux clients qui réservent en même temps).
+  // Avec plusieurs coiffeurs, on ne bloque que le planning DE CE coiffeur précis, pas toute la boutique.
+  const clash = staff_id
+    ? await db.prepare("SELECT id FROM appointments WHERE shop_id = ? AND staff_id = ? AND appointment_time = ? AND status = 'confirmed'").get(shopId, staff_id, appointment_time)
+    : await db.prepare("SELECT id FROM appointments WHERE shop_id = ? AND appointment_time = ? AND status = 'confirmed'").get(shopId, appointment_time);
   if (clash) return res.status(409).json({ success: false, error: 'Ce créneau vient d\'être pris, choisissez-en un autre' });
-  const result = await db.prepare("INSERT INTO appointments (shop_id, customer_id, appointment_time, status, service_id) VALUES (?, ?, ?, 'confirmed', ?) RETURNING id")
-    .run(shopId, customer_id, appointment_time, service_id || null);
+  const result = await db.prepare("INSERT INTO appointments (shop_id, customer_id, appointment_time, status, service_id, staff_id) VALUES (?, ?, ?, 'confirmed', ?, ?) RETURNING id")
+    .run(shopId, customer_id, appointment_time, service_id || null, staff_id || null);
   res.json({ success: true, id: result.lastInsertRowid });
 });
 
@@ -1129,10 +1204,11 @@ app.post('/api/appointments/:apptId/cancel', async (req, res) => {
 // Client (public) : voir ses propres rendez-vous à venir
 app.get('/api/customers/:id/appointments', async (req, res) => {
   const rows = await db.prepare(`
-    SELECT a.*, s.name as shop_name, sv.name as service_name
+    SELECT a.*, s.name as shop_name, sv.name as service_name, st.name as staff_name
     FROM appointments a
     JOIN shops s ON s.id = a.shop_id
     LEFT JOIN services sv ON sv.id = a.service_id
+    LEFT JOIN staff_members st ON st.id = a.staff_id
     WHERE a.customer_id = ? AND a.status = 'confirmed' AND a.appointment_time >= NOW()
     ORDER BY a.appointment_time ASC
   `).all(req.params.id);
@@ -1373,16 +1449,19 @@ let bookingSlotsData = null;
 let bookingSelectedDate = null;
 let bookingSelectedServiceId = null;
 let bookingServicesList = [];
+let bookingSelectedStaffId = null;
+let bookingStaffList = [];
 
 async function openBookingPicker() {
   document.getElementById('booking-picker-overlay').style.display = 'flex';
   bookingSelectedServiceId = null;
+  bookingSelectedStaffId = null;
   const res = await fetch('/api/shops/' + BOOKING_SHOP_ID + '/services-public');
   bookingServicesList = await res.json();
   if (bookingServicesList.length > 0) {
     showServiceStep();
   } else {
-    showSlotStep();
+    await goToStaffOrSlotStep();
   }
 }
 
@@ -1395,13 +1474,38 @@ function showServiceStep() {
 
 async function chooseService(serviceId) {
   bookingSelectedServiceId = serviceId;
+  await goToStaffOrSlotStep();
+}
+
+async function goToStaffOrSlotStep() {
+  const res = await fetch('/api/shops/' + BOOKING_SHOP_ID + '/staff-public');
+  bookingStaffList = await res.json();
+  if (bookingStaffList.length > 0) {
+    showStaffStep();
+  } else {
+    await showSlotStep();
+  }
+}
+
+function showStaffStep() {
+  document.getElementById('booking-dates-row').innerHTML = '';
+  document.getElementById('booking-slots-grid').innerHTML = bookingStaffList.map(s =>
+    '<button class="booking-slot-btn" style="grid-column:1/-1;text-align:left" onclick="chooseStaff(' + s.id + ')">👤 ' + s.name + '</button>'
+  ).join('');
+}
+
+async function chooseStaff(staffId) {
+  bookingSelectedStaffId = staffId;
   await showSlotStep();
 }
 
 async function showSlotStep() {
   document.getElementById('booking-dates-row').innerHTML = '<div style="font-size:13px;color:#9ca3af;padding:20px 0">Chargement…</div>';
   document.getElementById('booking-slots-grid').innerHTML = '';
-  const url = '/api/shops/' + BOOKING_SHOP_ID + '/available-slots' + (bookingSelectedServiceId ? '?service_id=' + bookingSelectedServiceId : '');
+  const params = [];
+  if (bookingSelectedServiceId) params.push('service_id=' + bookingSelectedServiceId);
+  if (bookingSelectedStaffId) params.push('staff_id=' + bookingSelectedStaffId);
+  const url = '/api/shops/' + BOOKING_SHOP_ID + '/available-slots' + (params.length ? '?' + params.join('&') : '');
   const res = await fetch(url);
   bookingSlotsData = await res.json();
   const dates = Object.keys(bookingSlotsData.slots_by_date || {});
@@ -1448,7 +1552,7 @@ function renderBookingSlots() {
 async function bookSlot(iso) {
   const res = await fetch('/api/shops/' + BOOKING_SHOP_ID + '/appointments', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ customer_id: BOOKING_CUSTOMER_ID, appointment_time: iso, service_id: bookingSelectedServiceId })
+    body: JSON.stringify({ customer_id: BOOKING_CUSTOMER_ID, appointment_time: iso, service_id: bookingSelectedServiceId, staff_id: bookingSelectedStaffId })
   });
   const data = await res.json();
   if (data.success) {
@@ -1472,8 +1576,10 @@ async function loadMyAppointments() {
   list.innerHTML = rows.map(r => {
     const d = new Date(r.appointment_time);
     const label = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) + ' à ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    const serviceLabel = r.service_name ? '<br><span style="color:#9ca3af;font-size:11.5px">' + r.service_name + '</span>' : '';
-    return '<div class="appt-row"><span>' + label + serviceLabel + '</span><button class="appt-cancel-btn" onclick="cancelMyAppointment(' + r.id + ')">Annuler</button></div>';
+    const serviceLabel = r.service_name ? ' — ' + r.service_name : '';
+    const staffLabel = r.staff_name ? ' avec ' + r.staff_name : '';
+    const subLabel = (serviceLabel || staffLabel) ? '<br><span style="color:#9ca3af;font-size:11.5px">' + r.service_name + staffLabel + '</span>' : '';
+    return '<div class="appt-row"><span>' + label + subLabel + '</span><button class="appt-cancel-btn" onclick="cancelMyAppointment(' + r.id + ')">Annuler</button></div>';
   }).join('');
 }
 
