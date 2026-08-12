@@ -201,12 +201,12 @@ app.post('/api/admin/migrate-to-postgres', requireAdmin, async (req, res) => {
 });
 
 app.post('/api/shops', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count, booking_enabled } = req.body;
   try {
     const menuFile = parseDataUrl(menu_file_base64);
     const hashedPassword = await bcrypt.hash(password, 10);
-    const stmt = await db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) RETURNING id`);
-    const result = await stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null, phone || null, opening_hours || null, risk_threshold_days ? parseInt(risk_threshold_days, 10) : 30, lost_threshold_days ? parseInt(lost_threshold_days, 10) : 60, manual_shop_count ? parseInt(manual_shop_count, 10) : null);
+    const stmt = await db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count, booking_enabled, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) RETURNING id`);
+    const result = await stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null, phone || null, opening_hours || null, risk_threshold_days ? parseInt(risk_threshold_days, 10) : 30, lost_threshold_days ? parseInt(lost_threshold_days, 10) : 60, manual_shop_count ? parseInt(manual_shop_count, 10) : null, booking_enabled ? 1 : 0);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -915,6 +915,135 @@ app.post('/api/shops/:id/notify', requireShopAuth, async (req, res) => {
   res.json({ success: true, sent, failed, total: subs.length });
 });
 
+// ─────────────────────────────────────────────
+// PRISE DE RENDEZ-VOUS (activable par boutique depuis l'admin)
+// ─────────────────────────────────────────────
+
+// Gérant : durée d'un créneau de rendez-vous (route dédiée, plus sûre que la route générale
+// de modification de boutique qui n'a pas de vérification d'identité stricte)
+app.put('/api/shops/:id/booking-settings', requireShopAuth, async (req, res) => {
+  const { booking_slot_minutes } = req.body;
+  const minutes = parseInt(booking_slot_minutes, 10);
+  if (!minutes || minutes < 5) return res.status(400).json({ success: false, error: 'Durée invalide' });
+  await db.prepare('UPDATE shops SET booking_slot_minutes = ? WHERE id = ?').run(minutes, req.params.id);
+  res.json({ success: true });
+});
+
+// Gérant : consulter ses créneaux hebdomadaires récurrents
+app.get('/api/shops/:id/availability', requireShopAuth, async (req, res) => {
+  const rows = await db.prepare('SELECT * FROM shop_availability WHERE shop_id = ? ORDER BY day_of_week, start_time').all(req.params.id);
+  res.json(rows);
+});
+
+// Gérant : ajouter un créneau (ex: Mardi 9h-19h)
+app.post('/api/shops/:id/availability', requireShopAuth, async (req, res) => {
+  const { day_of_week, start_time, end_time } = req.body;
+  if (day_of_week == null || !start_time || !end_time) {
+    return res.status(400).json({ success: false, error: 'Champs manquants' });
+  }
+  const result = await db.prepare('INSERT INTO shop_availability (shop_id, day_of_week, start_time, end_time) VALUES (?, ?, ?, ?) RETURNING id')
+    .run(req.params.id, day_of_week, start_time, end_time);
+  res.json({ success: true, id: result.lastInsertRowid });
+});
+
+// Gérant : retirer un créneau
+app.delete('/api/shops/:id/availability/:availId', requireShopAuth, async (req, res) => {
+  await db.prepare('DELETE FROM shop_availability WHERE id = ? AND shop_id = ?').run(req.params.availId, req.params.id);
+  res.json({ success: true });
+});
+
+// Gérant : liste des rendez-vous à venir
+app.get('/api/shops/:id/appointments', requireShopAuth, async (req, res) => {
+  const rows = await db.prepare(`
+    SELECT a.*, c.name as customer_name
+    FROM appointments a JOIN customers c ON c.id = a.customer_id
+    WHERE a.shop_id = ? AND a.status = 'confirmed' AND a.appointment_time >= NOW()
+    ORDER BY a.appointment_time ASC
+  `).all(req.params.id);
+  res.json(rows);
+});
+
+// Gérant : annuler un rendez-vous
+app.post('/api/shops/:id/appointments/:apptId/cancel', requireShopAuth, async (req, res) => {
+  await db.prepare("UPDATE appointments SET status = 'cancelled' WHERE id = ? AND shop_id = ?").run(req.params.apptId, req.params.id);
+  res.json({ success: true });
+});
+
+// Calcule les créneaux disponibles pour les N prochains jours à partir des disponibilités
+// hebdomadaires récurrentes, en retirant les créneaux déjà pris et ceux déjà passés.
+function computeAvailableSlots(availabilityRows, bookedIsoSet, slotMinutes, daysAhead) {
+  const now = new Date();
+  const byDate = {};
+  for (let d = 0; d < daysAhead; d++) {
+    const day = new Date(now.getTime() + d * 86400000);
+    const dateStr = day.toISOString().slice(0, 10);
+    const dow = day.getDay();
+    const dayRows = availabilityRows.filter(r => Number(r.day_of_week) === dow);
+    const slots = [];
+    for (const row of dayRows) {
+      const [sh, sm] = row.start_time.split(':').map(Number);
+      const [eh, em] = row.end_time.split(':').map(Number);
+      let cursor = new Date(dateStr + 'T00:00:00');
+      cursor.setHours(sh, sm, 0, 0);
+      const end = new Date(dateStr + 'T00:00:00');
+      end.setHours(eh, em, 0, 0);
+      while (cursor < end) {
+        if (cursor > now && !bookedIsoSet.has(cursor.toISOString())) {
+          slots.push(cursor.toISOString());
+        }
+        cursor = new Date(cursor.getTime() + slotMinutes * 60000);
+      }
+    }
+    if (slots.length > 0) byDate[dateStr] = slots;
+  }
+  return byDate;
+}
+
+// Client (public, depuis sa carte) : voir les créneaux disponibles des 14 prochains jours
+app.get('/api/shops/:id/available-slots', async (req, res) => {
+  const shop = await db.prepare('SELECT booking_enabled, booking_slot_minutes FROM shops WHERE id = ?').get(req.params.id);
+  if (!shop || shop.booking_enabled !== 1) return res.status(404).json({ error: 'Rendez-vous non disponibles pour cette boutique' });
+  const availabilityRows = await db.prepare('SELECT * FROM shop_availability WHERE shop_id = ?').all(req.params.id);
+  const booked = await db.prepare("SELECT appointment_time FROM appointments WHERE shop_id = ? AND status = 'confirmed' AND appointment_time >= NOW()").all(req.params.id);
+  const bookedIsoSet = new Set(booked.map(b => new Date(b.appointment_time).toISOString()));
+  const slotsByDate = computeAvailableSlots(availabilityRows, bookedIsoSet, shop.booking_slot_minutes || 30, 14);
+  res.json({ slot_minutes: shop.booking_slot_minutes || 30, slots_by_date: slotsByDate });
+});
+
+// Client (public) : réserver un créneau
+app.post('/api/shops/:id/appointments', async (req, res) => {
+  const shopId = req.params.id;
+  const { customer_id, appointment_time } = req.body;
+  if (!customer_id || !appointment_time) return res.status(400).json({ success: false, error: 'Champs manquants' });
+  const shop = await db.prepare('SELECT booking_enabled FROM shops WHERE id = ?').get(shopId);
+  if (!shop || shop.booking_enabled !== 1) return res.status(404).json({ success: false, error: 'Rendez-vous non disponibles' });
+  const customer = await db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(customer_id, shopId);
+  if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
+  // Empêche un double-booking du même créneau (course entre deux clients qui réservent en même temps)
+  const clash = await db.prepare("SELECT id FROM appointments WHERE shop_id = ? AND appointment_time = ? AND status = 'confirmed'").get(shopId, appointment_time);
+  if (clash) return res.status(409).json({ success: false, error: 'Ce créneau vient d\'être pris, choisissez-en un autre' });
+  const result = await db.prepare("INSERT INTO appointments (shop_id, customer_id, appointment_time, status) VALUES (?, ?, ?, 'confirmed') RETURNING id")
+    .run(shopId, customer_id, appointment_time);
+  res.json({ success: true, id: result.lastInsertRowid });
+});
+
+// Client (public) : annuler son propre rendez-vous
+app.post('/api/appointments/:apptId/cancel', async (req, res) => {
+  const { customer_id } = req.body;
+  await db.prepare("UPDATE appointments SET status = 'cancelled' WHERE id = ? AND customer_id = ?").run(req.params.apptId, customer_id);
+  res.json({ success: true });
+});
+
+// Client (public) : voir ses propres rendez-vous à venir
+app.get('/api/customers/:id/appointments', async (req, res) => {
+  const rows = await db.prepare(`
+    SELECT a.*, s.name as shop_name FROM appointments a JOIN shops s ON s.id = a.shop_id
+    WHERE a.customer_id = ? AND a.status = 'confirmed' AND a.appointment_time >= NOW()
+    ORDER BY a.appointment_time ASC
+  `).all(req.params.id);
+  res.json(rows);
+});
+
 app.get('/card/:id', async (req, res) => {
   const id = req.params.id;
   const ua = req.headers['user-agent'] || '';
@@ -928,7 +1057,7 @@ app.get('/card/:id', async (req, res) => {
 
   let walletHtml = '';
   if (!isAndroid) {
-    walletHtml = '<a href="/api/customers/' + id + '/apple-wallet" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;background:#000;color:white;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none">🍎 Ajouter à Apple Wallet</a>';
+    walletHtml = '<a href="/api/customers/' + id + '/apple-wallet" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;background:#000;color:white;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none"><svg width="16" height="16" viewBox="0 0 16 16" fill="white"><path d="M11.182.008C11.148-.03 9.923.023 8.857 1.18c-1.066 1.156-.902 2.482-.878 2.516s1.52.087 2.475-1.258.762-2.391.728-2.43m3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422s1.675-2.789 1.698-2.854-.597-.79-1.254-1.157a3.7 3.7 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116-.508.139-1.653.589-1.968.607-.316.018-1.256-.522-2.267-.665-.647-.125-1.333.131-1.824.328-.49.196-1.422.754-2.074 2.237-.652 1.482-.311 3.83-.067 4.56s.625 1.924 1.273 2.796c.576.984 1.34 1.667 1.659 1.899s1.219.386 1.843.067c.502-.308 1.408-.485 1.766-.472.357.013 1.061.154 1.782.539.571.197 1.111.115 1.652-.105.541-.221 1.324-1.059 2.238-2.758q.52-1.185.473-1.282"/></svg> Ajouter à Apple Wallet</a>';
   } else {
     walletHtml = '<div id="wallet-btn"><script>fetch("/api/customers/' + id + '/wallet").then(r=>r.json()).then(d=>{if(d.url){document.getElementById("wallet-btn").innerHTML=\'<a href="\'+d.url+\'" target="_blank"><img src="https://pay.google.com/about/static/sample-assets/pay-with-google/add-to-wallet-button.svg" style="width:200px;margin-top:8px" alt="Ajouter à Google Wallet"><\\/a>\';}});<\\/script></div>';
   }
@@ -938,7 +1067,7 @@ const IS_IOS = ${isIOS};
 
 let OB_STEPS = [
   {icon:'📲', title:'Bienvenue !', text:"On vous montre tout ce qu'il faut faire, une bonne fois pour toutes."},
-  {icon:'💳', title:'Ajoutez votre carte', text:"Appuyez sur le bouton Wallet ci-dessous pour l'ajouter à Apple Wallet ou Google Wallet.", mock:'<div class="ob-mock"><div class="ob-mock-hand">👆</div><div class="ob-mock-btn">🍎 Ajouter à Apple Wallet</div></div>'},
+  {icon:'💳', title:'Ajoutez votre carte', text:"Appuyez sur le bouton Wallet ci-dessous pour l'ajouter à Apple Wallet ou Google Wallet.", mock:'<div class="ob-mock"><div class="ob-mock-hand">👆</div><div class="ob-mock-btn"><svg width="13" height="13" viewBox="0 0 16 16" fill="white" style="vertical-align:-2px;margin-right:4px"><path d="M11.182.008C11.148-.03 9.923.023 8.857 1.18c-1.066 1.156-.902 2.482-.878 2.516s1.52.087 2.475-1.258.762-2.391.728-2.43m3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422s1.675-2.789 1.698-2.854-.597-.79-1.254-1.157a3.7 3.7 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116-.508.139-1.653.589-1.968.607-.316.018-1.256-.522-2.267-.665-.647-.125-1.333.131-1.824.328-.49.196-1.422.754-2.074 2.237-.652 1.482-.311 3.83-.067 4.56s.625 1.924 1.273 2.796c.576.984 1.34 1.667 1.659 1.899s1.219.386 1.843.067c.502-.308 1.408-.485 1.766-.472.357.013 1.061.154 1.782.539.571.197 1.111.115 1.652-.105.541-.221 1.324-1.059 2.238-2.758q.52-1.185.473-1.282"/></svg>Ajouter à Apple Wallet</div></div>'},
   {icon:'🔖', title:'Ajoutez cette page à l\\'écran d\\'accueil', text:"Appuyez sur Partager ⬆️ en bas de l'écran, faites défiler la liste qui s'ouvre, et touchez l'option entourée tout en bas.", mock:'<img src="/onboarding-home-screen.png" alt="Ou trouver l\\'option Sur l\\'ecran d\\'accueil" style="width:100%;max-width:290px;border-radius:14px;border:1px solid rgba(255,255,255,0.15);box-shadow:0 8px 24px rgba(0,0,0,0.35);margin-top:16px">', iosOnly:true},
   {icon:'ℹ️', title:'Au dos de votre carte', text:"Ouvrez l'app Wallet, appuyez sur votre carte FidélyPass, puis sur « Informations sur la carte » (le petit ⓘ) pour retrouver notre numéro de téléphone, le menu et nos horaires à tout moment.", mock:'<div class="ob-mock"><div class="ob-mock-hand">👆</div><div class="ob-mock-btn light" style="border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;padding:0;font-size:20px">ⓘ</div></div>'},
   {icon:'🔔', title:'Activez les notifications', text:"Appuyez sur le bouton 🔔 plus bas pour être prévenu de vos offres et de votre récompense.", mock:'<div class="ob-mock"><div class="ob-mock-hand">👆</div><div class="ob-mock-btn light">🔔 Activer les notifications</div></div>'},
@@ -1208,7 +1337,7 @@ if ('serviceWorker' in navigator && Notification.permission === 'granted') {
 });
 
 app.put('/api/shops/:id', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, manual_shop_count, risk_threshold_days, lost_threshold_days } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, manual_shop_count, risk_threshold_days, lost_threshold_days, booking_enabled } = req.body;
   try {
     const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
@@ -1228,7 +1357,7 @@ app.put('/api/shops/:id', async (req, res) => {
         newMenuFileType = menuFile ? menuFile.mime : null;
       }
     }
-    await db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=?, menu_file_base64=?, menu_file_type=?, phone=?, opening_hours=?, manual_shop_count=?, risk_threshold_days=?, lost_threshold_days=? WHERE id=?`)
+    await db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=?, menu_file_base64=?, menu_file_type=?, phone=?, opening_hours=?, manual_shop_count=?, risk_threshold_days=?, lost_threshold_days=?, booking_enabled=? WHERE id=?`)
       .run(
         name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null,
         email || shop.email || null, referral_bonus_points != null ? referral_bonus_points : (shop.referral_bonus_points || 10),
@@ -1244,6 +1373,7 @@ app.put('/api/shops/:id', async (req, res) => {
         manual_shop_count !== undefined && manual_shop_count !== '' ? (manual_shop_count != null ? parseInt(manual_shop_count, 10) : null) : shop.manual_shop_count,
         risk_threshold_days !== undefined && risk_threshold_days !== '' ? parseInt(risk_threshold_days, 10) : (shop.risk_threshold_days || 30),
         lost_threshold_days !== undefined && lost_threshold_days !== '' ? parseInt(lost_threshold_days, 10) : (shop.lost_threshold_days || 60),
+        booking_enabled !== undefined ? (booking_enabled ? 1 : 0) : (shop.booking_enabled || 0),
         req.params.id
       );
     res.json({ success: true });
