@@ -162,6 +162,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
   <button class="btn-list" style="background:#6B21A8;margin-top:10px" onclick="showCounterQR()">📱 QR Code Comptoir</button>
   <button class="btn-list" style="background:#059669;margin-top:10px" onclick="window.location.href='/stats.html'">📊 Statistiques</button>
   <button class="btn-list" style="background:#b45309;margin-top:10px" onclick="showTiersModal()">🎯 Paliers de récompense</button>
+  <button class="btn-list" id="booking-btn" style="background:#0369A1;margin-top:10px;display:none" onclick="showBookingScreen()">📅 Rendez-vous</button>
   <div class="add-client-card" style="margin-bottom:16px">
     <div class="add-client-title">🔔 Envoyer une notification</div>
     <textarea class="input" id="notif-message" placeholder="Ex : Promo du jour : -20% sur tout jusqu'à 18h !" rows="2" style="resize:none;margin-bottom:10px"></textarea>
@@ -184,6 +185,39 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
   </div>
   <input class="search-input" type="text" id="customer-search" placeholder="🔍 Rechercher un client…" oninput="filterCustomers()">
   <div id="customers-list"></div>
+</div>
+
+<!-- BOOKING -->
+<div class="container" id="booking-screen">
+  <div class="list-header">
+    <div class="list-title">📅 Rendez-vous</div>
+    <button class="btn-back" onclick="showScreen('scan')">← Retour</button>
+  </div>
+
+  <div class="add-client-card">
+    <div class="add-client-title">🗓️ Mes créneaux hebdomadaires</div>
+    <div id="availability-list" style="margin-bottom:12px"></div>
+    <div class="add-row" style="flex-wrap:wrap;gap:8px">
+      <select class="input" id="avail-day" style="flex:1;min-width:110px">
+        <option value="1">Lundi</option>
+        <option value="2">Mardi</option>
+        <option value="3">Mercredi</option>
+        <option value="4">Jeudi</option>
+        <option value="5">Vendredi</option>
+        <option value="6">Samedi</option>
+        <option value="0">Dimanche</option>
+      </select>
+      <input class="input" type="time" id="avail-start" value="09:00" style="flex:1;min-width:90px">
+      <input class="input" type="time" id="avail-end" value="18:00" style="flex:1;min-width:90px">
+    </div>
+    <button class="btn-add" style="width:100%;margin-top:8px" onclick="addAvailability()">Ajouter ce créneau</button>
+    <div style="font-size:11.5px;color:#94a3b8;margin-top:8px">Durée d'un rendez-vous : <input type="number" id="slot-minutes" value="30" min="5" style="width:50px;padding:4px;border-radius:6px;border:1px solid #e2e8f0"> min <button class="btn-back" style="padding:4px 10px;margin-left:6px" onclick="saveSlotMinutes()">Enregistrer</button></div>
+  </div>
+
+  <div class="add-client-card">
+    <div class="add-client-title">📋 Rendez-vous à venir</div>
+    <div id="appointments-list"><div class="empty-list">Chargement…</div></div>
+  </div>
 </div>
 
 <!-- LINK MODAL -->
@@ -299,7 +333,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
     </div>
   </div>
   <button class="btn-reward" id="btn-reward" onclick="confirmReward()" style="display:none">🎁 Récompense remise au client ✓</button>
-  <button class="btn-next" onclick="showScreen('scan')">Scanner le prochain client</button>
+  <button class="btn-next" onclick="startCamera()">Scanner le prochain client</button>
   <br><button class="btn-logout" onclick="logout()">Se déconnecter</button>
 </div>
 
@@ -319,11 +353,79 @@ let pendingCustomerId = null;
 let allCustomers = [];
 
 function showScreen(id) {
-  ['login','scan','customers','camera','amount','result'].forEach(s => {
+  ['login','scan','customers','camera','amount','result','booking'].forEach(s => {
     document.getElementById(s + '-screen').style.display = 'none';
   });
   document.getElementById(id + '-screen').style.display = 'block';
   if (id === 'scan') loadStats();
+}
+
+const DOW_NAMES_FR = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+
+function showBookingScreen() {
+  showScreen('booking');
+  loadAvailability();
+  loadAppointments();
+}
+
+async function loadAvailability() {
+  const res = await fetch('/api/shops/' + currentShop.id + '/availability', { headers: { 'x-shop-token': shopToken } });
+  const rows = await res.json();
+  const el = document.getElementById('availability-list');
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty-list">Aucun créneau défini pour l\'instant</div>';
+    return;
+  }
+  el.innerHTML = rows.map(r =>
+    '<div class="list-row"><div><div class="list-name">' + DOW_NAMES_FR[r.day_of_week] + '</div><div class="list-sub">' + r.start_time.slice(0,5) + ' – ' + r.end_time.slice(0,5) + '</div></div><button class="btn-back" onclick="deleteAvailability(' + r.id + ')">Retirer</button></div>'
+  ).join('');
+}
+
+async function addAvailability() {
+  const day_of_week = document.getElementById('avail-day').value;
+  const start_time = document.getElementById('avail-start').value;
+  const end_time = document.getElementById('avail-end').value;
+  if (!start_time || !end_time || start_time >= end_time) { alert('Vérifiez les horaires (début avant fin).'); return; }
+  await fetch('/api/shops/' + currentShop.id + '/availability', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ day_of_week, start_time, end_time })
+  });
+  loadAvailability();
+}
+
+async function deleteAvailability(id) {
+  await fetch('/api/shops/' + currentShop.id + '/availability/' + id, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
+  loadAvailability();
+}
+
+async function saveSlotMinutes() {
+  const minutes = document.getElementById('slot-minutes').value;
+  await fetch('/api/shops/' + currentShop.id + '/booking-settings', {
+    method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ booking_slot_minutes: minutes })
+  });
+}
+
+async function loadAppointments() {
+  const res = await fetch('/api/shops/' + currentShop.id + '/appointments', { headers: { 'x-shop-token': shopToken } });
+  const rows = await res.json();
+  const el = document.getElementById('appointments-list');
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty-list">Aucun rendez-vous à venir</div>';
+    return;
+  }
+  el.innerHTML = rows.map(r => {
+    const d = new Date(r.appointment_time);
+    const dateStr = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const timeStr = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return '<div class="list-row"><div><div class="list-name">' + r.customer_name + '</div><div class="list-sub">' + dateStr + ' à ' + timeStr + '</div></div><button class="btn-back" onclick="cancelAppointment(' + r.id + ')">Annuler</button></div>';
+  }).join('');
+}
+
+async function cancelAppointment(id) {
+  if (!confirm('Annuler ce rendez-vous ?')) return;
+  await fetch('/api/shops/' + currentShop.id + '/appointments/' + id + '/cancel', { method: 'POST', headers: { 'x-shop-token': shopToken } });
+  loadAppointments();
 }
 
 function saveSession(shop, token) {
@@ -355,6 +457,7 @@ function applyShop(shop, token) {
   document.getElementById('header-logo').style.background = shop.color;
   document.getElementById('header-name').textContent      = shop.name;
   document.getElementById('main-header').style.display    = 'flex';
+  document.getElementById('booking-btn').style.display    = shop.booking_enabled === 1 ? 'block' : 'none';
   showScreen('scan');
   checkUnreadMessages();
 }
