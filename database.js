@@ -144,6 +144,7 @@ async function initSchema() {
     "ALTER TABLE admin_messages ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'admin'",
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS booking_enabled INTEGER DEFAULT 0',
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS booking_slot_minutes INTEGER DEFAULT 30',
+    'ALTER TABLE shops ADD COLUMN IF NOT EXISTS last_appointment_seen_at TIMESTAMP',
   ];
   for (const stmt of alterStatements) {
     try { await exec(stmt); } catch (e) {}

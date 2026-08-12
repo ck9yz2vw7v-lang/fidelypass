@@ -963,6 +963,20 @@ app.get('/api/shops/:id/appointments', requireShopAuth, async (req, res) => {
   res.json(rows);
 });
 
+// Gérant : combien de rendez-vous ont été pris depuis la dernière consultation (pour le badge)
+app.get('/api/shops/:id/appointments/unseen-count', requireShopAuth, async (req, res) => {
+  const shop = await db.prepare('SELECT last_appointment_seen_at FROM shops WHERE id = ?').get(req.params.id);
+  const since = shop && shop.last_appointment_seen_at ? shop.last_appointment_seen_at : '1970-01-01';
+  const row = await db.prepare("SELECT COUNT(*) as count FROM appointments WHERE shop_id = ? AND status = 'confirmed' AND created_at > ?").get(req.params.id, since);
+  res.json({ count: Number(row.count) });
+});
+
+// Gérant : marque tous les rendez-vous comme vus (appelé à l'ouverture de l'écran Rendez-vous)
+app.post('/api/shops/:id/appointments/mark-seen', requireShopAuth, async (req, res) => {
+  await db.prepare('UPDATE shops SET last_appointment_seen_at = NOW() WHERE id = ?').run(req.params.id);
+  res.json({ success: true });
+});
+
 // Gérant : annuler un rendez-vous
 app.post('/api/shops/:id/appointments/:apptId/cancel', requireShopAuth, async (req, res) => {
   await db.prepare("UPDATE appointments SET status = 'cancelled' WHERE id = ? AND shop_id = ?").run(req.params.apptId, req.params.id);

@@ -162,7 +162,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
   <button class="btn-list" style="background:#6B21A8;margin-top:10px" onclick="showCounterQR()">📱 QR Code Comptoir</button>
   <button class="btn-list" style="background:#059669;margin-top:10px" onclick="window.location.href='/stats.html'">📊 Statistiques</button>
   <button class="btn-list" style="background:#b45309;margin-top:10px" onclick="showTiersModal()">🎯 Paliers de récompense</button>
-  <button class="btn-list" id="booking-btn" style="background:#0369A1;margin-top:10px;display:none" onclick="showBookingScreen()">📅 Rendez-vous</button>
+  <button class="btn-list" id="booking-btn" style="background:#0369A1;margin-top:10px;display:none;position:relative" onclick="showBookingScreen()">📅 Rendez-vous <span id="booking-badge" style="display:none;background:#dc2626;color:white;font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;margin-left:6px"></span></button>
   <div class="add-client-card" style="margin-bottom:16px">
     <div class="add-client-title">🔔 Envoyer une notification</div>
     <textarea class="input" id="notif-message" placeholder="Ex : Promo du jour : -20% sur tout jusqu'à 18h !" rows="2" style="resize:none;margin-bottom:10px"></textarea>
@@ -366,6 +366,16 @@ function showBookingScreen() {
   showScreen('booking');
   loadAvailability();
   loadAppointments();
+  fetch('/api/shops/' + currentShop.id + '/appointments/mark-seen', { method: 'POST', headers: { 'x-shop-token': shopToken } });
+  document.getElementById('booking-badge').style.display = 'none';
+}
+
+async function checkUnseenAppointments() {
+  const res = await fetch('/api/shops/' + currentShop.id + '/appointments/unseen-count', { headers: { 'x-shop-token': shopToken } });
+  const data = await res.json();
+  const badge = document.getElementById('booking-badge');
+  if (data.count > 0) { badge.textContent = data.count; badge.style.display = 'inline'; }
+  else { badge.style.display = 'none'; }
 }
 
 async function loadAvailability() {
@@ -460,6 +470,7 @@ function applyShop(shop, token) {
   document.getElementById('booking-btn').style.display    = shop.booking_enabled === 1 ? 'block' : 'none';
   showScreen('scan');
   checkUnreadMessages();
+  if (shop.booking_enabled === 1) checkUnseenAppointments();
 }
 
 async function login() {
