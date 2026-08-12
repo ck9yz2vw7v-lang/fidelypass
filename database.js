@@ -109,6 +109,24 @@ async function initSchema() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (shop_id) REFERENCES shops(id)
     );
+    CREATE TABLE IF NOT EXISTS shop_availability (
+      id SERIAL PRIMARY KEY,
+      shop_id INTEGER NOT NULL,
+      day_of_week INTEGER NOT NULL,
+      start_time TEXT NOT NULL,
+      end_time TEXT NOT NULL,
+      FOREIGN KEY (shop_id) REFERENCES shops(id)
+    );
+    CREATE TABLE IF NOT EXISTS appointments (
+      id SERIAL PRIMARY KEY,
+      shop_id INTEGER NOT NULL,
+      customer_id INTEGER NOT NULL,
+      appointment_time TIMESTAMP NOT NULL,
+      status TEXT DEFAULT 'confirmed',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (shop_id) REFERENCES shops(id),
+      FOREIGN KEY (customer_id) REFERENCES customers(id)
+    );
   `);
 
   const alterStatements = [
@@ -124,6 +142,8 @@ async function initSchema() {
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS risk_threshold_days INTEGER DEFAULT 30',
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS lost_threshold_days INTEGER DEFAULT 60',
     "ALTER TABLE admin_messages ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'admin'",
+    'ALTER TABLE shops ADD COLUMN IF NOT EXISTS booking_enabled INTEGER DEFAULT 0',
+    'ALTER TABLE shops ADD COLUMN IF NOT EXISTS booking_slot_minutes INTEGER DEFAULT 30',
   ];
   for (const stmt of alterStatements) {
     try { await exec(stmt); } catch (e) {}
@@ -144,6 +164,10 @@ async function initSchema() {
     'CREATE INDEX IF NOT EXISTS idx_admin_messages_target_shop_id ON admin_messages(target_shop_id)',
     'CREATE INDEX IF NOT EXISTS idx_shops_slug ON shops(slug)',
     'CREATE INDEX IF NOT EXISTS idx_shops_email ON shops(email)',
+    'CREATE INDEX IF NOT EXISTS idx_shop_availability_shop_id ON shop_availability(shop_id)',
+    'CREATE INDEX IF NOT EXISTS idx_appointments_shop_id ON appointments(shop_id)',
+    'CREATE INDEX IF NOT EXISTS idx_appointments_customer_id ON appointments(customer_id)',
+    'CREATE INDEX IF NOT EXISTS idx_appointments_time ON appointments(shop_id, appointment_time)',
   ];
   for (const stmt of indexStatements) {
     try { await exec(stmt); } catch (e) {}

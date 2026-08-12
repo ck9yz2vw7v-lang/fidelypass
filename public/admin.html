@@ -162,6 +162,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="referral_bonus_points" value="10"></div>
       <div class="form-group"><label>⚠️ Seuil "à risque" (jours sans visite)</label><input type="number" id="risk_threshold_days" min="1" placeholder="30"></div>
       <div class="form-group"><label>🔴 Seuil "perdu" (jours sans visite)</label><input type="number" id="lost_threshold_days" min="1" placeholder="60"></div>
+      <div class="form-group" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="booking_enabled" style="width:auto"><label for="booking_enabled" style="margin:0">🗓️ Activer la prise de rendez-vous (coiffeur, institut...)</label></div>
       <div class="form-group"><label>🏪 Nombre de boutiques du gérant</label><input type="number" id="manual_shop_count" min="1" placeholder="1"><div style="font-size:11px;color:#94a3b8;margin-top:4px">Si ≥ 2, un seul abonnement Stripe facturé 24€ × ce nombre</div></div>
       <div class="form-group"><label>Couleur carte</label><input type="color" id="color" value="#b45309"></div>
       <div class="form-group form-full"><label>Récompense offerte</label><input type="text" id="reward_text" placeholder="Ex: 1 sandwich offert"></div>
@@ -227,6 +228,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>🏪 Nombre de boutiques du gérant</label><input type="number" id="edit-manual-shop-count" min="1" placeholder="1"><div style="font-size:11px;color:#94a3b8;margin-top:4px">Si ≥ 2, un seul abonnement Stripe facturé 24€ × ce nombre</div></div>
       <div class="form-group"><label>⚠️ Seuil "à risque" (jours sans visite)</label><input type="number" id="edit-risk-threshold" min="1" placeholder="30"></div>
       <div class="form-group"><label>🔴 Seuil "perdu" (jours sans visite)</label><input type="number" id="edit-lost-threshold" min="1" placeholder="60"></div>
+      <div class="form-group" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="edit-booking-enabled" style="width:auto"><label for="edit-booking-enabled" style="margin:0">🗓️ Activer la prise de rendez-vous (coiffeur, institut...)</label></div>
       <div class="form-group form-full">
         <label>📄 Ou fichier menu — image/PDF (optionnel, prioritaire sur le lien)</label>
         <input type="file" id="edit-menu-file" accept="image/png,image/jpeg,image/webp,application/pdf">
@@ -507,6 +509,7 @@ async function createShop() {
     risk_threshold_days: document.getElementById('risk_threshold_days').value || null,
     lost_threshold_days: document.getElementById('lost_threshold_days').value || null,
     manual_shop_count: document.getElementById('manual_shop_count').value || null,
+    booking_enabled: document.getElementById('booking_enabled').checked ? 1 : 0,
     color:              document.getElementById('color').value,
     reward_text:        document.getElementById('reward_text').value,
     google_review_url:  document.getElementById('google_review_url').value || null,
@@ -665,6 +668,7 @@ function resetEditModal() {
       <div class="form-group"><label>🏪 Nombre de boutiques du gérant</label><input type="number" id="edit-manual-shop-count" min="1" placeholder="1"><div style="font-size:11px;color:#94a3b8;margin-top:4px">Si ≥ 2, un seul abonnement Stripe facturé 24€ × ce nombre</div></div>
       <div class="form-group"><label>⚠️ Seuil "à risque" (jours sans visite)</label><input type="number" id="edit-risk-threshold" min="1" placeholder="30"></div>
       <div class="form-group"><label>🔴 Seuil "perdu" (jours sans visite)</label><input type="number" id="edit-lost-threshold" min="1" placeholder="60"></div>
+      <div class="form-group" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="edit-booking-enabled" style="width:auto"><label for="edit-booking-enabled" style="margin:0">🗓️ Activer la prise de rendez-vous (coiffeur, institut...)</label></div>
       <div class="form-group form-full">
         <label>📄 Ou fichier menu — image/PDF (optionnel, prioritaire sur le lien)</label>
         <input type="file" id="edit-menu-file" accept="image/png,image/jpeg,image/webp,application/pdf">
@@ -767,6 +771,7 @@ async function openEdit(shopId) {
   document.getElementById('edit-phone').value            = shop.phone || '';
   document.getElementById('edit-opening-hours').value    = shop.opening_hours || '';
   document.getElementById('edit-manual-shop-count').value = shop.manual_shop_count || '';
+  document.getElementById('edit-booking-enabled').checked = shop.booking_enabled === 1;
   document.getElementById('edit-risk-threshold').value  = shop.risk_threshold_days || '';
   document.getElementById('edit-lost-threshold').value  = shop.lost_threshold_days || '';
   document.getElementById('edit-latitude').value        = shop.latitude != null ? shop.latitude : '';
@@ -799,6 +804,7 @@ async function saveEdit() {
     phone:                 document.getElementById('edit-phone').value || null,
     opening_hours:         document.getElementById('edit-opening-hours').value || null,
     manual_shop_count:     document.getElementById('edit-manual-shop-count').value || null,
+    booking_enabled:       document.getElementById('edit-booking-enabled').checked ? 1 : 0,
     risk_threshold_days:   document.getElementById('edit-risk-threshold').value || null,
     lost_threshold_days:   document.getElementById('edit-lost-threshold').value || null,
     latitude:              document.getElementById('edit-latitude').value || null,
