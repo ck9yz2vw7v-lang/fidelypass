@@ -1007,7 +1007,7 @@ if (typeof THREE !== 'undefined') {
   }
 }
 
-/* ---------- Mini-démo : simulateur de scan ---------- */
+/* ---------- Mini-démo : simulateur de scan (automatique, façon petit GIF) ---------- */
 (function () {
   const btn = document.getElementById('demo-scan-btn');
   const bar = document.getElementById('demo-bar');
@@ -1016,10 +1016,12 @@ if (typeof THREE !== 'undefined') {
   const log = document.getElementById('demo-log');
   const reward = document.getElementById('demo-reward');
   const replayBtn = document.getElementById('demo-replay-btn');
+  const card = document.querySelector('.demo-card');
   if (!btn) return;
 
   const GOAL = 50;
   let pts = 0;
+  let autoTimer = null;
 
   function scan() {
     if (pts >= GOAL) return;
@@ -1043,14 +1045,50 @@ if (typeof THREE !== 'undefined') {
       }, 400);
     }
   }
-  btn.addEventListener('click', scan);
+
+  function resetDemo() {
+    pts = 0; ptsVal.textContent = 0; bar.style.width = '0%';
+    log.textContent = '$ en attente de scan…';
+    reward.classList.remove('show');
+    btn.disabled = false;
+  }
+
+  function stopAuto() {
+    if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+  }
+
+  function playAutoStep() {
+    if (pts < GOAL) {
+      scan();
+      autoTimer = setTimeout(playAutoStep, 900);
+    } else {
+      // Pause sur la récompense débloquée, puis relance depuis le début — comme un GIF en boucle
+      autoTimer = setTimeout(() => {
+        resetDemo();
+        autoTimer = setTimeout(playAutoStep, 700);
+      }, 3200);
+    }
+  }
+
+  // Un clic manuel coupe l'automatique (évite un double rythme bizarre) et avance d'un coup
+  btn.addEventListener('click', () => { stopAuto(); scan(); });
   if (replayBtn) {
-    replayBtn.addEventListener('click', () => {
-      pts = 0; ptsVal.textContent = 0; bar.style.width = '0%';
-      log.textContent = '$ en attente de scan…';
-      reward.classList.remove('show');
-      btn.disabled = false;
-    });
+    replayBtn.addEventListener('click', () => { stopAuto(); resetDemo(); });
+  }
+
+  // Se joue automatiquement dès que la démo apparaît à l'écran — personne n'a besoin de
+  // cliquer 5 fois pour voir la récompense se débloquer. Se met en pause hors de l'écran.
+  if (card && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          if (!autoTimer) autoTimer = setTimeout(playAutoStep, 500);
+        } else {
+          stopAuto();
+        }
+      });
+    }, { threshold: 0.5 });
+    io.observe(card);
   }
 })();
 
