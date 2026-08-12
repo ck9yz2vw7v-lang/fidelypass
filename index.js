@@ -670,7 +670,8 @@ app.get('/api/shops/:shop_id/customers', requireShopAuth, async (req, res) => {
     )
     SELECT c.*,
            EXTRACT(EPOCH FROM (NOW() - COALESCE(c.last_visit, c.created_at))) / 86400.0 as days_since_visit,
-           r.avg_gap, r.nb_gaps
+           r.avg_gap, r.nb_gaps,
+           EXISTS(SELECT 1 FROM push_subscriptions ps WHERE ps.customer_id = c.id) as has_push
     FROM customers c
     LEFT JOIN avg_rhythm r ON r.customer_id = c.id
     WHERE c.shop_id = ?
@@ -913,6 +914,43 @@ app.post('/api/shops/:id/notify', requireShopAuth, async (req, res) => {
   }
 
   res.json({ success: true, sent, failed, total: subs.length });
+});
+
+// Gérant : notification ciblée à UN client précis (pas une diffusion à tous les abonnés)
+app.post('/api/shops/:id/customers/:customerId/notify', requireShopAuth, async (req, res) => {
+  const { message } = req.body;
+  if (!message || !message.trim()) return res.status(400).json({ success: false, error: 'Message vide' });
+  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+    return res.status(500).json({ success: false, error: 'Clés VAPID non configurées côté serveur' });
+  }
+  const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+  if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
+
+  const customer = await db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(req.params.customerId, req.params.id);
+  if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable dans cette boutique' });
+
+  const subs = await db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(req.params.customerId);
+  if (!subs.length) return res.status(404).json({ success: false, error: "Ce client n'a pas activé les notifications" });
+
+  const payload = JSON.stringify({ title: shop.name, body: message.trim(), icon: shopIconUrl(shop.logo_base64, shop.id) });
+  let sent = 0, failed = 0;
+
+  for (const sub of subs) {
+    try {
+      await webpush.sendNotification(
+        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+        payload
+      );
+      sent++;
+    } catch (err) {
+      failed++;
+      if (err.statusCode === 404 || err.statusCode === 410) {
+        await db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
+      }
+    }
+  }
+
+  res.json({ success: true, sent, failed });
 });
 
 // ─────────────────────────────────────────────

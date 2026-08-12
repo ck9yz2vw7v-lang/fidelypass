@@ -534,11 +534,27 @@ function renderCustomersList(customers) {
         '<div class="customer-gauge-wrap"><div class="customer-gauge-mask" style="width:' + maskWidth + '%"></div></div>' +
       '</div>' +
       '<div class="customer-points" id="pts-display-' + c.id + '">' + c.points + ' pts</div>' +
+      '<button class="btn-edit-pts" onclick="' + (c.has_push ? 'openNotifyCustomer(' + c.id + ', \'' + c.name.replace(/'/g, "\\'") + '\')' : 'alert(\'' + c.name.replace(/'/g, "\\'") + " n'a pas activé les notifications\')") + '" style="background:' + (c.has_push ? '#fef3c7;color:#b45309' : '#f3f4f6;color:#cbd5e1') + ';margin-left:6px" title="' + (c.has_push ? 'Envoyer une notification à ce client' : "Ce client n'a pas activé les notifications") + '">🔔</button>' +
       '<button class="btn-edit-pts" onclick="window.open(\'/card/' + c.id + '\',\'_blank\')" style="background:#6B21A8;color:white;margin-left:6px">📱</button>' +
       '<button class="btn-edit-pts" onclick="editPoints(' + c.id + ', ' + c.points + ')">✏️</button>' +
       '<button class="btn-edit-pts" onclick="deleteCustomer(' + c.id + ')" style="background:#fee2e2;color:#dc2626">🗑️</button>' +
     '</div>';
   }).join('');
+}
+
+function openNotifyCustomer(customerId, customerName) {
+  const message = prompt('Message à envoyer à ' + customerName + ' :');
+  if (!message || !message.trim()) return;
+  fetch('/api/shops/' + currentShop.id + '/customers/' + customerId + '/notify', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ message: message.trim() })
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success && data.sent > 0) alert('✅ Notification envoyée à ' + customerName);
+      else alert('❌ ' + (data.error || "Échec de l'envoi"));
+    })
+    .catch(() => alert("❌ Erreur lors de l'envoi"));
 }
 
 function filterCustomers() {
