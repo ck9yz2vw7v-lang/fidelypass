@@ -362,7 +362,7 @@ async function createApplePassBuffer(customer) {
         { key: 'goal', label: goalHeaderLabel, value: effectiveGoal + ' pts' }
       ],
       primaryFields: [
-        { key: 'points', label: 'POINTS', value: customer.points + ' / ' + effectiveGoal }
+        { key: 'points', label: 'POINTS', value: customer.points + ' sur ' + effectiveGoal }
       ],
       secondaryFields: [
         { key: 'name', label: 'CLIENT', value: customer.name }
