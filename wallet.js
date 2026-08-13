@@ -166,17 +166,25 @@ function generateStripPng(hex, width, height) {
   const { r, g, b } = hexToRgbParts(hex);
   const png = new PNG({ width, height });
   for (let y = 0; y < height; y++) {
-    const t = y / height; // 0 (haut) -> 1 (bas)
-    const verticalFactor = 1 + (1 - t) * 0.22;
     for (let x = 0; x < width; x++) {
-      const dx = x / width;
-      const dy = y / height;
-      const dist = Math.sqrt(dx * dx * 0.6 + dy * dy * 0.25);
-      const highlight = Math.max(0, 1 - dist * 1.3) * 0.16;
-      const factor = verticalFactor + highlight;
-      const rr = Math.min(255, Math.round(r * factor));
-      const gg = Math.min(255, Math.round(g * factor));
-      const bb = Math.min(255, Math.round(b * factor));
+      // Dégradé diagonal (plus marqué qu'un simple dégradé vertical)
+      const diag = (x / width) * 0.5 + (1 - y / height) * 0.5;
+      const factor = 0.82 + diag * 0.42;
+
+      // Motif discret : fines diagonales façon "tissu" en filigrane
+      const stripe = ((x - y) % 26 + 26) % 26;
+      const stripeBoost = stripe < 2 ? 0.05 : 0;
+
+      // Halo doux en haut à droite pour donner de la profondeur
+      const dx = (x - width * 0.85) / width;
+      const dy = (y - height * 0.15) / height;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const glow = Math.max(0, 1 - dist * 1.8) * 0.22;
+
+      const f = factor + stripeBoost + glow;
+      const rr = Math.min(255, Math.round(r * f));
+      const gg = Math.min(255, Math.round(g * f));
+      const bb = Math.min(255, Math.round(b * f));
       const idx = (width * y + x) << 2;
       png.data[idx] = rr;
       png.data[idx + 1] = gg;
