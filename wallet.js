@@ -91,6 +91,8 @@ async function createWalletPass(customer) {
   const textModulesData = [
     { id: 'reward', header: rewardLabel, body: effectiveReward },
     { id: 'remaining', header: 'Restant', body: remaining + ' pts' },
+    { id: 'progress', header: 'Progression', body: progressBarText(customer.points, effectiveGoal) },
+    { id: 'info', header: 'Comment ça marche', body: 'Montrez cette carte à chaque achat pour cumuler des points et débloquer votre récompense.' },
   ];
   const tiersText = tiersSummaryText(customer);
   if (tiersText) {
@@ -122,6 +124,14 @@ async function createWalletPass(customer) {
     },
   };
   if (linksModuleData.uris.length) loyaltyObject.linksModuleData = linksModuleData;
+
+  // Apparition automatique sur l'écran verrouillé à proximité de la boutique (équivalent Apple)
+  if (customer.latitude != null && customer.longitude != null) {
+    loyaltyObject.locations = [{
+      latitude: customer.latitude,
+      longitude: customer.longitude,
+    }];
+  }
 
   try {
     await google.walletobjects('v1').loyaltyobject.get({ resourceId: objectId });
