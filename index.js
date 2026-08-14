@@ -1334,6 +1334,8 @@ app.get('/api/customers/:id/appointments', async (req, res) => {
 });
 
 app.get('/card/:id', async (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  res.set('Pragma', 'no-cache');
   const id = req.params.id;
   const ua = req.headers['user-agent'] || '';
   const isAndroid = /Android/i.test(ua);
