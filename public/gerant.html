@@ -259,6 +259,18 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
       </div>
     </div>
 
+    <div class="add-client-card" id="staff-edit-card" style="display:none">
+      <div class="add-client-title">✏️ Modifier <span id="edit-staff-name-label"></span></div>
+      <input class="input" type="text" id="edit-staff-name" placeholder="Nom">
+      <input class="input" type="text" id="edit-staff-specialty" placeholder="Spécialité (optionnel)">
+      <div style="font-size:11.5px;color:#94a3b8;margin-bottom:8px">Laissez le champ photo vide pour garder la photo actuelle.</div>
+      <input type="file" id="edit-staff-photo" accept="image/*" style="margin-bottom:10px">
+      <div class="add-row">
+        <button class="btn-add" style="flex:1" onclick="saveStaffEdit()">Enregistrer</button>
+        <button class="btn-back" onclick="document.getElementById('staff-edit-card').style.display='none'">Annuler</button>
+      </div>
+    </div>
+
     <div class="add-client-card" id="staff-planning-card" style="display:none">
       <div class="add-client-title">🗓️ Planning de <span id="planning-staff-name"></span></div>
       <div id="staff-availability-list" style="margin-bottom:12px"></div>
@@ -606,9 +618,14 @@ async function loadStaff() {
         ? '<img class="staff-avatar-sm" src="' + s.photo_base64 + '">'
         : '<div class="staff-avatar-sm-placeholder">' + s.name.slice(0,2).toUpperCase() + '</div>';
       const sub = s.specialty ? s.specialty : 'Touchez pour définir son planning';
-      return '<div class="list-row" style="cursor:pointer" onclick="openStaffPlanning(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')">' +
+      const safeName = s.name.replace(/'/g, "\\'");
+      const safeSpecialty = (s.specialty || '').replace(/'/g, "\\'");
+      return '<div class="list-row" style="cursor:pointer" onclick="openStaffPlanning(' + s.id + ', \'' + safeName + '\')">' +
         '<div class="list-row-left">' + avatar + '<div><div class="list-name">' + s.name + '</div><div class="list-sub">' + sub + '</div></div></div>' +
-        '<button class="btn-back" onclick="event.stopPropagation(); deleteStaffMember(' + s.id + ')">Retirer</button></div>';
+        '<div class="list-row-actions">' +
+        '<button class="btn-back" onclick="event.stopPropagation(); openStaffEdit(' + s.id + ', \'' + safeName + '\', \'' + safeSpecialty + '\')">✏️</button>' +
+        '<button class="btn-back" onclick="event.stopPropagation(); deleteStaffMember(' + s.id + ')">Retirer</button>' +
+        '</div></div>';
     }).join('');
   }
   populateStaffSelects(rows);
@@ -632,10 +649,43 @@ async function addStaffMember() {
   loadStaff();
 }
 
+let currentEditStaffId = null;
+
+function openStaffEdit(staffId, name, specialty) {
+  currentEditStaffId = staffId;
+  document.getElementById('staff-planning-card').style.display = 'none';
+  document.getElementById('edit-staff-name-label').textContent = name;
+  document.getElementById('edit-staff-name').value = name;
+  document.getElementById('edit-staff-specialty').value = specialty || '';
+  document.getElementById('edit-staff-photo').value = '';
+  document.getElementById('staff-edit-card').style.display = 'block';
+  document.getElementById('staff-edit-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function saveStaffEdit() {
+  const name = document.getElementById('edit-staff-name').value.trim();
+  const specialty = document.getElementById('edit-staff-specialty').value.trim();
+  const photoFile = document.getElementById('edit-staff-photo').files[0];
+  if (!name) { alert('Le nom est requis.'); return; }
+  const body = { name, specialty };
+  if (photoFile) {
+    body.photo_base64 = await fileToBase64(photoFile);
+  }
+  const res = await fetch('/api/shops/' + currentShop.id + '/staff/' + currentEditStaffId, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!data.success) { alert(data.error || 'Erreur'); return; }
+  document.getElementById('staff-edit-card').style.display = 'none';
+  loadStaff();
+}
+
 async function deleteStaffMember(id) {
   if (!confirm('Retirer ce membre de l\'équipe ? Son planning sera aussi supprimé.')) return;
   await fetch('/api/shops/' + currentShop.id + '/staff/' + id, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
   if (currentPlanningStaffId === id) document.getElementById('staff-planning-card').style.display = 'none';
+  if (currentEditStaffId === id) document.getElementById('staff-edit-card').style.display = 'none';
   loadStaff();
 }
 
