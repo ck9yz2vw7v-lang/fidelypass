@@ -118,6 +118,32 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .link-modal-close{width:100%;padding:12px;border-radius:12px;background:#f3f4f6;color:#6b7280;font-size:14px;font-weight:600;border:none;cursor:pointer}
 .search-input{width:100%;padding:12px 14px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;margin-bottom:14px;outline:none}
 .search-input:focus{border-color:#3b82f6}
+.rdv-tabs{display:flex;gap:6px;background:white;border-radius:14px;padding:5px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.06);position:sticky;top:70px;z-index:5}
+.rdv-tab-btn{flex:1;padding:10px 2px;border:none;background:none;border-radius:10px;font-size:11.5px;font-weight:700;color:#9ca3af;cursor:pointer;text-align:center;white-space:nowrap}
+.rdv-tab-btn.active{background:#0369A1;color:white}
+.rdv-tab-content{display:none}
+.rdv-tab-content.active{display:block}
+.rdv-tab-content .add-client-card{margin-bottom:16px}
+.list-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid #f1f1f1}
+.list-row:last-child{border-bottom:none}
+.list-name{font-size:14px;font-weight:700;color:#1a1a1a}
+.list-sub{font-size:12px;color:#9ca3af;margin-top:2px}
+.list-row-left{display:flex;align-items:center;gap:10px;min-width:0}
+.list-row-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.staff-avatar-sm{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.staff-avatar-sm-placeholder{width:38px;height:38px;border-radius:50%;background:#0369A1;color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.status-pill{font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.status-pill.confirmed{background:#dbeafe;color:#1d4ed8}
+.status-pill.completed{background:#dcfce7;color:#16a34a}
+.status-pill.no_show{background:#fee2e2;color:#dc2626}
+.status-pill.cancelled{background:#f3f4f6;color:#9ca3af}
+.agenda-day-header{font-size:12px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin:16px 0 8px;padding-top:10px;border-top:1px solid #f1f1f1}
+.agenda-day-header:first-child{margin-top:0;border-top:none;padding-top:0}
+.btn-tiny{padding:6px 10px;border-radius:8px;font-size:11px;font-weight:700;border:none;cursor:pointer;white-space:nowrap}
+.btn-tiny.ok{background:#dcfce7;color:#16a34a}
+.btn-tiny.no{background:#fee2e2;color:#dc2626}
+.manual-customer-row{padding:10px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a1a;border-bottom:1px solid #f1f1f1}
+.manual-customer-row:hover{background:#f8fafc}
 </style>
 </head>
 <body>
@@ -195,68 +221,124 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
     <button class="btn-back" onclick="showScreen('scan')">← Retour</button>
   </div>
 
-  <div class="add-client-card">
-    <div class="add-client-title">✂️ Mes prestations</div>
-    <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Fixées par votre conseiller FidélyPass. Besoin d'un changement ? Contactez-le directement.</div>
-    <div id="services-list"></div>
+  <div class="rdv-tabs">
+    <button class="rdv-tab-btn active" id="rdv-tab-btn-services" onclick="showRdvTab('services')">✂️ Prestations</button>
+    <button class="rdv-tab-btn" id="rdv-tab-btn-team" onclick="showRdvTab('team')">👥 Équipe</button>
+    <button class="rdv-tab-btn" id="rdv-tab-btn-appts" onclick="showRdvTab('appts')">📋 RDV</button>
+    <button class="rdv-tab-btn" id="rdv-tab-btn-settings" onclick="showRdvTab('settings')">⚙️ Réglages</button>
   </div>
 
-  <div class="add-client-card">
-    <div class="add-client-title">👥 Mon équipe</div>
-    <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Ajoutez chaque coiffeur/coiffeuse, puis touchez son nom pour définir ses jours de présence.</div>
-    <div id="staff-list" style="margin-bottom:12px"></div>
-    <div class="add-row">
-      <input class="input" type="text" id="new-staff-name" placeholder="Ex : Julie" style="flex:1">
-      <button class="btn-add" onclick="addStaffMember()">Ajouter</button>
+  <!-- TAB PRESTATIONS -->
+  <div class="rdv-tab-content active" id="rdv-tab-services">
+    <div class="add-client-card">
+      <div class="add-client-title">✂️ Mes prestations</div>
+      <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Nom, durée et prix — visibles par vos clients au moment de réserver.</div>
+      <div id="services-list"></div>
+      <div class="add-row" style="flex-wrap:wrap;gap:8px;margin-top:12px">
+        <input class="input" type="text" id="new-service-name" placeholder="Ex : Coupe homme" style="flex:2;min-width:120px;margin-bottom:0">
+        <input class="input" type="number" id="new-service-duration" placeholder="Durée (min)" min="5" style="flex:1;min-width:90px;margin-bottom:0">
+        <input class="input" type="number" id="new-service-price" placeholder="Prix (optionnel)" min="0" step="0.01" style="flex:1;min-width:90px;margin-bottom:0">
+      </div>
+      <button class="btn-add" style="width:100%;margin-top:8px" onclick="addService()">Ajouter la prestation</button>
     </div>
   </div>
 
-  <div class="add-client-card" id="staff-planning-card" style="display:none">
-    <div class="add-client-title">🗓️ Planning de <span id="planning-staff-name"></span></div>
-    <div id="staff-availability-list" style="margin-bottom:12px"></div>
-    <div class="add-row" style="flex-wrap:wrap;gap:8px">
-      <select class="input" id="staff-avail-day" style="flex:1;min-width:110px">
-        <option value="1">Lundi</option>
-        <option value="2">Mardi</option>
-        <option value="3">Mercredi</option>
-        <option value="4">Jeudi</option>
-        <option value="5">Vendredi</option>
-        <option value="6">Samedi</option>
-        <option value="0">Dimanche</option>
-      </select>
-      <input class="input" type="time" id="staff-avail-start" value="09:00" style="flex:1;min-width:90px">
-      <input class="input" type="time" id="staff-avail-end" value="18:00" style="flex:1;min-width:90px">
+  <!-- TAB EQUIPE -->
+  <div class="rdv-tab-content" id="rdv-tab-team">
+    <div class="add-client-card">
+      <div class="add-client-title">👥 Mon équipe</div>
+      <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Ajoutez chaque coiffeur/coiffeuse (photo et spécialité optionnelles), puis touchez son nom pour définir ses jours de présence.</div>
+      <div id="staff-list" style="margin-bottom:12px"></div>
+      <div class="add-row" style="flex-wrap:wrap;gap:8px">
+        <input class="input" type="text" id="new-staff-name" placeholder="Ex : Julie" style="flex:1;min-width:110px;margin-bottom:0">
+        <input class="input" type="text" id="new-staff-specialty" placeholder="Spécialité (optionnel)" style="flex:1;min-width:110px;margin-bottom:0">
+      </div>
+      <div class="add-row" style="margin-top:8px;align-items:center">
+        <input type="file" id="new-staff-photo" accept="image/*" style="flex:1;font-size:12px">
+        <button class="btn-add" onclick="addStaffMember()">Ajouter</button>
+      </div>
     </div>
-    <button class="btn-add" style="width:100%;margin-top:8px" onclick="addStaffAvailability()">Ajouter ce créneau</button>
+
+    <div class="add-client-card" id="staff-planning-card" style="display:none">
+      <div class="add-client-title">🗓️ Planning de <span id="planning-staff-name"></span></div>
+      <div id="staff-availability-list" style="margin-bottom:12px"></div>
+      <div class="add-row" style="flex-wrap:wrap;gap:8px">
+        <select class="input" id="staff-avail-day" style="flex:1;min-width:110px">
+          <option value="1">Lundi</option>
+          <option value="2">Mardi</option>
+          <option value="3">Mercredi</option>
+          <option value="4">Jeudi</option>
+          <option value="5">Vendredi</option>
+          <option value="6">Samedi</option>
+          <option value="0">Dimanche</option>
+        </select>
+        <input class="input" type="time" id="staff-avail-start" value="09:00" style="flex:1;min-width:90px">
+        <input class="input" type="time" id="staff-avail-end" value="18:00" style="flex:1;min-width:90px">
+      </div>
+      <button class="btn-add" style="width:100%;margin-top:8px" onclick="addStaffAvailability()">Ajouter ce créneau</button>
+    </div>
   </div>
 
-  <div class="add-client-card">
-    <div class="add-client-title">🗓️ Créneaux généraux de la boutique</div>
-    <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Utilisés uniquement si aucun coiffeur n'est configuré ci-dessus.</div>
-    <div id="availability-list" style="margin-bottom:12px"></div>
-    <div class="add-row" style="flex-wrap:wrap;gap:8px">
-      <select class="input" id="avail-day" style="flex:1;min-width:110px">
-        <option value="1">Lundi</option>
-        <option value="2">Mardi</option>
-        <option value="3">Mercredi</option>
-        <option value="4">Jeudi</option>
-        <option value="5">Vendredi</option>
-        <option value="6">Samedi</option>
-        <option value="0">Dimanche</option>
-      </select>
-      <input class="input" type="time" id="avail-start" value="09:00" style="flex:1;min-width:90px">
-      <input class="input" type="time" id="avail-end" value="18:00" style="flex:1;min-width:90px">
+  <!-- TAB RENDEZ-VOUS -->
+  <div class="rdv-tab-content" id="rdv-tab-appts">
+    <div class="add-client-card">
+      <div class="add-client-title">➕ Nouveau rendez-vous</div>
+      <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Pour un client qui vous appelle plutôt que de réserver depuis sa carte.</div>
+      <input class="search-input" type="text" id="manual-customer-search" placeholder="🔍 Chercher un client…" oninput="filterManualCustomers()" style="margin-bottom:8px">
+      <div id="manual-customer-results" style="max-height:160px;overflow-y:auto;margin-bottom:10px"></div>
+      <div id="manual-customer-selected" style="display:none;background:#eff6ff;border-radius:10px;padding:10px;margin-bottom:10px;font-size:13px;font-weight:700;color:#1d4ed8"></div>
+      <select class="input" id="manual-service"><option value="">Prestation (optionnel)</option></select>
+      <select class="input" id="manual-staff"><option value="">Coiffeur (optionnel)</option></select>
+      <input class="input" type="datetime-local" id="manual-datetime">
+      <button class="btn-add" style="width:100%" onclick="createManualAppointment()">Créer le rendez-vous</button>
     </div>
-    <button class="btn-add" style="width:100%;margin-top:8px" onclick="addAvailability()">Ajouter ce créneau</button>
-    <div style="font-size:11.5px;color:#94a3b8;margin-top:8px">Durée par défaut (si aucune prestation n'est configurée) : <input type="number" id="slot-minutes" value="30" min="5" style="width:50px;padding:4px;border-radius:6px;border:1px solid #e2e8f0"> min <button class="btn-back" style="padding:4px 10px;margin-left:6px" onclick="saveSlotMinutes()">Enregistrer</button></div>
+
+    <div class="add-client-card">
+      <div class="list-header" style="margin-bottom:8px">
+        <div class="add-client-title" style="margin:0">📋 Rendez-vous</div>
+        <button class="btn-back" id="agenda-toggle-btn" onclick="toggleAgendaView()">Vue semaine</button>
+      </div>
+      <div id="appointments-list"><div class="empty-list">Chargement…</div></div>
+    </div>
   </div>
 
-  <div class="add-client-card">
-    <div class="add-client-title">📋 Rendez-vous à venir</div>
-    <div id="appointments-list"><div class="empty-list">Chargement…</div></div>
+  <!-- TAB REGLAGES -->
+  <div class="rdv-tab-content" id="rdv-tab-settings">
+    <div class="add-client-card">
+      <div class="add-client-title">🗓️ Créneaux généraux de la boutique</div>
+      <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Utilisés uniquement si aucun coiffeur n'est configuré.</div>
+      <div id="availability-list" style="margin-bottom:12px"></div>
+      <div class="add-row" style="flex-wrap:wrap;gap:8px">
+        <select class="input" id="avail-day" style="flex:1;min-width:110px">
+          <option value="1">Lundi</option>
+          <option value="2">Mardi</option>
+          <option value="3">Mercredi</option>
+          <option value="4">Jeudi</option>
+          <option value="5">Vendredi</option>
+          <option value="6">Samedi</option>
+          <option value="0">Dimanche</option>
+        </select>
+        <input class="input" type="time" id="avail-start" value="09:00" style="flex:1;min-width:90px">
+        <input class="input" type="time" id="avail-end" value="18:00" style="flex:1;min-width:90px">
+      </div>
+      <button class="btn-add" style="width:100%;margin-top:8px" onclick="addAvailability()">Ajouter ce créneau</button>
+      <div style="font-size:11.5px;color:#94a3b8;margin-top:8px">Durée par défaut (si aucune prestation n'est configurée) : <input type="number" id="slot-minutes" value="30" min="5" style="width:50px;padding:4px;border-radius:6px;border:1px solid #e2e8f0"> min <button class="btn-back" style="padding:4px 10px;margin-left:6px" onclick="saveSlotMinutes()">Enregistrer</button></div>
+    </div>
 
+    <div class="add-client-card">
+      <div class="add-client-title">🚫 Fermetures ponctuelles</div>
+      <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Vacances, jour férié… Laissez "Toute la boutique" ou ciblez un coiffeur précis.</div>
+      <div id="closures-list" style="margin-bottom:12px"></div>
+      <div class="add-row" style="flex-wrap:wrap;gap:8px">
+        <input class="input" type="date" id="new-closure-date" style="flex:1;min-width:130px;margin-bottom:0">
+        <select class="input" id="new-closure-staff" style="flex:1;min-width:130px;margin-bottom:0"><option value="">Toute la boutique</option></select>
+      </div>
+      <input class="input" type="text" id="new-closure-reason" placeholder="Raison (optionnel)" style="margin-top:8px">
+      <button class="btn-add" style="width:100%;margin-top:8px" onclick="addClosure()">Ajouter cette fermeture</button>
+    </div>
   </div>
 </div>
+
 
 <!-- LINK MODAL -->
 <div class="link-modal-overlay" id="link-modal-overlay">
@@ -400,54 +482,153 @@ function showScreen(id) {
 
 const DOW_NAMES_FR = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 
+let bookingServicesCache = [];
+let bookingStaffCache = [];
+let bookingCustomersCache = [];
+let selectedManualCustomerId = null;
+let agendaWeekMode = false;
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    if (!file) { resolve(null); return; }
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function showRdvTab(tab) {
+  ['services','team','appts','settings'].forEach(t => {
+    document.getElementById('rdv-tab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('rdv-tab-btn-' + t).classList.toggle('active', t === tab);
+  });
+}
+
 function showBookingScreen() {
   showScreen('booking');
+  showRdvTab('services');
+  agendaWeekMode = false;
+  document.getElementById('agenda-toggle-btn').textContent = 'Vue semaine';
   loadServices();
   loadStaff();
   loadAvailability();
+  loadClosures();
   loadAppointments();
+  loadManualCustomersCache();
   fetch('/api/shops/' + currentShop.id + '/appointments/mark-seen', { method: 'POST', headers: { 'x-shop-token': shopToken } });
   document.getElementById('booking-badge').style.display = 'none';
 }
 
+// ── Prestations ──
 async function loadServices() {
   const res = await fetch('/api/shops/' + currentShop.id + '/services', { headers: { 'x-shop-token': shopToken } });
   const rows = await res.json();
+  bookingServicesCache = rows;
   const el = document.getElementById('services-list');
   if (!rows.length) {
-    el.innerHTML = '<div class="empty-list">Aucune prestation configurée pour l\'instant — contactez votre conseiller FidélyPass.</div>';
-    return;
+    el.innerHTML = '<div class="empty-list">Aucune prestation configurée pour l\'instant.</div>';
+  } else {
+    el.innerHTML = rows.map(s =>
+      '<div class="list-row"><div><div class="list-name">' + s.name + '</div><div class="list-sub">' + s.duration_minutes + ' min' + (s.price ? ' · ' + s.price + '€' : '') + '</div></div>' +
+      '<div class="list-row-actions"><button class="btn-back" onclick="editServicePrompt(' + s.id + ')">✏️</button><button class="btn-back" onclick="deleteService(' + s.id + ')">Retirer</button></div></div>'
+    ).join('');
   }
-  el.innerHTML = rows.map(s =>
-    '<div class="list-row"><div><div class="list-name">' + s.name + '</div><div class="list-sub">' + s.duration_minutes + ' min' + (s.price ? ' · ' + s.price + '€' : '') + '</div></div></div>'
-  ).join('');
+  const sel = document.getElementById('manual-service');
+  if (sel) sel.innerHTML = '<option value="">Prestation (optionnel)</option>' + rows.map(s => '<option value="' + s.id + '">' + s.name + ' (' + s.duration_minutes + ' min)</option>').join('');
 }
 
+async function addService() {
+  const name = document.getElementById('new-service-name').value.trim();
+  const duration_minutes = document.getElementById('new-service-duration').value;
+  const price = document.getElementById('new-service-price').value;
+  if (!name || !duration_minutes) { alert('Nom et durée requis.'); return; }
+  const res = await fetch('/api/shops/' + currentShop.id + '/services', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ name, duration_minutes, price })
+  });
+  const data = await res.json();
+  if (!data.success) { alert(data.error || 'Erreur'); return; }
+  document.getElementById('new-service-name').value = '';
+  document.getElementById('new-service-duration').value = '';
+  document.getElementById('new-service-price').value = '';
+  loadServices();
+}
+
+function editServicePrompt(id) {
+  const s = bookingServicesCache.find(x => x.id === id);
+  if (!s) return;
+  const name = prompt('Nom de la prestation', s.name);
+  if (name === null || !name.trim()) return;
+  const duration_minutes = prompt('Durée (minutes)', s.duration_minutes);
+  if (duration_minutes === null) return;
+  const price = prompt('Prix (laisser vide si aucun)', s.price != null ? s.price : '');
+  if (price === null) return;
+  updateService(id, name.trim(), duration_minutes, price);
+}
+
+async function updateService(id, name, duration_minutes, price) {
+  const res = await fetch('/api/shops/' + currentShop.id + '/services/' + id, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ name, duration_minutes, price })
+  });
+  const data = await res.json();
+  if (!data.success) { alert(data.error || 'Erreur'); return; }
+  loadServices();
+}
+
+async function deleteService(id) {
+  if (!confirm('Retirer cette prestation ?')) return;
+  await fetch('/api/shops/' + currentShop.id + '/services/' + id, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
+  loadServices();
+}
+
+// ── Équipe ──
 let currentPlanningStaffId = null;
+
+function populateStaffSelects(rows) {
+  const manualSel = document.getElementById('manual-staff');
+  if (manualSel) manualSel.innerHTML = '<option value="">Coiffeur (optionnel)</option>' + rows.map(s => '<option value="' + s.id + '">' + s.name + '</option>').join('');
+  const closureSel = document.getElementById('new-closure-staff');
+  if (closureSel) closureSel.innerHTML = '<option value="">Toute la boutique</option>' + rows.map(s => '<option value="' + s.id + '">' + s.name + '</option>').join('');
+}
 
 async function loadStaff() {
   const res = await fetch('/api/shops/' + currentShop.id + '/staff', { headers: { 'x-shop-token': shopToken } });
   const rows = await res.json();
+  bookingStaffCache = rows;
   const el = document.getElementById('staff-list');
   if (!rows.length) {
     el.innerHTML = '<div class="empty-list">Aucun coiffeur ajouté pour l\'instant</div>';
-    return;
+  } else {
+    el.innerHTML = rows.map(s => {
+      const avatar = s.photo_base64
+        ? '<img class="staff-avatar-sm" src="' + s.photo_base64 + '">'
+        : '<div class="staff-avatar-sm-placeholder">' + s.name.slice(0,2).toUpperCase() + '</div>';
+      const sub = s.specialty ? s.specialty : 'Touchez pour définir son planning';
+      return '<div class="list-row" style="cursor:pointer" onclick="openStaffPlanning(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')">' +
+        '<div class="list-row-left">' + avatar + '<div><div class="list-name">' + s.name + '</div><div class="list-sub">' + sub + '</div></div></div>' +
+        '<button class="btn-back" onclick="event.stopPropagation(); deleteStaffMember(' + s.id + ')">Retirer</button></div>';
+    }).join('');
   }
-  el.innerHTML = rows.map(s =>
-    '<div class="list-row" style="cursor:pointer" onclick="openStaffPlanning(' + s.id + ', \'' + s.name.replace(/'/g, "\\'") + '\')"><div><div class="list-name">👤 ' + s.name + '</div><div class="list-sub">Touchez pour définir son planning</div></div><button class="btn-back" onclick="event.stopPropagation(); deleteStaffMember(' + s.id + ')">Retirer</button></div>'
-  ).join('');
+  populateStaffSelects(rows);
 }
 
 async function addStaffMember() {
   const name = document.getElementById('new-staff-name').value.trim();
+  const specialty = document.getElementById('new-staff-specialty').value.trim();
+  const photoFile = document.getElementById('new-staff-photo').files[0];
   if (!name) { alert('Le nom est requis.'); return; }
+  const photo_base64 = await fileToBase64(photoFile);
   const res = await fetch('/api/shops/' + currentShop.id + '/staff', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
-    body: JSON.stringify({ name })
+    body: JSON.stringify({ name, specialty, photo_base64 })
   });
   const data = await res.json();
   if (!data.success) { alert(data.error || 'Erreur'); return; }
   document.getElementById('new-staff-name').value = '';
+  document.getElementById('new-staff-specialty').value = '';
+  document.getElementById('new-staff-photo').value = '';
   loadStaff();
 }
 
@@ -505,6 +686,7 @@ async function checkUnseenAppointments() {
   else { badge.style.display = 'none'; }
 }
 
+// ── Réglages : créneaux généraux + fermetures ponctuelles ──
 async function loadAvailability() {
   const res = await fetch('/api/shops/' + currentShop.id + '/availability', { headers: { 'x-shop-token': shopToken } });
   const rows = await res.json();
@@ -543,6 +725,65 @@ async function saveSlotMinutes() {
   });
 }
 
+async function loadClosures() {
+  const res = await fetch('/api/shops/' + currentShop.id + '/closures', { headers: { 'x-shop-token': shopToken } });
+  const rows = await res.json();
+  const el = document.getElementById('closures-list');
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty-list">Aucune fermeture prévue</div>';
+    return;
+  }
+  el.innerHTML = rows.map(c => {
+    const d = new Date(c.closure_date);
+    const dateStr = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+    const who = c.staff_name ? c.staff_name : 'Toute la boutique';
+    const reason = c.reason ? ' · ' + c.reason : '';
+    return '<div class="list-row"><div><div class="list-name">' + dateStr + '</div><div class="list-sub">' + who + reason + '</div></div><button class="btn-back" onclick="deleteClosure(' + c.id + ')">Retirer</button></div>';
+  }).join('');
+}
+
+async function addClosure() {
+  const closure_date = document.getElementById('new-closure-date').value;
+  const staff_id = document.getElementById('new-closure-staff').value;
+  const reason = document.getElementById('new-closure-reason').value.trim();
+  if (!closure_date) { alert('Choisissez une date.'); return; }
+  await fetch('/api/shops/' + currentShop.id + '/closures', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ closure_date, staff_id: staff_id || null, reason })
+  });
+  document.getElementById('new-closure-date').value = '';
+  document.getElementById('new-closure-reason').value = '';
+  loadClosures();
+}
+
+async function deleteClosure(id) {
+  await fetch('/api/shops/' + currentShop.id + '/closures/' + id, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
+  loadClosures();
+}
+
+// ── Rendez-vous : liste, agenda semaine, statuts, création manuelle ──
+function renderApptRow(r) {
+  const d = new Date(r.appointment_time);
+  const dateStr = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const timeStr = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const serviceLabel = r.service_name ? ' · ' + r.service_name : '';
+  const staffLabel = r.staff_name ? ' · avec ' + r.staff_name : '';
+  const manualLabel = r.is_manual === 1 ? ' · ajouté par vous' : '';
+  const isPast = d.getTime() < Date.now();
+  const statusLabels = { confirmed: 'Confirmé', completed: 'Honoré', no_show: 'Absent', cancelled: 'Annulé' };
+  const pill = '<span class="status-pill ' + r.status + '">' + (statusLabels[r.status] || r.status) + '</span>';
+  let actions = '';
+  if (r.status === 'confirmed' && isPast) {
+    actions = '<button class="btn-tiny ok" onclick="markApptStatus(' + r.id + ', \'completed\')">✓ Honoré</button>' +
+      '<button class="btn-tiny no" onclick="markApptStatus(' + r.id + ', \'no_show\')">✕ Absent</button>';
+  } else if (r.status === 'confirmed') {
+    actions = '<button class="btn-back" onclick="cancelAppointment(' + r.id + ')">Annuler</button>';
+  }
+  return '<div class="list-row"><div><div class="list-name">' + r.customer_name + serviceLabel + '</div>' +
+    '<div class="list-sub">' + dateStr + ' à ' + timeStr + staffLabel + manualLabel + '</div></div>' +
+    '<div class="list-row-actions">' + pill + actions + '</div></div>';
+}
+
 async function loadAppointments() {
   const res = await fetch('/api/shops/' + currentShop.id + '/appointments', { headers: { 'x-shop-token': shopToken } });
   const rows = await res.json();
@@ -551,20 +792,99 @@ async function loadAppointments() {
     el.innerHTML = '<div class="empty-list">Aucun rendez-vous à venir</div>';
     return;
   }
-  el.innerHTML = rows.map(r => {
+  el.innerHTML = rows.map(renderApptRow).join('');
+}
+
+async function loadAppointmentsWeek() {
+  const el = document.getElementById('appointments-list');
+  el.innerHTML = '<div class="empty-list">Chargement…</div>';
+  const from = new Date();
+  from.setHours(0, 0, 0, 0);
+  const to = new Date(from.getTime() + 7 * 86400000);
+  const url = '/api/shops/' + currentShop.id + '/appointments?from=' + from.toISOString() + '&to=' + to.toISOString() + '&all_status=1';
+  const res = await fetch(url, { headers: { 'x-shop-token': shopToken } });
+  const rows = await res.json();
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty-list">Aucun rendez-vous cette semaine</div>';
+    return;
+  }
+  let html = '';
+  let lastDate = null;
+  rows.forEach(r => {
     const d = new Date(r.appointment_time);
-    const dateStr = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-    const timeStr = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    const serviceLabel = r.service_name ? ' · ' + r.service_name : '';
-    const staffLabel = r.staff_name ? ' · avec ' + r.staff_name : '';
-    return '<div class="list-row"><div><div class="list-name">' + r.customer_name + serviceLabel + '</div><div class="list-sub">' + dateStr + ' à ' + timeStr + staffLabel + '</div></div><button class="btn-back" onclick="cancelAppointment(' + r.id + ')">Annuler</button></div>';
-  }).join('');
+    const dateKey = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    if (dateKey !== lastDate) {
+      html += '<div class="agenda-day-header">' + dateKey + '</div>';
+      lastDate = dateKey;
+    }
+    html += renderApptRow(r);
+  });
+  el.innerHTML = html;
+}
+
+function toggleAgendaView() {
+  agendaWeekMode = !agendaWeekMode;
+  document.getElementById('agenda-toggle-btn').textContent = agendaWeekMode ? 'Vue à venir' : 'Vue semaine';
+  if (agendaWeekMode) loadAppointmentsWeek(); else loadAppointments();
+}
+
+async function markApptStatus(id, status) {
+  await fetch('/api/shops/' + currentShop.id + '/appointments/' + id + '/status', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ status })
+  });
+  if (agendaWeekMode) loadAppointmentsWeek(); else loadAppointments();
 }
 
 async function cancelAppointment(id) {
   if (!confirm('Annuler ce rendez-vous ?')) return;
   await fetch('/api/shops/' + currentShop.id + '/appointments/' + id + '/cancel', { method: 'POST', headers: { 'x-shop-token': shopToken } });
-  loadAppointments();
+  if (agendaWeekMode) loadAppointmentsWeek(); else loadAppointments();
+}
+
+async function loadManualCustomersCache() {
+  const res = await fetch('/api/shops/' + currentShop.id + '/customers', { headers: { 'x-shop-token': shopToken } });
+  bookingCustomersCache = await res.json();
+}
+
+function filterManualCustomers() {
+  const q = document.getElementById('manual-customer-search').value.trim().toLowerCase();
+  const el = document.getElementById('manual-customer-results');
+  if (!q) { el.innerHTML = ''; return; }
+  const matches = bookingCustomersCache.filter(c => c.name.toLowerCase().includes(q)).slice(0, 8);
+  if (!matches.length) { el.innerHTML = '<div class="empty-list" style="padding:12px">Aucun client trouvé</div>'; return; }
+  el.innerHTML = matches.map(c =>
+    '<div class="manual-customer-row" onclick="selectManualCustomer(' + c.id + ', \'' + c.name.replace(/'/g, "\\'") + '\')">' + c.name + '</div>'
+  ).join('');
+}
+
+function selectManualCustomer(id, name) {
+  selectedManualCustomerId = id;
+  document.getElementById('manual-customer-search').value = '';
+  document.getElementById('manual-customer-results').innerHTML = '';
+  const sel = document.getElementById('manual-customer-selected');
+  sel.style.display = 'block';
+  sel.textContent = '✓ ' + name;
+}
+
+async function createManualAppointment() {
+  if (!selectedManualCustomerId) { alert('Choisissez un client.'); return; }
+  const datetimeVal = document.getElementById('manual-datetime').value;
+  if (!datetimeVal) { alert('Choisissez une date et une heure.'); return; }
+  const service_id = document.getElementById('manual-service').value || null;
+  const staff_id = document.getElementById('manual-staff').value || null;
+  const appointment_time = new Date(datetimeVal).toISOString();
+  const res = await fetch('/api/shops/' + currentShop.id + '/appointments/manual', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ customer_id: selectedManualCustomerId, appointment_time, service_id, staff_id })
+  });
+  const data = await res.json();
+  if (!data.success) { alert('❌ ' + (data.error || 'Erreur')); return; }
+  selectedManualCustomerId = null;
+  document.getElementById('manual-customer-selected').style.display = 'none';
+  document.getElementById('manual-datetime').value = '';
+  alert('✅ Rendez-vous créé.');
+  if (agendaWeekMode) loadAppointmentsWeek(); else loadAppointments();
 }
 
 function saveSession(shop, token) {
