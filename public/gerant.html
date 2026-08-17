@@ -94,7 +94,8 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 .btn-logout{background:none;border:none;color:#9ca3af;font-size:12px;cursor:pointer;padding:8px;margin-top:8px}
 #customers-screen{display:none}
 #booking-screen{display:none}
-#ordering-screen{display:none}
+#orders-screen{display:none}
+#menu-screen{display:none}
 .menu-item-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f1f1f1}
 .menu-item-row:last-child{border-bottom:none}
 .option-group-block{background:white;border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid #f1f1f1}
@@ -211,7 +212,8 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
   <button class="btn-list" style="background:#059669;margin-top:10px" onclick="window.location.href='/stats.html'">📊 Statistiques</button>
   <button class="btn-list" style="background:#b45309;margin-top:10px" onclick="showTiersModal()">🎯 Paliers de récompense</button>
   <button class="btn-list" id="booking-btn" style="background:#0369A1;margin-top:10px;display:none;position:relative" onclick="showBookingScreen()">📅 Rendez-vous <span id="booking-badge" style="display:none;background:#dc2626;color:white;font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;margin-left:6px"></span></button>
-  <button class="btn-list" id="ordering-btn" style="background:#ea580c;margin-top:10px;display:none;position:relative" onclick="showOrderingScreen()">🛍️ Commandes <span id="ordering-badge" style="display:none;background:#dc2626;color:white;font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;margin-left:6px"></span></button>
+  <button class="btn-list" id="ordering-btn" style="background:#ea580c;margin-top:10px;display:none;position:relative;font-size:15px;padding:16px" onclick="showOrdersScreen()">🛍️ Commandes <span id="ordering-badge" style="display:none;background:white;color:#ea580c;font-size:12px;font-weight:900;padding:2px 9px;border-radius:99px;margin-left:6px"></span></button>
+  <button class="btn-list" id="menu-manage-btn" style="background:#374151;margin-top:8px;display:none" onclick="showMenuScreen()">🍔 Gérer mon menu</button>
   <div class="add-client-card" style="margin-bottom:16px">
     <div class="add-client-title">🔔 Envoyer une notification</div>
     <textarea class="input" id="notif-message" placeholder="Ex : Promo du jour : -20% sur tout jusqu'à 18h !" rows="2" style="resize:none;margin-bottom:10px"></textarea>
@@ -374,73 +376,95 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 </div>
 
 
-<!-- ORDERING -->
-<div class="container" id="ordering-screen">
+<!-- ORDERS (commandes reçues) -->
+<div class="container" id="orders-screen">
   <div class="list-header">
     <div class="list-title">🛍️ Commandes</div>
     <button class="btn-back" onclick="showScreen('scan')">← Retour</button>
   </div>
 
   <div class="rdv-tabs">
-    <button class="rdv-tab-btn active" id="ord-tab-btn-menu" onclick="showOrdTab('menu')">🍔 Menu</button>
-    <button class="rdv-tab-btn" id="ord-tab-btn-queue" onclick="showOrdTab('queue')">📋 En cours</button>
+    <button class="rdv-tab-btn active" id="ord-tab-btn-queue" onclick="showOrdTab('queue')">📋 En cours</button>
     <button class="rdv-tab-btn" id="ord-tab-btn-history" onclick="showOrdTab('history')">🕓 Historique</button>
   </div>
 
-  <!-- TAB MENU -->
-  <div class="rdv-tab-content active" id="ord-tab-menu">
-    <div class="add-client-card">
-      <div class="add-client-title">🗂️ Catégories</div>
-      <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Organisez votre carte (Boissons, Sandwichs...). Chaque article peut être rattaché à une catégorie.</div>
-      <div id="menu-categories-list" style="margin-bottom:12px"></div>
-      <div class="add-row">
-        <input class="input" type="text" id="new-category-emoji" placeholder="Emoji" style="flex:0 0 60px;margin-bottom:0">
-        <input class="input" type="text" id="new-category-name" placeholder="Ex : Boissons" style="flex:1;margin-bottom:0">
-        <button class="btn-add" onclick="addMenuCategory()">Ajouter</button>
-      </div>
-    </div>
-
-    <div class="add-client-card">
-      <div class="add-client-title">🍔 Mes articles</div>
-      <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Ajoutez chaque article avec sa photo — c'est ce que vos clients verront pour commander.</div>
-      <div id="menu-items-list" style="margin-bottom:12px"></div>
-      <div class="add-row" style="flex-wrap:wrap;gap:8px">
-        <input class="input" type="text" id="new-item-name" placeholder="Ex : Tacos poulet" style="flex:2;min-width:120px;margin-bottom:0">
-        <input class="input" type="number" id="new-item-price" placeholder="Prix (€)" min="0" step="0.01" style="flex:1;min-width:80px;margin-bottom:0">
-      </div>
-      <select class="input" id="new-item-category" style="margin-top:8px"><option value="">Sans catégorie</option></select>
-      <input class="input" type="text" id="new-item-description" placeholder="Description (optionnel)" style="margin-top:8px">
-      <input type="file" id="new-item-photo" accept="image/*" style="margin-top:8px;font-size:12px">
-      <button class="btn-add" style="width:100%;margin-top:8px" onclick="addMenuItem()">Ajouter l'article</button>
-    </div>
-
-    <div class="add-client-card" id="item-options-card" style="display:none">
-      <div class="add-client-title">⚙️ Options de <span id="options-item-name"></span></div>
-      <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Ex : "Choix de la viande" (obligatoire, un seul choix) avec Bœuf / Poulet / Mixte comme choix.</div>
-      <div id="option-groups-list" style="margin-bottom:12px"></div>
-      <input class="input" type="text" id="new-group-name" placeholder="Ex : Choix de la viande">
-      <div class="add-row" style="margin-top:8px;gap:8px">
-        <select class="input" id="new-group-required" style="flex:1;margin-bottom:0">
-          <option value="1">Obligatoire</option>
-          <option value="0">Optionnel</option>
-        </select>
-        <select class="input" id="new-group-type" style="flex:1;margin-bottom:0">
-          <option value="single">Un seul choix</option>
-          <option value="multi">Plusieurs choix</option>
-        </select>
-      </div>
-      <button class="btn-add" style="width:100%;margin-top:8px" onclick="addOptionGroup()">Ajouter ce groupe</button>
-    </div>
-  </div>
-
-  <!-- TAB EN COURS -->
-  <div class="rdv-tab-content" id="ord-tab-queue">
+  <div class="rdv-tab-content active" id="ord-tab-queue">
     <div id="orders-queue-list"><div class="empty-list">Chargement…</div></div>
   </div>
 
-  <!-- TAB HISTORIQUE -->
   <div class="rdv-tab-content" id="ord-tab-history">
     <div id="orders-history-list"><div class="empty-list">Chargement…</div></div>
+  </div>
+</div>
+
+<!-- MENU (catégories + articles) -->
+<div class="container" id="menu-screen">
+  <div class="list-header">
+    <div class="list-title">🍔 Mon menu</div>
+    <button class="btn-back" onclick="showScreen('scan')">← Retour</button>
+  </div>
+
+  <div class="add-client-card">
+    <div class="add-client-title">🗂️ Catégories</div>
+    <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Organisez votre carte (Boissons, Sandwichs...). Chaque article peut être rattaché à une catégorie.</div>
+    <div id="menu-categories-list" style="margin-bottom:12px"></div>
+    <div class="add-row">
+      <input class="input" type="text" id="new-category-emoji" placeholder="Emoji" style="flex:0 0 60px;margin-bottom:0">
+      <input class="input" type="text" id="new-category-name" placeholder="Ex : Boissons" style="flex:1;margin-bottom:0">
+      <button class="btn-add" onclick="addMenuCategory()">Ajouter</button>
+    </div>
+  </div>
+
+  <div class="add-client-card">
+    <div class="list-header" style="margin-bottom:8px">
+      <div class="add-client-title" style="margin:0">🍔 Mes articles</div>
+      <button class="btn-add" onclick="openArticleEditor(null)">+ Nouvel article</button>
+    </div>
+    <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Touchez un article pour modifier son prix, sa photo ou ses options.</div>
+    <div id="menu-items-list"></div>
+  </div>
+
+  <!-- ÉDITEUR D'ARTICLE UNIFIÉ : infos + options, tout au même endroit -->
+  <div class="add-client-card" id="article-editor-card" style="display:none">
+    <div class="add-client-title" id="article-editor-title">Nouvel article</div>
+    <input class="input" type="text" id="edit-item-name" placeholder="Ex : Tacos poulet">
+    <div class="add-row" style="gap:8px">
+      <input class="input" type="number" id="edit-item-price" placeholder="Prix (€)" min="0" step="0.01" style="flex:1;margin-bottom:0">
+      <select class="input" id="edit-item-category" style="flex:1;margin-bottom:0"><option value="">Sans catégorie</option></select>
+    </div>
+    <input class="input" type="text" id="edit-item-description" placeholder="Description (optionnel)" style="margin-top:8px">
+    <div style="margin-top:8px">
+      <img id="edit-item-photo-preview" style="display:none;width:64px;height:64px;border-radius:12px;object-fit:cover;margin-bottom:6px">
+      <input type="file" id="edit-item-photo" accept="image/*" style="font-size:12px">
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:#374151"><input type="checkbox" id="edit-item-available" checked style="width:auto"> En vente actuellement</label>
+
+    <div style="border-top:1px solid #f1f1f1;margin:18px 0 12px;padding-top:14px">
+      <div class="add-client-title" style="margin-bottom:4px">⚙️ Options de cet article</div>
+      <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Ex : "Choix de la viande" (obligatoire, un seul choix) avec Bœuf / Poulet / Mixte comme choix. Laissez vide si cet article n'a pas d'options.</div>
+      <div id="option-groups-list" style="margin-bottom:12px"></div>
+      <div id="option-groups-disabled-hint" style="font-size:12px;color:#94a3b8;font-style:italic">Enregistrez d'abord l'article pour pouvoir lui ajouter des options.</div>
+      <div id="option-groups-form" style="display:none">
+        <input class="input" type="text" id="new-group-name" placeholder="Ex : Choix de la viande">
+        <div class="add-row" style="margin-top:8px;gap:8px">
+          <select class="input" id="new-group-required" style="flex:1;margin-bottom:0">
+            <option value="1">Obligatoire</option>
+            <option value="0">Optionnel</option>
+          </select>
+          <select class="input" id="new-group-type" style="flex:1;margin-bottom:0">
+            <option value="single">Un seul choix</option>
+            <option value="multi">Plusieurs choix</option>
+          </select>
+        </div>
+        <button class="btn-add" style="width:100%;margin-top:8px" onclick="addOptionGroup()">Ajouter ce groupe</button>
+      </div>
+    </div>
+
+    <div class="add-row" style="margin-top:16px">
+      <button class="btn-add" style="flex:1" onclick="saveArticleEditor()">Enregistrer</button>
+      <button class="btn-back" onclick="closeArticleEditor()">Annuler</button>
+    </div>
+    <button class="btn-back" id="delete-article-btn" style="width:100%;margin-top:8px;color:#dc2626;display:none" onclick="deleteArticleFromEditor()">Retirer cet article</button>
   </div>
 </div>
 
@@ -577,7 +601,7 @@ let pendingCustomerId = null;
 let allCustomers = [];
 
 function showScreen(id) {
-  ['login','scan','customers','camera','amount','result','booking','ordering'].forEach(s => {
+  ['login','scan','customers','camera','amount','result','booking','orders','menu'].forEach(s => {
     document.getElementById(s + '-screen').style.display = 'none';
   });
   document.getElementById(id + '-screen').style.display = 'block';
@@ -1037,7 +1061,7 @@ let menuCategoriesCache = [];
 let menuItemsCache = [];
 
 function showOrdTab(tab) {
-  ['menu', 'queue', 'history'].forEach(t => {
+  ['queue', 'history'].forEach(t => {
     document.getElementById('ord-tab-' + t).classList.toggle('active', t === tab);
     document.getElementById('ord-tab-btn-' + t).classList.toggle('active', t === tab);
   });
@@ -1045,13 +1069,18 @@ function showOrdTab(tab) {
   if (tab === 'history') loadOrdersHistory();
 }
 
-function showOrderingScreen() {
-  showScreen('ordering');
-  showOrdTab('menu');
-  loadMenuCategories();
-  loadMenuItems();
+function showOrdersScreen() {
+  showScreen('orders');
+  showOrdTab('queue');
   fetch('/api/shops/' + currentShop.id + '/orders/mark-seen', { method: 'POST', headers: { 'x-shop-token': shopToken } });
   document.getElementById('ordering-badge').style.display = 'none';
+}
+
+function showMenuScreen() {
+  showScreen('menu');
+  closeArticleEditor();
+  loadMenuCategories();
+  loadMenuItems();
 }
 
 async function checkUnseenOrders() {
@@ -1076,7 +1105,7 @@ async function loadMenuCategories() {
       '<div class="list-row-actions"><button class="btn-back" onclick="editCategoryPrompt(' + c.id + ')">✏️</button><button class="btn-back" onclick="deleteMenuCategory(' + c.id + ')">Retirer</button></div></div>'
     ).join('');
   }
-  const sel = document.getElementById('new-item-category');
+  const sel = document.getElementById('edit-item-category');
   if (sel) sel.innerHTML = '<option value="">Sans catégorie</option>' + rows.map(c => '<option value="' + c.id + '">' + (c.emoji || '') + ' ' + c.name + '</option>').join('');
 }
 
@@ -1122,7 +1151,7 @@ async function loadMenuItems() {
   menuItemsCache = rows;
   const el = document.getElementById('menu-items-list');
   if (!rows.length) {
-    el.innerHTML = '<div class="empty-list">Aucun article pour l\'instant</div>';
+    el.innerHTML = '<div class="empty-list">Aucun article pour l\'instant — touchez "+ Nouvel article" ci-dessus.</div>';
     return;
   }
   el.innerHTML = rows.map(it => {
@@ -1130,30 +1159,105 @@ async function loadMenuItems() {
       ? '<img class="menu-item-photo" src="' + it.photo_base64 + '">'
       : '<div class="menu-item-photo-placeholder">🍽️</div>';
     const unavailClass = it.available === 0 ? ' menu-item-unavailable' : '';
-    const toggleLabel = it.available === 0 ? 'Remettre en vente' : 'Marquer en rupture';
-    return '<div class="menu-item-row' + unavailClass + '">' + photo +
-      '<div class="menu-item-info"><div class="menu-item-name">' + it.name + '</div><div class="menu-item-price">' + Number(it.price).toFixed(2) + '€</div></div>' +
-      '<div class="list-row-actions"><button class="btn-back" onclick="openItemOptions(' + it.id + ', \'' + it.name.replace(/'/g, "\\'") + '\')">⚙️</button><button class="btn-back" onclick="editMenuItemPrompt(' + it.id + ')">✏️</button><button class="btn-back" onclick="toggleItemAvailability(' + it.id + ', ' + it.available + ')">' + toggleLabel + '</button><button class="btn-back" onclick="deleteMenuItem(' + it.id + ')">Retirer</button></div></div>';
+    const unavailTag = it.available === 0 ? '<div class="menu-item-price" style="color:#dc2626">Rupture</div>' : '';
+    return '<div class="menu-item-row' + unavailClass + '" style="cursor:pointer" onclick="openArticleEditor(' + it.id + ')">' + photo +
+      '<div class="menu-item-info"><div class="menu-item-name">' + it.name + '</div><div class="menu-item-price">' + Number(it.price).toFixed(2) + '€</div>' + unavailTag + '</div>' +
+      '<span style="color:#c4c9d1;font-size:18px">›</span></div>';
   }).join('');
 }
 
-// ── Groupes d'options d'un article (ex: viande / crudités / sauce) ──
 let currentOptionsItemId = null;
 
-function openItemOptions(itemId, itemName) {
+function openArticleEditor(itemId) {
   currentOptionsItemId = itemId;
-  document.getElementById('options-item-name').textContent = itemName;
-  document.getElementById('item-options-card').style.display = 'block';
-  document.getElementById('item-options-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  loadOptionGroups();
+  document.getElementById('article-editor-card').style.display = 'block';
+  document.getElementById('article-editor-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('edit-item-photo').value = '';
+
+  if (itemId === null) {
+    document.getElementById('article-editor-title').textContent = 'Nouvel article';
+    document.getElementById('edit-item-name').value = '';
+    document.getElementById('edit-item-price').value = '';
+    document.getElementById('edit-item-category').value = '';
+    document.getElementById('edit-item-description').value = '';
+    document.getElementById('edit-item-available').checked = true;
+    document.getElementById('edit-item-photo-preview').style.display = 'none';
+    document.getElementById('delete-article-btn').style.display = 'none';
+    document.getElementById('option-groups-list').innerHTML = '';
+    document.getElementById('option-groups-form').style.display = 'none';
+    document.getElementById('option-groups-disabled-hint').style.display = 'block';
+  } else {
+    const it = menuItemsCache.find(x => x.id === itemId);
+    if (!it) return;
+    document.getElementById('article-editor-title').textContent = 'Modifier ' + it.name;
+    document.getElementById('edit-item-name').value = it.name;
+    document.getElementById('edit-item-price').value = it.price;
+    document.getElementById('edit-item-category').value = it.category_id || '';
+    document.getElementById('edit-item-description').value = it.description || '';
+    document.getElementById('edit-item-available').checked = it.available !== 0;
+    const preview = document.getElementById('edit-item-photo-preview');
+    if (it.photo_base64) { preview.src = it.photo_base64; preview.style.display = 'block'; }
+    else { preview.style.display = 'none'; }
+    document.getElementById('delete-article-btn').style.display = 'block';
+    document.getElementById('option-groups-form').style.display = 'block';
+    document.getElementById('option-groups-disabled-hint').style.display = 'none';
+    loadOptionGroups();
+  }
 }
 
+function closeArticleEditor() {
+  currentOptionsItemId = null;
+  document.getElementById('article-editor-card').style.display = 'none';
+}
+
+async function saveArticleEditor() {
+  const name = document.getElementById('edit-item-name').value.trim();
+  const price = document.getElementById('edit-item-price').value;
+  const category_id = document.getElementById('edit-item-category').value || null;
+  const description = document.getElementById('edit-item-description').value.trim();
+  const available = document.getElementById('edit-item-available').checked ? 1 : 0;
+  const photoFile = document.getElementById('edit-item-photo').files[0];
+  if (!name || !price) { alert('Nom et prix requis.'); return; }
+  const photo_base64 = photoFile ? await fileToBase64(photoFile) : undefined;
+
+  if (currentOptionsItemId === null) {
+    const res = await fetch('/api/shops/' + currentShop.id + '/menu-items', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+      body: JSON.stringify({ name, price, description, category_id, photo_base64: photo_base64 || null })
+    });
+    const data = await res.json();
+    if (!data.success) { alert(data.error || 'Erreur'); return; }
+    await loadMenuItems();
+    openArticleEditor(data.id);
+  } else {
+    const body = { name, price, description, category_id, available };
+    if (photo_base64 !== undefined) body.photo_base64 = photo_base64;
+    const res = await fetch('/api/shops/' + currentShop.id + '/menu-items/' + currentOptionsItemId, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!data.success) { alert(data.error || 'Erreur'); return; }
+    await loadMenuItems();
+    alert('✅ Article enregistré.');
+  }
+}
+
+async function deleteArticleFromEditor() {
+  if (currentOptionsItemId === null) return;
+  if (!confirm('Retirer cet article ?')) return;
+  await fetch('/api/shops/' + currentShop.id + '/menu-items/' + currentOptionsItemId, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
+  closeArticleEditor();
+  loadMenuItems();
+}
+
+// ── Groupes d'options (viande / crudités / sauce), imbriqués dans l'éditeur d'article ──
 async function loadOptionGroups() {
   const res = await fetch('/api/shops/' + currentShop.id + '/menu-items/' + currentOptionsItemId + '/option-groups', { headers: { 'x-shop-token': shopToken } });
   const groups = await res.json();
   const el = document.getElementById('option-groups-list');
   if (!groups.length) {
-    el.innerHTML = '<div class="empty-list">Aucun groupe d\'options pour cet article — il sera ajouté au panier directement, sans étape de configuration.</div>';
+    el.innerHTML = '<div class="empty-list">Aucun groupe d\'options pour cet article — il s\'ajoutera directement au panier, sans étape de configuration.</div>';
     return;
   }
   el.innerHTML = groups.map(g => {
@@ -1208,56 +1312,6 @@ async function addOptionChoice(groupId) {
 async function deleteOptionChoice(choiceId) {
   await fetch('/api/shops/' + currentShop.id + '/option-choices/' + choiceId, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
   loadOptionGroups();
-}
-
-async function addMenuItem() {
-  const name = document.getElementById('new-item-name').value.trim();
-  const price = document.getElementById('new-item-price').value;
-  const description = document.getElementById('new-item-description').value.trim();
-  const category_id = document.getElementById('new-item-category').value || null;
-  const photoFile = document.getElementById('new-item-photo').files[0];
-  if (!name || !price) { alert('Nom et prix requis.'); return; }
-  const photo_base64 = await fileToBase64(photoFile);
-  const res = await fetch('/api/shops/' + currentShop.id + '/menu-items', {
-    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
-    body: JSON.stringify({ name, price, description, category_id, photo_base64 })
-  });
-  const data = await res.json();
-  if (!data.success) { alert(data.error || 'Erreur'); return; }
-  document.getElementById('new-item-name').value = '';
-  document.getElementById('new-item-price').value = '';
-  document.getElementById('new-item-description').value = '';
-  document.getElementById('new-item-photo').value = '';
-  loadMenuItems();
-}
-
-function editMenuItemPrompt(id) {
-  const it = menuItemsCache.find(x => x.id === id);
-  if (!it) return;
-  const name = prompt('Nom de l\'article', it.name);
-  if (name === null || !name.trim()) return;
-  const price = prompt('Prix (€)', it.price);
-  if (price === null) return;
-  const description = prompt('Description (laisser vide si aucune)', it.description || '');
-  if (description === null) return;
-  fetch('/api/shops/' + currentShop.id + '/menu-items/' + id, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
-    body: JSON.stringify({ name: name.trim(), price, description })
-  }).then(() => loadMenuItems());
-}
-
-async function toggleItemAvailability(id, currentAvailable) {
-  await fetch('/api/shops/' + currentShop.id + '/menu-items/' + id, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
-    body: JSON.stringify({ available: currentAvailable === 1 ? 0 : 1 })
-  });
-  loadMenuItems();
-}
-
-async function deleteMenuItem(id) {
-  if (!confirm('Retirer cet article ?')) return;
-  await fetch('/api/shops/' + currentShop.id + '/menu-items/' + id, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
-  loadMenuItems();
 }
 
 // ── File d'attente & historique ──
@@ -1352,6 +1406,7 @@ function applyShop(shop, token) {
   document.getElementById('main-header').style.display    = 'flex';
   document.getElementById('booking-btn').style.display    = shop.booking_enabled === 1 ? 'block' : 'none';
   document.getElementById('ordering-btn').style.display   = shop.ordering_enabled === 1 ? 'block' : 'none';
+  document.getElementById('menu-manage-btn').style.display = shop.ordering_enabled === 1 ? 'block' : 'none';
   showScreen('scan');
   checkUnreadMessages();
   if (shop.booking_enabled === 1) checkUnseenAppointments();
