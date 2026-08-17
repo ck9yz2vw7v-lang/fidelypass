@@ -201,12 +201,12 @@ app.post('/api/admin/migrate-to-postgres', requireAdmin, async (req, res) => {
 });
 
 app.post('/api/shops', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count, booking_enabled } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count, booking_enabled, ordering_enabled } = req.body;
   try {
     const menuFile = parseDataUrl(menu_file_base64);
     const hashedPassword = await bcrypt.hash(password, 10);
-    const stmt = await db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count, booking_enabled, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) RETURNING id`);
-    const result = await stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null, phone || null, opening_hours || null, risk_threshold_days ? parseInt(risk_threshold_days, 10) : 30, lost_threshold_days ? parseInt(lost_threshold_days, 10) : 60, manual_shop_count ? parseInt(manual_shop_count, 10) : null, booking_enabled ? 1 : 0);
+    const stmt = await db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count, booking_enabled, ordering_enabled, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) RETURNING id`);
+    const result = await stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null, phone || null, opening_hours || null, risk_threshold_days ? parseInt(risk_threshold_days, 10) : 30, lost_threshold_days ? parseInt(lost_threshold_days, 10) : 60, manual_shop_count ? parseInt(manual_shop_count, 10) : null, booking_enabled ? 1 : 0, ordering_enabled ? 1 : 0);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -2036,7 +2036,7 @@ if ('serviceWorker' in navigator && Notification.permission === 'granted') {
 });
 
 app.put('/api/shops/:id', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, manual_shop_count, risk_threshold_days, lost_threshold_days, booking_enabled } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, manual_shop_count, risk_threshold_days, lost_threshold_days, booking_enabled, ordering_enabled } = req.body;
   try {
     const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
@@ -2056,7 +2056,7 @@ app.put('/api/shops/:id', async (req, res) => {
         newMenuFileType = menuFile ? menuFile.mime : null;
       }
     }
-    await db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=?, menu_file_base64=?, menu_file_type=?, phone=?, opening_hours=?, manual_shop_count=?, risk_threshold_days=?, lost_threshold_days=?, booking_enabled=? WHERE id=?`)
+    await db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=?, menu_file_base64=?, menu_file_type=?, phone=?, opening_hours=?, manual_shop_count=?, risk_threshold_days=?, lost_threshold_days=?, booking_enabled=?, ordering_enabled=? WHERE id=?`)
       .run(
         name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null,
         email || shop.email || null, referral_bonus_points != null ? referral_bonus_points : (shop.referral_bonus_points || 10),
@@ -2073,6 +2073,7 @@ app.put('/api/shops/:id', async (req, res) => {
         risk_threshold_days !== undefined && risk_threshold_days !== '' ? parseInt(risk_threshold_days, 10) : (shop.risk_threshold_days || 30),
         lost_threshold_days !== undefined && lost_threshold_days !== '' ? parseInt(lost_threshold_days, 10) : (shop.lost_threshold_days || 60),
         booking_enabled !== undefined ? (booking_enabled ? 1 : 0) : (shop.booking_enabled || 0),
+        ordering_enabled !== undefined ? (ordering_enabled ? 1 : 0) : (shop.ordering_enabled || 0),
         req.params.id
       );
     res.json({ success: true });
