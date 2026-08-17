@@ -209,6 +209,31 @@ async function initSchema() {
       FOREIGN KEY (order_id) REFERENCES orders(id),
       FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
     );
+    CREATE TABLE IF NOT EXISTS item_option_groups (
+      id SERIAL PRIMARY KEY,
+      menu_item_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      is_required INTEGER DEFAULT 1,
+      selection_type TEXT DEFAULT 'single',
+      display_order INTEGER DEFAULT 0,
+      FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
+    );
+    CREATE TABLE IF NOT EXISTS item_option_choices (
+      id SERIAL PRIMARY KEY,
+      option_group_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      price_delta REAL DEFAULT 0,
+      display_order INTEGER DEFAULT 0,
+      FOREIGN KEY (option_group_id) REFERENCES item_option_groups(id)
+    );
+    CREATE TABLE IF NOT EXISTS order_item_choices (
+      id SERIAL PRIMARY KEY,
+      order_item_id INTEGER NOT NULL,
+      group_name TEXT NOT NULL,
+      choice_name TEXT NOT NULL,
+      price_delta REAL DEFAULT 0,
+      FOREIGN KEY (order_item_id) REFERENCES order_items(id)
+    );
   `);
 
   const alterStatements = [
@@ -267,6 +292,9 @@ async function initSchema() {
     'CREATE INDEX IF NOT EXISTS idx_orders_shop_id ON orders(shop_id)',
     'CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id)',
     'CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id)',
+    'CREATE INDEX IF NOT EXISTS idx_item_option_groups_menu_item_id ON item_option_groups(menu_item_id)',
+    'CREATE INDEX IF NOT EXISTS idx_item_option_choices_group_id ON item_option_choices(option_group_id)',
+    'CREATE INDEX IF NOT EXISTS idx_order_item_choices_order_item_id ON order_item_choices(order_item_id)',
     'CREATE INDEX IF NOT EXISTS idx_staff_availability_staff_id ON staff_availability(staff_id)',
   ];
   for (const stmt of indexStatements) {

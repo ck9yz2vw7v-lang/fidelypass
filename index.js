@@ -651,6 +651,17 @@ app.post('/api/scan', requireShopAuth, async (req, res) => {
 // MODULE COMMANDE : menu (catégories/articles) + cycle de vie des commandes
 // ─────────────────────────────────────────────
 
+// Récupère les lignes d'une commande avec, pour chacune, les choix d'options sélectionnés
+// (ex: "Viande: Poulet", "Sauce: Algérienne") — utilisé partout où une commande est affichée.
+async function getOrderItemsWithChoices(orderId) {
+  const items = await db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(orderId);
+  for (const item of items) {
+    item.choices = await db.prepare('SELECT group_name, choice_name, price_delta FROM order_item_choices WHERE order_item_id = ?').all(item.id);
+  }
+  return items;
+}
+// ─────────────────────────────────────────────
+
 // Gérant : lecture/gestion des catégories du menu
 app.get('/api/shops/:id/menu-categories', requireShopAuth, async (req, res) => {
   const rows = await db.prepare('SELECT * FROM menu_categories WHERE shop_id = ? ORDER BY display_order ASC, id ASC').all(req.params.id);
@@ -713,18 +724,81 @@ app.put('/api/shops/:id/menu-items/:itemId', requireShopAuth, async (req, res) =
 });
 
 app.delete('/api/shops/:id/menu-items/:itemId', requireShopAuth, async (req, res) => {
+  const groupIds = (await db.prepare('SELECT id FROM item_option_groups WHERE menu_item_id = ?').all(req.params.itemId)).map(g => g.id);
+  for (const gid of groupIds) {
+    await db.prepare('DELETE FROM item_option_choices WHERE option_group_id = ?').run(gid);
+  }
+  await db.prepare('DELETE FROM item_option_groups WHERE menu_item_id = ?').run(req.params.itemId);
   await db.prepare('DELETE FROM menu_items WHERE id = ? AND shop_id = ?').run(req.params.itemId, req.params.id);
   res.json({ success: true });
+});
+
+// ── Groupes d'options et choix (configurateur d'article, ex: viande / crudités / sauce) ──
+
+// Gérant : voir les groupes d'un article, avec leurs choix imbriqués
+app.get('/api/shops/:id/menu-items/:itemId/option-groups', requireShopAuth, async (req, res) => {
+  const groups = await db.prepare('SELECT * FROM item_option_groups WHERE menu_item_id = ? ORDER BY display_order ASC, id ASC').all(req.params.itemId);
+  for (const g of groups) {
+    g.choices = await db.prepare('SELECT * FROM item_option_choices WHERE option_group_id = ? ORDER BY display_order ASC, id ASC').all(g.id);
+  }
+  res.json(groups);
+});
+
+app.post('/api/shops/:id/menu-items/:itemId/option-groups', requireShopAuth, async (req, res) => {
+  const { name, is_required, selection_type } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ success: false, error: 'Nom du groupe requis' });
+  const countRow = await db.prepare('SELECT COUNT(*) as c FROM item_option_groups WHERE menu_item_id = ?').get(req.params.itemId);
+  const result = await db.prepare('INSERT INTO item_option_groups (menu_item_id, name, is_required, selection_type, display_order) VALUES (?, ?, ?, ?, ?) RETURNING id')
+    .run(req.params.itemId, name.trim(), is_required ? 1 : 0, selection_type === 'multi' ? 'multi' : 'single', Number(countRow.c));
+  res.json({ success: true, id: result.lastInsertRowid });
+});
+
+app.delete('/api/shops/:id/option-groups/:groupId', requireShopAuth, async (req, res) => {
+  await db.prepare('DELETE FROM item_option_choices WHERE option_group_id = ?').run(req.params.groupId);
+  await db.prepare('DELETE FROM item_option_groups WHERE id = ?').run(req.params.groupId);
+  res.json({ success: true });
+});
+
+app.post('/api/shops/:id/option-groups/:groupId/choices', requireShopAuth, async (req, res) => {
+  const { name, price_delta } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ success: false, error: 'Nom du choix requis' });
+  const countRow = await db.prepare('SELECT COUNT(*) as c FROM item_option_choices WHERE option_group_id = ?').get(req.params.groupId);
+  const result = await db.prepare('INSERT INTO item_option_choices (option_group_id, name, price_delta, display_order) VALUES (?, ?, ?, ?) RETURNING id')
+    .run(req.params.groupId, name.trim(), price_delta ? parseFloat(price_delta) : 0, Number(countRow.c));
+  res.json({ success: true, id: result.lastInsertRowid });
+});
+
+app.delete('/api/shops/:id/option-choices/:choiceId', requireShopAuth, async (req, res) => {
+  await db.prepare('DELETE FROM item_option_choices WHERE id = ?').run(req.params.choiceId);
+  res.json({ success: true });
+});
+
+// Client (public) : groupes + choix d'un article, pour construire le configurateur au moment de commander
+app.get('/api/menu-items/:itemId/option-groups-public', async (req, res) => {
+  const groups = await db.prepare('SELECT id, name, is_required, selection_type, display_order FROM item_option_groups WHERE menu_item_id = ? ORDER BY display_order ASC, id ASC').all(req.params.itemId);
+  for (const g of groups) {
+    g.choices = await db.prepare('SELECT id, name, price_delta FROM item_option_choices WHERE option_group_id = ? ORDER BY display_order ASC, id ASC').all(g.id);
+  }
+  res.json(groups);
 });
 
 // Client (public) : menu complet, catégories + leurs articles disponibles, pour composer sa commande
 app.get('/api/shops/:id/menu-public', async (req, res) => {
   const categories = await db.prepare('SELECT id, name, emoji FROM menu_categories WHERE shop_id = ? ORDER BY display_order ASC, id ASC').all(req.params.id);
   const items = await db.prepare('SELECT id, category_id, name, description, price, photo_base64 FROM menu_items WHERE shop_id = ? AND available = 1 ORDER BY display_order ASC, id ASC').all(req.params.id);
+  const groupCounts = await db.prepare(`
+    SELECT menu_item_id, COUNT(*) as c FROM item_option_groups
+    WHERE menu_item_id IN (SELECT id FROM menu_items WHERE shop_id = ?)
+    GROUP BY menu_item_id
+  `).all(req.params.id);
+  const withOptions = new Set(groupCounts.map(g => Number(g.menu_item_id)));
+  for (const item of items) {
+    item.has_options = withOptions.has(Number(item.id));
+  }
   res.json({ categories, items });
 });
 
-// Client : créer une commande (mode sur place/à emporter, immédiat ou planifié, panier d'articles)
+// Client : créer une commande (mode sur place/à emporter, immédiat ou planifié, panier d'articles avec leurs options choisies)
 app.post('/api/customers/:id/orders', async (req, res) => {
   const customer = await db.prepare('SELECT * FROM customers WHERE id = ?').get(req.params.id);
   if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
@@ -732,25 +806,47 @@ app.post('/api/customers/:id/orders', async (req, res) => {
   if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ success: false, error: 'Panier vide' });
   if (!['sur_place', 'a_emporter'].includes(order_mode)) return res.status(400).json({ success: false, error: 'Mode de commande invalide' });
 
-  const itemIds = items.map(i => i.menu_item_id);
+  const itemIds = items.map(i => Number(i.menu_item_id));
   const placeholders = itemIds.map(() => '?').join(',');
   const menuItems = itemIds.length ? await db.prepare(`SELECT * FROM menu_items WHERE id IN (${placeholders}) AND shop_id = ? AND available = 1`).all(...itemIds, customer.shop_id) : [];
   if (menuItems.length !== new Set(itemIds).size) return res.status(400).json({ success: false, error: 'Un ou plusieurs articles ne sont plus disponibles' });
 
   let total = 0;
-  const lines = items.map(reqItem => {
-    const menuItem = menuItems.find(m => m.id === reqItem.menu_item_id);
+  const lines = [];
+  for (const reqItem of items) {
+    const menuItem = menuItems.find(m => Number(m.id) === Number(reqItem.menu_item_id));
     const qty = Math.max(1, parseInt(reqItem.quantity, 10) || 1);
-    total += menuItem.price * qty;
-    return { menu_item_id: menuItem.id, item_name: menuItem.name, item_price: menuItem.price, quantity: qty, notes: (reqItem.notes || '').trim() || null };
-  });
+
+    // Valide les groupes obligatoires et récupère les vrais prix des choix côté serveur (jamais faire confiance au client)
+    const groups = await db.prepare('SELECT * FROM item_option_groups WHERE menu_item_id = ?').all(menuItem.id);
+    const choiceIds = Array.isArray(reqItem.choice_ids) ? reqItem.choice_ids.map(Number) : [];
+    let selectedChoices = [];
+    if (choiceIds.length) {
+      const cph = choiceIds.map(() => '?').join(',');
+      selectedChoices = await db.prepare(`SELECT c.*, g.name as group_name, g.id as group_id FROM item_option_choices c JOIN item_option_groups g ON g.id = c.option_group_id WHERE c.id IN (${cph})`).all(...choiceIds);
+    }
+    for (const g of groups) {
+      if (g.is_required === 1 && !selectedChoices.some(c => Number(c.group_id) === Number(g.id))) {
+        return res.status(400).json({ success: false, error: 'Merci de compléter "' + g.name + '" pour ' + menuItem.name });
+      }
+    }
+
+    let lineUnitPrice = menuItem.price;
+    for (const c of selectedChoices) lineUnitPrice += Number(c.price_delta) || 0;
+    total += lineUnitPrice * qty;
+    lines.push({ menu_item_id: menuItem.id, item_name: menuItem.name, item_price: lineUnitPrice, quantity: qty, notes: (reqItem.notes || '').trim() || null, choices: selectedChoices });
+  }
 
   const orderResult = await db.prepare('INSERT INTO orders (shop_id, customer_id, status, order_mode, requested_time, total_amount) VALUES (?, ?, ?, ?, ?, ?) RETURNING id')
     .run(customer.shop_id, customer.id, 'received', order_mode, requested_time || null, total);
   const orderId = orderResult.lastInsertRowid;
   for (const line of lines) {
-    await db.prepare('INSERT INTO order_items (order_id, menu_item_id, item_name, item_price, quantity, notes) VALUES (?, ?, ?, ?, ?, ?)')
+    const itemResult = await db.prepare('INSERT INTO order_items (order_id, menu_item_id, item_name, item_price, quantity, notes) VALUES (?, ?, ?, ?, ?, ?) RETURNING id')
       .run(orderId, line.menu_item_id, line.item_name, line.item_price, line.quantity, line.notes);
+    for (const c of line.choices) {
+      await db.prepare('INSERT INTO order_item_choices (order_item_id, group_name, choice_name, price_delta) VALUES (?, ?, ?, ?)')
+        .run(itemResult.lastInsertRowid, c.group_name, c.name, c.price_delta || 0);
+    }
   }
   res.json({ success: true, order_id: orderId, total_amount: total });
 });
@@ -759,7 +855,7 @@ app.post('/api/customers/:id/orders', async (req, res) => {
 app.get('/api/customers/:id/orders', async (req, res) => {
   const orders = await db.prepare('SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC LIMIT 30').all(req.params.id);
   for (const order of orders) {
-    order.items = await db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
+    order.items = await getOrderItemsWithChoices(order.id);
   }
   res.json(orders);
 });
@@ -783,7 +879,7 @@ app.get('/api/shops/:id/orders', requireShopAuth, async (req, res) => {
     ORDER BY o.created_at ASC
   `).all(req.params.id);
   for (const order of rows) {
-    order.items = await db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
+    order.items = await getOrderItemsWithChoices(order.id);
   }
   res.json(rows);
 });
@@ -799,7 +895,7 @@ app.get('/api/shops/:id/orders-history', requireShopAuth, async (req, res) => {
     LIMIT 100
   `).all(req.params.id);
   for (const order of rows) {
-    order.items = await db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
+    order.items = await getOrderItemsWithChoices(order.id);
   }
   res.json(rows);
 });
