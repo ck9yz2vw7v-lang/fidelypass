@@ -97,6 +97,11 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
 #ordering-screen{display:none}
 .menu-item-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f1f1f1}
 .menu-item-row:last-child{border-bottom:none}
+.option-group-block{background:white;border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid #f1f1f1}
+.option-group-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.option-group-tag{font-size:10.5px;color:#94a3b8;font-weight:700;margin-left:6px}
+.option-choice-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12.5px;border-bottom:1px solid #f8fafc}
+.option-choice-row:last-child{border-bottom:none}
 .menu-item-photo{width:52px;height:52px;border-radius:10px;object-fit:cover;flex-shrink:0;background:#f1f5f9}
 .menu-item-photo-placeholder{width:52px;height:52px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .menu-item-info{flex:1;min-width:0}
@@ -407,6 +412,24 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
       <input class="input" type="text" id="new-item-description" placeholder="Description (optionnel)" style="margin-top:8px">
       <input type="file" id="new-item-photo" accept="image/*" style="margin-top:8px;font-size:12px">
       <button class="btn-add" style="width:100%;margin-top:8px" onclick="addMenuItem()">Ajouter l'article</button>
+    </div>
+
+    <div class="add-client-card" id="item-options-card" style="display:none">
+      <div class="add-client-title">⚙️ Options de <span id="options-item-name"></span></div>
+      <div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">Ex : "Choix de la viande" (obligatoire, un seul choix) avec Bœuf / Poulet / Mixte comme choix.</div>
+      <div id="option-groups-list" style="margin-bottom:12px"></div>
+      <input class="input" type="text" id="new-group-name" placeholder="Ex : Choix de la viande">
+      <div class="add-row" style="margin-top:8px;gap:8px">
+        <select class="input" id="new-group-required" style="flex:1;margin-bottom:0">
+          <option value="1">Obligatoire</option>
+          <option value="0">Optionnel</option>
+        </select>
+        <select class="input" id="new-group-type" style="flex:1;margin-bottom:0">
+          <option value="single">Un seul choix</option>
+          <option value="multi">Plusieurs choix</option>
+        </select>
+      </div>
+      <button class="btn-add" style="width:100%;margin-top:8px" onclick="addOptionGroup()">Ajouter ce groupe</button>
     </div>
   </div>
 
@@ -1110,8 +1133,81 @@ async function loadMenuItems() {
     const toggleLabel = it.available === 0 ? 'Remettre en vente' : 'Marquer en rupture';
     return '<div class="menu-item-row' + unavailClass + '">' + photo +
       '<div class="menu-item-info"><div class="menu-item-name">' + it.name + '</div><div class="menu-item-price">' + Number(it.price).toFixed(2) + '€</div></div>' +
-      '<div class="list-row-actions"><button class="btn-back" onclick="editMenuItemPrompt(' + it.id + ')">✏️</button><button class="btn-back" onclick="toggleItemAvailability(' + it.id + ', ' + it.available + ')">' + toggleLabel + '</button><button class="btn-back" onclick="deleteMenuItem(' + it.id + ')">Retirer</button></div></div>';
+      '<div class="list-row-actions"><button class="btn-back" onclick="openItemOptions(' + it.id + ', \'' + it.name.replace(/'/g, "\\'") + '\')">⚙️</button><button class="btn-back" onclick="editMenuItemPrompt(' + it.id + ')">✏️</button><button class="btn-back" onclick="toggleItemAvailability(' + it.id + ', ' + it.available + ')">' + toggleLabel + '</button><button class="btn-back" onclick="deleteMenuItem(' + it.id + ')">Retirer</button></div></div>';
   }).join('');
+}
+
+// ── Groupes d'options d'un article (ex: viande / crudités / sauce) ──
+let currentOptionsItemId = null;
+
+function openItemOptions(itemId, itemName) {
+  currentOptionsItemId = itemId;
+  document.getElementById('options-item-name').textContent = itemName;
+  document.getElementById('item-options-card').style.display = 'block';
+  document.getElementById('item-options-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  loadOptionGroups();
+}
+
+async function loadOptionGroups() {
+  const res = await fetch('/api/shops/' + currentShop.id + '/menu-items/' + currentOptionsItemId + '/option-groups', { headers: { 'x-shop-token': shopToken } });
+  const groups = await res.json();
+  const el = document.getElementById('option-groups-list');
+  if (!groups.length) {
+    el.innerHTML = '<div class="empty-list">Aucun groupe d\'options pour cet article — il sera ajouté au panier directement, sans étape de configuration.</div>';
+    return;
+  }
+  el.innerHTML = groups.map(g => {
+    const tag = (g.is_required === 1 ? 'Obligatoire' : 'Optionnel') + ' · ' + (g.selection_type === 'multi' ? 'Plusieurs choix' : 'Un seul choix');
+    const choicesHtml = g.choices.map(c =>
+      '<div class="option-choice-row"><span>' + c.name + (c.price_delta ? ' (+' + Number(c.price_delta).toFixed(2) + '€)' : '') + '</span><button class="btn-back" onclick="deleteOptionChoice(' + c.id + ')">✕</button></div>'
+    ).join('');
+    return '<div class="option-group-block">' +
+      '<div class="option-group-head"><div><b>' + g.name + '</b><span class="option-group-tag">' + tag + '</span></div><button class="btn-back" onclick="deleteOptionGroup(' + g.id + ')">Retirer groupe</button></div>' +
+      choicesHtml +
+      '<div class="add-row" style="margin-top:8px;gap:6px">' +
+      '<input class="input" type="text" id="new-choice-name-' + g.id + '" placeholder="Ex : Poulet" style="flex:2;margin-bottom:0">' +
+      '<input class="input" type="number" id="new-choice-price-' + g.id + '" placeholder="+€" step="0.01" style="flex:1;margin-bottom:0">' +
+      '<button class="btn-add" onclick="addOptionChoice(' + g.id + ')">+</button></div></div>';
+  }).join('');
+}
+
+async function addOptionGroup() {
+  const name = document.getElementById('new-group-name').value.trim();
+  const is_required = document.getElementById('new-group-required').value;
+  const selection_type = document.getElementById('new-group-type').value;
+  if (!name) { alert('Le nom du groupe est requis.'); return; }
+  const res = await fetch('/api/shops/' + currentShop.id + '/menu-items/' + currentOptionsItemId + '/option-groups', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ name, is_required, selection_type })
+  });
+  const data = await res.json();
+  if (!data.success) { alert(data.error || 'Erreur'); return; }
+  document.getElementById('new-group-name').value = '';
+  loadOptionGroups();
+}
+
+async function deleteOptionGroup(groupId) {
+  if (!confirm('Retirer ce groupe et tous ses choix ?')) return;
+  await fetch('/api/shops/' + currentShop.id + '/option-groups/' + groupId, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
+  loadOptionGroups();
+}
+
+async function addOptionChoice(groupId) {
+  const nameEl = document.getElementById('new-choice-name-' + groupId);
+  const priceEl = document.getElementById('new-choice-price-' + groupId);
+  const name = nameEl.value.trim();
+  const price_delta = priceEl.value;
+  if (!name) { alert('Le nom du choix est requis.'); return; }
+  await fetch('/api/shops/' + currentShop.id + '/option-groups/' + groupId + '/choices', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ name, price_delta })
+  });
+  loadOptionGroups();
+}
+
+async function deleteOptionChoice(choiceId) {
+  await fetch('/api/shops/' + currentShop.id + '/option-choices/' + choiceId, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
+  loadOptionGroups();
 }
 
 async function addMenuItem() {
