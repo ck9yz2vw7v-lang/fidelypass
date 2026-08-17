@@ -849,6 +849,7 @@ app.post('/api/customers/:id/orders', async (req, res) => {
     }
   }
   res.json({ success: true, order_id: orderId, total_amount: total });
+  notifyGerant(customer.shop_id, '🛍️ Nouvelle commande', customer.name + ' vient de commander (' + total.toFixed(2) + '€)', '/gerant.html');
 });
 
 // Client : historique de ses commandes (toutes, tous statuts confondus)
@@ -1158,6 +1159,40 @@ app.get('/api/customers/:id/apple-wallet', async (req, res) => {
 
 app.get('/api/vapid-public-key', (req, res) => {
   res.json({ key: VAPID_PUBLIC_KEY });
+});
+
+// Envoie une notification push à TOUS les appareils du gérant abonnés pour cette boutique
+// (nouvelle commande, nouveau RDV...). Nettoie automatiquement les abonnements expirés.
+async function notifyGerant(shopId, title, body, url) {
+  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
+  const subs = await db.prepare('SELECT * FROM gerant_subscriptions WHERE shop_id = ?').all(shopId);
+  const payload = JSON.stringify({ title, body, url: url || '/gerant.html', icon: '/icon-192.png' });
+  for (const sub of subs) {
+    webpush.sendNotification(
+      { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+      payload
+    ).catch(async err => {
+      if (err.statusCode === 404 || err.statusCode === 410) {
+        await db.prepare('DELETE FROM gerant_subscriptions WHERE id = ?').run(sub.id);
+      }
+    });
+  }
+}
+
+// Gérant : activer les notifications push sur cet appareil (nouvelle commande, nouveau RDV)
+app.post('/api/shops/:id/gerant-subscribe', requireShopAuth, async (req, res) => {
+  const { subscription } = req.body;
+  if (!subscription || !subscription.endpoint) return res.status(400).json({ success: false, error: 'Abonnement invalide' });
+  await db.prepare('DELETE FROM gerant_subscriptions WHERE shop_id = ? AND endpoint = ?').run(req.params.id, subscription.endpoint);
+  await db.prepare('INSERT INTO gerant_subscriptions (shop_id, endpoint, p256dh, auth) VALUES (?, ?, ?, ?)')
+    .run(req.params.id, subscription.endpoint, subscription.keys.p256dh, subscription.keys.auth);
+  res.json({ success: true });
+});
+
+app.post('/api/shops/:id/gerant-unsubscribe', requireShopAuth, async (req, res) => {
+  const { endpoint } = req.body;
+  await db.prepare('DELETE FROM gerant_subscriptions WHERE shop_id = ? AND endpoint = ?').run(req.params.id, endpoint);
+  res.json({ success: true });
 });
 
 app.post('/api/customers/:id/subscribe', async (req, res) => {
@@ -1620,6 +1655,8 @@ app.post('/api/shops/:id/appointments', async (req, res) => {
   const result = await db.prepare("INSERT INTO appointments (shop_id, customer_id, appointment_time, status, service_id, staff_id) VALUES (?, ?, ?, 'confirmed', ?, ?) RETURNING id")
     .run(shopId, customer_id, appointment_time, service_id || null, staff_id || null);
   res.json({ success: true, id: result.lastInsertRowid });
+  const apptDate = new Date(appointment_time).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  notifyGerant(shopId, '📅 Nouveau rendez-vous', customer.name + ' a réservé le ' + apptDate, '/gerant.html');
 });
 
 // Client (public) : annuler son propre rendez-vous

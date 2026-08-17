@@ -234,6 +234,15 @@ async function initSchema() {
       price_delta REAL DEFAULT 0,
       FOREIGN KEY (order_item_id) REFERENCES order_items(id)
     );
+    CREATE TABLE IF NOT EXISTS gerant_subscriptions (
+      id SERIAL PRIMARY KEY,
+      shop_id INTEGER NOT NULL,
+      endpoint TEXT NOT NULL,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (shop_id) REFERENCES shops(id)
+    );
   `);
 
   const alterStatements = [
@@ -295,6 +304,7 @@ async function initSchema() {
     'CREATE INDEX IF NOT EXISTS idx_item_option_groups_menu_item_id ON item_option_groups(menu_item_id)',
     'CREATE INDEX IF NOT EXISTS idx_item_option_choices_group_id ON item_option_choices(option_group_id)',
     'CREATE INDEX IF NOT EXISTS idx_order_item_choices_order_item_id ON order_item_choices(order_item_id)',
+    'CREATE INDEX IF NOT EXISTS idx_gerant_subscriptions_shop_id ON gerant_subscriptions(shop_id)',
     'CREATE INDEX IF NOT EXISTS idx_staff_availability_staff_id ON staff_availability(staff_id)',
   ];
   for (const stmt of indexStatements) {

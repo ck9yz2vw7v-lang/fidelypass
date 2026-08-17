@@ -176,6 +176,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
     <h2 id="header-name">Boutique</h2>
     <p id="header-status">Connecté · Gérant</p>
   </div>
+  <button id="gerant-notif-btn" onclick="enableGerantNotifs()" style="position:relative;background:#f3f4f6;border:none;border-radius:10px;width:36px;height:36px;font-size:16px;cursor:pointer;margin-right:8px;flex-shrink:0;display:none">🔔</button>
   <button onclick="showInbox()" style="position:relative;background:#f3f4f6;border:none;border-radius:10px;width:36px;height:36px;font-size:16px;cursor:pointer;margin-right:8px;flex-shrink:0">📬<span id="inbox-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:white;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:99px;align-items:center;justify-content:center;padding:0 3px">0</span></button>
   <button onclick="logout()" style="background:#f3f4f6;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;color:#6b7280;cursor:pointer;white-space:nowrap">Déconnexion</button>
 </div>
@@ -1407,6 +1408,7 @@ function applyShop(shop, token) {
   document.getElementById('booking-btn').style.display    = shop.booking_enabled === 1 ? 'block' : 'none';
   document.getElementById('ordering-btn').style.display   = shop.ordering_enabled === 1 ? 'block' : 'none';
   document.getElementById('menu-manage-btn').style.display = shop.ordering_enabled === 1 ? 'block' : 'none';
+  document.getElementById('gerant-notif-btn').style.display = (shop.booking_enabled === 1 || shop.ordering_enabled === 1) ? 'block' : 'none';
   showScreen('scan');
   checkUnreadMessages();
   if (shop.booking_enabled === 1) checkUnseenAppointments();
@@ -1827,6 +1829,42 @@ function logout() {
 }
 
 // Auto-login si session sauvegardée
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+async function enableGerantNotifs() {
+  const btn = document.getElementById('gerant-notif-btn');
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    alert('Notifications non supportées sur ce navigateur.');
+    return;
+  }
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { alert('Notifications refusées — vous ne serez pas alerté des nouvelles commandes/RDV.'); return; }
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
+    const { key } = await fetch('/api/vapid-public-key').then(r => r.json());
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(key)
+    });
+    await fetch('/api/shops/' + currentShop.id + '/gerant-subscribe', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+      body: JSON.stringify({ subscription: sub })
+    });
+    btn.style.background = '#dcfce7';
+    btn.style.color = '#16a34a';
+    alert('✅ Notifications activées — vous serez alerté à chaque nouvelle commande ou RDV.');
+  } catch (err) {
+    console.error(err);
+    alert('Impossible d\'activer les notifications.');
+  }
+}
+
 const saved = loadSession();
 if (saved) {
   applyShop(saved.shop, saved.token);
