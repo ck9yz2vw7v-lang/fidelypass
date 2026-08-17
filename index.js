@@ -1673,7 +1673,7 @@ app.get('/card/:id', async (req, res) => {
     walletHtml = '<div id="wallet-btn"><script>fetch("/api/customers/' + id + '/wallet").then(r=>r.json()).then(d=>{if(d.url){document.getElementById("wallet-btn").innerHTML=\'<a href="\'+d.url+\'" target="_blank"><img src="https://pay.google.com/about/static/sample-assets/pay-with-google/add-to-wallet-button.svg" style="width:200px;margin-top:8px" alt="Ajouter à Google Wallet"></a>\';}});</script></div>';
   }
 
-  res.send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><link rel="manifest" href="${manifestUrl}"><link rel="apple-touch-icon" href="${shopIcon}"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="${shopName.replace(/"/g, '&quot;')}"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1a1a1a"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}#qr{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}.points-box{margin-top:20px;background:#f8fafc;border-radius:16px;padding:16px}.points-val{font-size:28px;font-weight:900;color:#111827}.points-goal{font-size:13px;color:#6b7280;margin-bottom:10px}.progress-track{background:#e5e7eb;border-radius:99px;height:10px;overflow:hidden}.progress-fill{background:#3b82f6;height:100%;border-radius:99px;transition:width 0.4s ease}.review-banner{margin-top:20px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:16px;color:white;text-align:center;display:none}.review-banner h3{font-size:16px;font-weight:800;margin-bottom:6px}.review-banner p{color:rgba(255,255,255,0.9);font-size:13px;margin-bottom:12px}.review-btn{display:inline-block;background:white;color:#d97706;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none}.notif-btn{margin-top:16px;background:#f3f4f6;color:#374151;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}.notif-btn.on{background:#dcfce7;color:#16a34a}.unsub-link{display:block;margin-top:8px;font-size:11px;color:#9ca3af;text-decoration:underline;cursor:pointer;background:none;border:none}.ios-hint{margin-top:12px;background:#fef3c7;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e;text-align:left;line-height:1.5;display:none}.section-box{margin-top:20px;background:#f8fafc;border-radius:16px;padding:16px;text-align:left}.grade-badge{display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;color:#374151;font-size:12px;font-weight:800;padding:6px 14px;border-radius:99px;margin:10px 0 0}.tier-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:13px}.tier-row:last-child{border-bottom:none}.tier-check{width:22px;height:22px;border-radius:50%;background:#e5e7eb;color:#9ca3af;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}.tier-check.done{background:#059669;color:white}.tier-name{flex:1;font-weight:600;color:#374151}.tier-name.done{color:#059669}.tier-pts{font-size:11px;color:#9ca3af;flex-shrink:0}.section-title{font-size:13px;font-weight:800;color:#374151;margin-bottom:10px;text-align:center}.history-row{display:flex;justify-content:space-between;font-size:12px;color:#6b7280;padding:6px 0;border-bottom:1px solid #e5e7eb}.history-row:last-child{border-bottom:none}.referral-link-box{background:white;border:1px solid #e5e7eb;border-radius:10px;padding:10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px}.referral-copy-btn{width:100%;padding:12px;border-radius:10px;background:#3b82f6;color:white;font-size:13px;font-weight:700;border:none;cursor:pointer}.onboarding-overlay{position:fixed;inset:0;height:100vh;height:100dvh;background:linear-gradient(135deg,#0f172a,#1e1b4b 50%,#0f172a);display:flex;flex-direction:column;align-items:stretch;justify-content:space-between;z-index:9999;padding:0;text-align:center;overflow:hidden}.onboarding-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;padding-top:max(32px,env(safe-area-inset-top))}.onboarding-footer{flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:0 32px;padding-bottom:max(24px,env(safe-area-inset-bottom));position:relative;z-index:1;touch-action:manipulation}.onboarding-overlay::before{content:'';position:absolute;inset:-50%;pointer-events:none;background:radial-gradient(circle at 30% 30%,rgba(59,130,246,0.25),transparent 50%),radial-gradient(circle at 70% 70%,rgba(168,85,247,0.2),transparent 50%);animation:obDrift 8s ease-in-out infinite alternate}@keyframes obDrift{from{transform:translate(0,0) rotate(0deg)}to{transform:translate(3%,3%) rotate(8deg)}}.onboarding-icon{width:88px;height:88px;border-radius:50%;background:rgba(59,130,246,0.15);border:1px solid rgba(96,165,250,0.4);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:24px;animation:obPulse 1.8s ease-in-out infinite;position:relative;z-index:1}@keyframes obPulse{0%,100%{box-shadow:0 0 0 0 rgba(96,165,250,0.35)}50%{box-shadow:0 0 0 16px rgba(96,165,250,0)}}.onboarding-title{color:white;font-size:21px;font-weight:800;margin-bottom:10px;position:relative;z-index:1;animation:obFadeUp 0.5s ease}.onboarding-text{color:#cbd5e1;font-size:14px;line-height:1.6;max-width:280px;position:relative;z-index:1;animation:obFadeUp 0.5s ease 0.1s both}@keyframes obFadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}.onboarding-dots{display:flex;gap:8px;margin-top:32px;position:relative;z-index:1}.onboarding-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.25);transition:all 0.3s}.onboarding-dot.active{background:#60a5fa;width:22px;border-radius:4px}.onboarding-skip{margin-top:28px;background:none;border:none;color:rgba(255,255,255,0.5);font-size:13px;text-decoration:underline;cursor:pointer;touch-action:manipulation;pointer-events:auto;position:relative;z-index:1}.onboarding-cta{margin-top:24px;background:white;color:#1e1b4b;border:none;padding:14px 32px;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;touch-action:manipulation;pointer-events:auto;position:relative;z-index:1;display:none}.onboarding-nav{display:flex;gap:18px;margin-top:22px;position:relative;z-index:1}.onboarding-nav-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:white;width:46px;height:46px;border-radius:50%;font-size:20px;cursor:pointer;touch-action:manipulation;pointer-events:auto;display:flex;align-items:center;justify-content:center;transition:opacity 0.2s}.onboarding-nav-btn:disabled{opacity:0.2;cursor:default}.onboarding-dot{cursor:pointer}.ob-mock{margin-top:22px;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:4px}.ob-mock-hand{font-size:26px;animation:obBounce 1s ease-in-out infinite}@keyframes obBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}.ob-mock-btn{background:#000;color:white;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700}.ob-mock-btn.light{background:#f3f4f6;color:#374151}.ob-mock-bar{background:#e5e7eb;border-radius:10px;padding:8px 16px;font-size:14px;font-weight:700;color:#374151}.ob-mock-step{color:#e2e8f0;font-size:12px;line-height:1.5;max-width:260px}.ob-safari-bar{margin:10px 0;background:#1f2937;border-radius:14px;padding:12px 18px;display:flex;gap:20px;align-items:center;font-size:17px;color:#94a3b8}.ob-safari-bar .hl{color:#60a5fa;transform:scale(1.35);animation:obPulse2 1.2s ease-in-out infinite}@keyframes obPulse2{0%,100%{transform:scale(1.35)}50%{transform:scale(1.6)}}.ob-phone{margin-top:18px;background:#ffffff;border:6px solid #1c1c1e;border-radius:34px;padding:0;width:240px;box-shadow:0 10px 30px rgba(0,0,0,0.35);position:relative;z-index:1;overflow:hidden}.ob-phone-status{display:flex;justify-content:space-between;padding:6px 14px 2px;font-size:10px;font-weight:700;color:#111827;background:#fff}.ob-phone-bar{background:#eceded;border-radius:8px;padding:6px 8px;font-size:9px;color:#374151;text-align:center;margin:4px 10px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ob-phone-content{background:#f8fafc;height:46px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 10px 8px;border-radius:8px;border:1px solid #eef0f2}.ob-phone-toolbar{display:flex;justify-content:space-around;align-items:center;background:#f7f7f8;border-top:1px solid #e5e7eb;padding:12px 8px}.ob-share-icon{position:relative;display:flex}.ob-share-icon svg{animation:obPulse2 1.2s ease-in-out infinite}@keyframes obPulse2{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}.ob-callout{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font-size:20px;animation:obBounce 1s ease-in-out infinite}.ob-sheet{background:#fff;border-top:1px solid #e5e7eb}.ob-sheet-handle{width:36px;height:4px;background:#d1d5db;border-radius:99px;margin:8px auto}.ob-sheet-row{display:flex;align-items:center;gap:10px;padding:11px 16px;font-size:13px;color:#111827;border-bottom:1px solid #f1f1f1;font-weight:500}.ob-sheet-row:last-child{border-bottom:none}.ob-sheet-row.hl{background:#eff6ff;color:#1d4ed8;font-weight:700}.booking-picker-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:flex-end;justify-content:center;z-index:9998}.booking-picker-card{background:white;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:400px;max-height:75vh;overflow-y:auto}.booking-picker-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.booking-picker-close{background:#f3f4f6;border:none;width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;color:#374151}.booking-dates-scroll{display:flex;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;gap:8px}.booking-date-pill{flex-shrink:0;padding:8px 14px;border-radius:99px;background:#f3f4f6;color:#374151;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}.booking-date-pill.active{background:#3b82f6;color:white}.booking-slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.booking-slot-btn{padding:10px 4px;border-radius:10px;background:#f8fafc;border:1px solid #e5e7eb;font-size:13px;font-weight:700;cursor:pointer;color:#111827}.booking-slot-btn:hover{background:#eff6ff;border-color:#3b82f6}.appt-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:12.5px;gap:8px}.appt-row:last-child{border-bottom:none}.appt-cancel-btn{flex-shrink:0;background:#fee2e2;color:#dc2626;border:none;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer}.primary-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px}.accordion{margin-top:12px;background:#f8fafc;border-radius:16px;overflow:hidden;text-align:left}.accordion-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer;font-size:13px;font-weight:800;color:#374151;user-select:none}.accordion-chevron{font-size:11px;color:#9ca3af;transition:transform 0.25s ease}.accordion.open .accordion-chevron{transform:rotate(180deg)}.accordion-body{max-height:0;overflow:hidden;transition:max-height 0.3s ease}.accordion.open .accordion-body{max-height:700px}.accordion-body-inner{padding:0 16px 16px}.settings-links{margin-top:18px;display:flex;flex-direction:column;gap:6px;align-items:center}.order-picker-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:flex-end;justify-content:center;z-index:9998}.order-picker-card{background:white;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:400px;max-height:85vh;display:flex;flex-direction:column}.order-scroll-area{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}.order-category{margin-bottom:10px;border-radius:14px;background:#f8fafc;overflow:hidden}.order-category-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;font-size:14px;font-weight:800;color:#374151;cursor:pointer}.order-category-items{display:none;padding:0 10px 10px}.order-category.open .order-category-items{display:block}.order-category.open .order-category-chevron{transform:rotate(180deg)}.order-category-chevron{font-size:11px;color:#9ca3af;transition:transform 0.2s}.order-item-card{display:flex;align-items:center;gap:10px;background:white;border-radius:12px;padding:8px;margin-bottom:6px}.order-item-photo{width:48px;height:48px;border-radius:9px;object-fit:cover;flex-shrink:0;background:#f1f5f9}.order-item-photo-placeholder{width:48px;height:48px;border-radius:9px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}.order-item-info{flex:1;min-width:0;text-align:left}.order-item-name{font-size:13px;font-weight:700;color:#1a1a1a}.order-item-desc{font-size:11px;color:#9ca3af;margin:2px 0}.order-item-price{font-size:12px;font-weight:800;color:#059669}.order-item-add{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:#111827;color:white;border:none;font-size:16px;font-weight:700;cursor:pointer}.order-item-qty{flex-shrink:0;display:flex;align-items:center;gap:8px}.order-item-qty button{width:28px;height:28px;border-radius:50%;background:#f3f4f6;border:none;font-size:15px;font-weight:700;cursor:pointer;color:#111827}.order-item-qty span{font-size:13px;font-weight:800;min-width:16px;text-align:center}.order-cart-bar{display:flex;justify-content:space-between;align-items:center;background:#111827;color:white;padding:14px 18px;border-radius:14px;margin-top:12px;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0}.order-cart-line{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f1f1;font-size:13px;gap:8px}.order-cart-line-name{flex:1;text-align:left;font-weight:600;color:#1a1a1a}.order-mode-row,.order-timing-row{display:flex;gap:8px;margin:12px 0}.order-mode-btn,.order-timing-btn{flex:1;padding:12px 8px;border-radius:12px;background:#f3f4f6;border:1.5px solid transparent;font-size:12.5px;font-weight:700;color:#374151;cursor:pointer}.order-mode-btn.active,.order-timing-btn.active{background:#fff7ed;border-color:#ea580c;color:#ea580c}.order-cart-total{font-size:16px;font-weight:800;color:#111827;text-align:center;margin:14px 0}.order-status-pill{font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;flex-shrink:0}.order-status-pill.received{background:#dbeafe;color:#1d4ed8}.order-status-pill.preparing{background:#fef3c7;color:#d97706}.order-status-pill.ready{background:#dcfce7;color:#16a34a}.order-status-pill.completed{background:#f3f4f6;color:#6b7280}.order-status-pill.cancelled{background:#fee2e2;color:#dc2626}.my-order-row{padding:10px 0;border-bottom:1px solid #e5e7eb;font-size:12.5px}.my-order-row:last-child{border-bottom:none}.my-order-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}</style></head><body><div class="onboarding-overlay" id="onboarding-overlay"><div class="onboarding-scroll"><div class="onboarding-icon" id="ob-icon">📲</div><div class="onboarding-title" id="ob-title">Bienvenue !</div><div class="onboarding-text" id="ob-text">Voici comment profiter de votre carte de fidélité.</div><div id="ob-mockup"></div><div class="onboarding-dots" id="ob-dots"></div></div><div class="onboarding-footer"><div class="onboarding-nav"><button class="onboarding-nav-btn" id="ob-prev" data-act="ob-prev">‹</button><button class="onboarding-nav-btn" id="ob-next" data-act="ob-next">›</button></div><button class="onboarding-cta" id="ob-cta" data-act="ob-dismiss">C'est parti 🚀</button><button class="onboarding-skip" data-act="ob-dismiss">Passer</button></div></div><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°${id}</div><div class="grade-badge" id="grade-badge" style="display:none"></div><div class="points-box" id="points-box" style="display:none"><div class="points-val" id="points-val">0</div><div class="points-goal" id="points-goal-text">sur 0 points</div><div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div></div><div class="primary-actions">${walletHtml}${bookingHtml}${orderingHtml}<button class="notif-btn" id="notif-btn" data-act="enable-notifs">🔔 Activer les notifications</button></div><div class="ios-hint" id="ios-hint">📲 Sur iPhone : pour recevoir les notifications, ajoutez d'abord cette page à votre écran d'accueil (bouton partager <strong>⬆️</strong> puis "Sur l'écran d'accueil"), ouvrez l'app depuis l'icône, puis réessayez.</div><div class="review-banner" id="review-banner"><h3>🎉 Objectif atteint !</h3><p id="review-banner-text">Votre avis compte beaucoup pour nous</p><a id="review-link" class="review-btn" href="#" target="_blank" style="display:none">⭐ Laisser un avis Google</a></div><div class="accordion" id="tiers-box" style="display:none"><div class="accordion-header" data-act="toggle-accordion" data-arg="tiers-box"><span>🎯 Paliers de récompense</span><span class="accordion-chevron">▾</span></div><div class="accordion-body"><div class="accordion-body-inner"><div id="tiers-list"></div></div></div></div><div class="accordion" id="booking-upcoming-box" style="display:none"><div class="accordion-header" data-act="toggle-accordion" data-arg="booking-upcoming-box"><span>📅 Mes rendez-vous</span><span class="accordion-chevron">▾</span></div><div class="accordion-body"><div class="accordion-body-inner"><div id="my-appointments-list"></div></div></div></div><div class="accordion" id="orders-box" style="display:none"><div class="accordion-header" data-act="toggle-accordion" data-arg="orders-box"><span>🛍️ Mes commandes</span><span class="accordion-chevron">▾</span></div><div class="accordion-body"><div class="accordion-body-inner"><div id="my-orders-list"></div></div></div></div><div class="accordion" id="info-box" style="display:none"><div class="accordion-header" data-act="toggle-accordion" data-arg="info-box"><span>ℹ️ Infos pratiques</span><span class="accordion-chevron">▾</span></div><div class="accordion-body"><div class="accordion-body-inner" style="display:flex;flex-direction:column;gap:10px"><a id="menu-link" href="#" target="_blank" style="display:none;align-items:center;justify-content:center;gap:8px;background:#eef2f6;color:#374151;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none">📋 Voir le menu</a><a id="phone-link" href="#" style="display:none;align-items:center;justify-content:center;gap:8px;background:#eef2f6;color:#374151;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none">📞 Appeler la boutique</a><div id="hours-text" style="display:none;font-size:13px;color:#6b7280;text-align:center">🕒 <span id="hours-value"></span></div></div></div></div><div class="accordion" id="referral-box" style="display:none"><div class="accordion-header" data-act="toggle-accordion" data-arg="referral-box"><span>🎁 Parrainez un ami</span><span class="accordion-chevron">▾</span></div><div class="accordion-body"><div class="accordion-body-inner"><p style="font-size:12px;color:#6b7280;margin-bottom:10px;text-align:center">Votre ami reçoit des points, vous aussi !</p><div class="referral-link-box" id="referral-link-text"></div><button class="referral-copy-btn" data-act="copy-referral">📋 Copier mon lien de parrainage</button></div></div></div><div class="accordion" id="history-box" style="display:none"><div class="accordion-header" data-act="toggle-accordion" data-arg="history-box"><span>📋 Historique des visites</span><span class="accordion-chevron">▾</span></div><div class="accordion-body"><div class="accordion-body-inner"><div id="history-list"></div></div></div></div><div class="settings-links"><button class="unsub-link" id="unsub-link" data-act="disable-notifs" style="display:none">Se désabonner des notifications</button><button class="unsub-link" data-act="show-onboarding" style="display:block">🔄 Revoir le tuto</button></div></div><div class="booking-picker-overlay" id="booking-picker-overlay"><div class="booking-picker-card"><div class="booking-picker-header"><div class="section-title" id="booking-picker-title" style="margin:0">Choisissez une prestation</div><button class="booking-picker-close" data-act="close-booking">✕</button></div><div id="booking-dates-row"></div><div id="booking-slots-grid" class="booking-slots-grid"></div></div></div><div class="order-picker-overlay" id="order-picker-overlay"><div class="order-picker-card"><div class="booking-picker-header"><div class="section-title" id="order-picker-title" style="margin:0">Notre carte</div><button class="booking-picker-close" data-act="close-order">✕</button></div><div class="order-scroll-area"><div id="order-menu-view"><div id="order-categories-list"></div></div><div id="order-cart-view" style="display:none;text-align:left"><div id="order-cart-items"></div><div class="order-mode-row"><button class="order-mode-btn" data-act="set-order-mode" data-arg="sur_place" id="mode-sur-place">🍽️ Sur place</button><button class="order-mode-btn" data-act="set-order-mode" data-arg="a_emporter" id="mode-a-emporter">🥡 À emporter</button></div><div class="order-timing-row"><button class="order-timing-btn" data-act="set-order-timing" data-arg="asap" id="timing-asap">Au plus vite</button><button class="order-timing-btn" data-act="set-order-timing" data-arg="planned" id="timing-planned">Planifier</button></div><input class="input" type="datetime-local" id="order-planned-time" style="display:none;margin-top:8px"><div class="order-cart-total" id="order-cart-total">Total : 0,00€</div><button class="referral-copy-btn" id="submit-order-btn" data-act="submit-order">Valider la commande</button><button class="btn-back-order" data-act="show-menu-view" style="width:100%;margin-top:8px;background:#f3f4f6;border:none;padding:12px;border-radius:12px;font-size:13px;font-weight:700;color:#374151;cursor:pointer">← Continuer mes achats</button></div></div><div class="order-cart-bar" id="order-cart-bar" style="display:none" data-act="show-cart-view"><span id="order-cart-count">0 article</span><span id="order-cart-bar-total">0,00€</span></div></div></div><script>
+  res.send(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Ma carte FidélyPass</title><link rel="manifest" href="${manifestUrl}"><link rel="apple-touch-icon" href="${shopIcon}"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="${shopName.replace(/"/g, '&quot;')}"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1a1a1a"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#f2f2f7;font-family:-apple-system,Arial,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}.card{background:white;border-radius:24px;padding:32px 24px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.10);width:100%;max-width:340px}h1{font-size:22px;font-weight:800;margin-bottom:4px}p{color:#6b7280;font-size:13px;margin-bottom:24px}#qr{width:200px;height:200px;border-radius:12px}.id{margin-top:16px;font-size:13px;color:#9ca3af}.points-box{margin-top:20px;background:#f8fafc;border-radius:16px;padding:16px}.points-val{font-size:28px;font-weight:900;color:#111827}.points-goal{font-size:13px;color:#6b7280;margin-bottom:10px}.progress-track{background:#e5e7eb;border-radius:99px;height:10px;overflow:hidden}.progress-fill{background:#3b82f6;height:100%;border-radius:99px;transition:width 0.4s ease}.review-banner{margin-top:20px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:16px;padding:16px;color:white;text-align:center;display:none}.review-banner h3{font-size:16px;font-weight:800;margin-bottom:6px}.review-banner p{color:rgba(255,255,255,0.9);font-size:13px;margin-bottom:12px}.review-btn{display:inline-block;background:white;color:#d97706;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none}.notif-btn{margin-top:16px;background:#f3f4f6;color:#374151;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer}.notif-btn.on{background:#dcfce7;color:#16a34a}.unsub-link{display:block;margin-top:8px;font-size:11px;color:#9ca3af;text-decoration:underline;cursor:pointer;background:none;border:none}.ios-hint{margin-top:12px;background:#fef3c7;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e;text-align:left;line-height:1.5;display:none}.section-box{margin-top:20px;background:#f8fafc;border-radius:16px;padding:16px;text-align:left}.grade-badge{display:inline-flex;align-items:center;gap:6px;background:#f3f4f6;color:#374151;font-size:12px;font-weight:800;padding:6px 14px;border-radius:99px;margin:10px 0 0}.tier-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:13px}.tier-row:last-child{border-bottom:none}.tier-check{width:22px;height:22px;border-radius:50%;background:#e5e7eb;color:#9ca3af;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}.tier-check.done{background:#059669;color:white}.tier-name{flex:1;font-weight:600;color:#374151}.tier-name.done{color:#059669}.tier-pts{font-size:11px;color:#9ca3af;flex-shrink:0}.section-title{font-size:13px;font-weight:800;color:#374151;margin-bottom:10px;text-align:center}.history-row{display:flex;justify-content:space-between;font-size:12px;color:#6b7280;padding:6px 0;border-bottom:1px solid #e5e7eb}.history-row:last-child{border-bottom:none}.referral-link-box{background:white;border:1px solid #e5e7eb;border-radius:10px;padding:10px;font-size:11px;color:#374151;word-break:break-all;margin-bottom:10px}.referral-copy-btn{width:100%;padding:12px;border-radius:10px;background:#3b82f6;color:white;font-size:13px;font-weight:700;border:none;cursor:pointer}.onboarding-overlay{position:fixed;inset:0;height:100vh;height:100dvh;background:linear-gradient(135deg,#0f172a,#1e1b4b 50%,#0f172a);display:flex;flex-direction:column;align-items:stretch;justify-content:space-between;z-index:9999;padding:0;text-align:center;overflow:hidden}.onboarding-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;padding-top:max(32px,env(safe-area-inset-top))}.onboarding-footer{flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:0 32px;padding-bottom:max(24px,env(safe-area-inset-bottom));position:relative;z-index:1;touch-action:manipulation}.onboarding-overlay::before{content:'';position:absolute;inset:-50%;pointer-events:none;background:radial-gradient(circle at 30% 30%,rgba(59,130,246,0.25),transparent 50%),radial-gradient(circle at 70% 70%,rgba(168,85,247,0.2),transparent 50%);animation:obDrift 8s ease-in-out infinite alternate}@keyframes obDrift{from{transform:translate(0,0) rotate(0deg)}to{transform:translate(3%,3%) rotate(8deg)}}.onboarding-icon{width:88px;height:88px;border-radius:50%;background:rgba(59,130,246,0.15);border:1px solid rgba(96,165,250,0.4);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:24px;animation:obPulse 1.8s ease-in-out infinite;position:relative;z-index:1}@keyframes obPulse{0%,100%{box-shadow:0 0 0 0 rgba(96,165,250,0.35)}50%{box-shadow:0 0 0 16px rgba(96,165,250,0)}}.onboarding-title{color:white;font-size:21px;font-weight:800;margin-bottom:10px;position:relative;z-index:1;animation:obFadeUp 0.5s ease}.onboarding-text{color:#cbd5e1;font-size:14px;line-height:1.6;max-width:280px;position:relative;z-index:1;animation:obFadeUp 0.5s ease 0.1s both}@keyframes obFadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}.onboarding-dots{display:flex;gap:8px;margin-top:32px;position:relative;z-index:1}.onboarding-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.25);transition:all 0.3s}.onboarding-dot.active{background:#60a5fa;width:22px;border-radius:4px}.onboarding-skip{margin-top:28px;background:none;border:none;color:rgba(255,255,255,0.5);font-size:13px;text-decoration:underline;cursor:pointer;touch-action:manipulation;pointer-events:auto;position:relative;z-index:1}.onboarding-cta{margin-top:24px;background:white;color:#1e1b4b;border:none;padding:14px 32px;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;touch-action:manipulation;pointer-events:auto;position:relative;z-index:1;display:none}.onboarding-nav{display:flex;gap:18px;margin-top:22px;position:relative;z-index:1}.onboarding-nav-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:white;width:46px;height:46px;border-radius:50%;font-size:20px;cursor:pointer;touch-action:manipulation;pointer-events:auto;display:flex;align-items:center;justify-content:center;transition:opacity 0.2s}.onboarding-nav-btn:disabled{opacity:0.2;cursor:default}.onboarding-dot{cursor:pointer}.ob-mock{margin-top:22px;position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:4px}.ob-mock-hand{font-size:26px;animation:obBounce 1s ease-in-out infinite}@keyframes obBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}.ob-mock-btn{background:#000;color:white;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700}.ob-mock-btn.light{background:#f3f4f6;color:#374151}.ob-mock-bar{background:#e5e7eb;border-radius:10px;padding:8px 16px;font-size:14px;font-weight:700;color:#374151}.ob-mock-step{color:#e2e8f0;font-size:12px;line-height:1.5;max-width:260px}.ob-safari-bar{margin:10px 0;background:#1f2937;border-radius:14px;padding:12px 18px;display:flex;gap:20px;align-items:center;font-size:17px;color:#94a3b8}.ob-safari-bar .hl{color:#60a5fa;transform:scale(1.35);animation:obPulse2 1.2s ease-in-out infinite}@keyframes obPulse2{0%,100%{transform:scale(1.35)}50%{transform:scale(1.6)}}.ob-phone{margin-top:18px;background:#ffffff;border:6px solid #1c1c1e;border-radius:34px;padding:0;width:240px;box-shadow:0 10px 30px rgba(0,0,0,0.35);position:relative;z-index:1;overflow:hidden}.ob-phone-status{display:flex;justify-content:space-between;padding:6px 14px 2px;font-size:10px;font-weight:700;color:#111827;background:#fff}.ob-phone-bar{background:#eceded;border-radius:8px;padding:6px 8px;font-size:9px;color:#374151;text-align:center;margin:4px 10px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ob-phone-content{background:#f8fafc;height:46px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 10px 8px;border-radius:8px;border:1px solid #eef0f2}.ob-phone-toolbar{display:flex;justify-content:space-around;align-items:center;background:#f7f7f8;border-top:1px solid #e5e7eb;padding:12px 8px}.ob-share-icon{position:relative;display:flex}.ob-share-icon svg{animation:obPulse2 1.2s ease-in-out infinite}@keyframes obPulse2{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}.ob-callout{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font-size:20px;animation:obBounce 1s ease-in-out infinite}.ob-sheet{background:#fff;border-top:1px solid #e5e7eb}.ob-sheet-handle{width:36px;height:4px;background:#d1d5db;border-radius:99px;margin:8px auto}.ob-sheet-row{display:flex;align-items:center;gap:10px;padding:11px 16px;font-size:13px;color:#111827;border-bottom:1px solid #f1f1f1;font-weight:500}.ob-sheet-row:last-child{border-bottom:none}.ob-sheet-row.hl{background:#eff6ff;color:#1d4ed8;font-weight:700}.booking-picker-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:flex-end;justify-content:center;z-index:9998}.booking-picker-card{background:white;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:400px;max-height:75vh;overflow-y:auto}.booking-picker-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.booking-picker-close{background:#f3f4f6;border:none;width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;color:#374151}.booking-dates-scroll{display:flex;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;gap:8px}.booking-date-pill{flex-shrink:0;padding:8px 14px;border-radius:99px;background:#f3f4f6;color:#374151;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}.booking-date-pill.active{background:#3b82f6;color:white}.booking-slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.booking-slot-btn{padding:10px 4px;border-radius:10px;background:#f8fafc;border:1px solid #e5e7eb;font-size:13px;font-weight:700;cursor:pointer;color:#111827}.booking-slot-btn:hover{background:#eff6ff;border-color:#3b82f6}.appt-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:12.5px;gap:8px}.appt-row:last-child{border-bottom:none}.appt-cancel-btn{flex-shrink:0;background:#fee2e2;color:#dc2626;border:none;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer}.primary-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px}.accordion{margin-top:12px;background:#f8fafc;border-radius:16px;overflow:hidden;text-align:left}.accordion-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer;font-size:13px;font-weight:800;color:#374151;user-select:none}.accordion-chevron{font-size:11px;color:#9ca3af;transition:transform 0.25s ease}.accordion.open .accordion-chevron{transform:rotate(180deg)}.accordion-body{max-height:0;overflow:hidden;transition:max-height 0.3s ease}.accordion.open .accordion-body{max-height:700px}.accordion-body-inner{padding:0 16px 16px}.settings-links{margin-top:18px;display:flex;flex-direction:column;gap:6px;align-items:center}.order-picker-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:flex-end;justify-content:center;z-index:9998}.order-picker-card{background:white;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:400px;max-height:85vh;display:flex;flex-direction:column}.order-scroll-area{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}.order-category{margin-bottom:10px;border-radius:14px;background:#f8fafc;overflow:hidden}.order-category-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;font-size:14px;font-weight:800;color:#374151;cursor:pointer}.order-category-items{display:none;padding:0 10px 10px}.order-category.open .order-category-items{display:block}.order-category.open .order-category-chevron{transform:rotate(180deg)}.order-category-chevron{font-size:11px;color:#9ca3af;transition:transform 0.2s}.order-item-card{display:flex;align-items:center;gap:10px;background:white;border-radius:12px;padding:8px;margin-bottom:6px}.order-item-photo{width:48px;height:48px;border-radius:9px;object-fit:cover;flex-shrink:0;background:#f1f5f9}.order-item-photo-placeholder{width:48px;height:48px;border-radius:9px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}.order-item-info{flex:1;min-width:0;text-align:left}.order-item-name{font-size:13px;font-weight:700;color:#1a1a1a}.order-item-desc{font-size:11px;color:#9ca3af;margin:2px 0}.order-item-price{font-size:12px;font-weight:800;color:#059669}.order-item-add{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:#111827;color:white;border:none;font-size:16px;font-weight:700;cursor:pointer}.order-item-qty{flex-shrink:0;display:flex;align-items:center;gap:8px}.order-item-qty button{width:28px;height:28px;border-radius:50%;background:#f3f4f6;border:none;font-size:15px;font-weight:700;cursor:pointer;color:#111827}.order-item-qty span{font-size:13px;font-weight:800;min-width:16px;text-align:center}.order-cart-bar{display:flex;justify-content:space-between;align-items:center;background:#111827;color:white;padding:14px 18px;border-radius:14px;margin-top:12px;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0}.order-cart-line{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f1f1;font-size:13px;gap:8px}.order-cart-line-name{flex:1;text-align:left;font-weight:600;color:#1a1a1a}.order-mode-row,.order-timing-row{display:flex;gap:8px;margin:12px 0}.order-mode-btn,.order-timing-btn{flex:1;padding:12px 8px;border-radius:12px;background:#f3f4f6;border:1.5px solid transparent;font-size:12.5px;font-weight:700;color:#374151;cursor:pointer}.order-mode-btn.active,.order-timing-btn.active{background:#fff7ed;border-color:#ea580c;color:#ea580c}.order-cart-total{font-size:16px;font-weight:800;color:#111827;text-align:center;margin:14px 0}.order-status-pill{font-size:10px;font-weight:800;padding:3px 8px;border-radius:99px;flex-shrink:0}.order-status-pill.received{background:#dbeafe;color:#1d4ed8}.order-status-pill.preparing{background:#fef3c7;color:#d97706}.order-status-pill.ready{background:#dcfce7;color:#16a34a}.order-status-pill.completed{background:#f3f4f6;color:#6b7280}.order-status-pill.cancelled{background:#fee2e2;color:#dc2626}.my-order-row{padding:10px 0;border-bottom:1px solid #e5e7eb;font-size:12.5px}.my-order-row:last-child{border-bottom:none}.my-order-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}.config-choice-row{display:flex;justify-content:space-between;align-items:center;padding:14px;border-radius:12px;background:#f8fafc;margin-bottom:8px;cursor:pointer;font-size:14px;font-weight:600;color:#374151;border:1.5px solid transparent}.config-choice-row.selected{background:#fff7ed;border-color:#ea580c;color:#ea580c}.config-choice-check{font-weight:800;color:#ea580c;min-width:16px;text-align:right}.configurator-progress-dot{flex:1;height:4px;border-radius:99px;background:#f1f5f9}.configurator-progress-dot.done{background:#ea580c}.configurator-progress-dot.current{background:#fdba74}.btn-back-order{background:#f3f4f6;border:none;padding:12px;border-radius:12px;font-size:13px;font-weight:700;color:#374151;cursor:pointer}</style></head><body><div class="onboarding-overlay" id="onboarding-overlay"><div class="onboarding-scroll"><div class="onboarding-icon" id="ob-icon">📲</div><div class="onboarding-title" id="ob-title">Bienvenue !</div><div class="onboarding-text" id="ob-text">Voici comment profiter de votre carte de fidélité.</div><div id="ob-mockup"></div><div class="onboarding-dots" id="ob-dots"></div></div><div class="onboarding-footer"><div class="onboarding-nav"><button class="onboarding-nav-btn" id="ob-prev" data-act="ob-prev">‹</button><button class="onboarding-nav-btn" id="ob-next" data-act="ob-next">›</button></div><button class="onboarding-cta" id="ob-cta" data-act="ob-dismiss">C'est parti 🚀</button><button class="onboarding-skip" data-act="ob-dismiss">Passer</button></div></div><div class="card"><h1>🎯 FidélyPass</h1><p>Présentez ce QR code au gérant</p><img id="qr" src="" alt="QR Code"><div class="id">Carte n°${id}</div><div class="grade-badge" id="grade-badge" style="display:none"></div><div class="points-box" id="points-box" style="display:none"><div class="points-val" id="points-val">0</div><div class="points-goal" id="points-goal-text">sur 0 points</div><div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div></div><div class="primary-actions">${walletHtml}${bookingHtml}${orderingHtml}<button class="notif-btn" id="notif-btn" data-act="enable-notifs">🔔 Activer les notifications</button></div><div class="ios-hint" id="ios-hint">📲 Sur iPhone : pour recevoir les notifications, ajoutez d'abord cette page à votre écran d'accueil (bouton partager <strong>⬆️</strong> puis "Sur l'écran d'accueil"), ouvrez l'app depuis l'icône, puis réessayez.</div><div class="review-banner" id="review-banner"><h3>🎉 Objectif atteint !</h3><p id="review-banner-text">Votre avis compte beaucoup pour nous</p><a id="review-link" class="review-btn" href="#" target="_blank" style="display:none">⭐ Laisser un avis Google</a></div><div class="accordion" id="tiers-box" style="display:none"><div class="accordion-header" data-act="toggle-accordion" data-arg="tiers-box"><span>🎯 Paliers de récompense</span><span class="accordion-chevron">▾</span></div><div class="accordion-body"><div class="accordion-body-inner"><div id="tiers-list"></div></div></div></div><div class="accordion" id="booking-upcoming-box" style="display:none"><div class="accordion-header" data-act="toggle-accordion" data-arg="booking-upcoming-box"><span>📅 Mes rendez-vous</span><span class="accordion-chevron">▾</span></div><div class="accordion-body"><div class="accordion-body-inner"><div id="my-appointments-list"></div></div></div></div><div class="accordion" id="orders-box" style="display:none"><div class="accordion-header" data-act="toggle-accordion" data-arg="orders-box"><span>🛍️ Mes commandes</span><span class="accordion-chevron">▾</span></div><div class="accordion-body"><div class="accordion-body-inner"><div id="my-orders-list"></div></div></div></div><div class="accordion" id="info-box" style="display:none"><div class="accordion-header" data-act="toggle-accordion" data-arg="info-box"><span>ℹ️ Infos pratiques</span><span class="accordion-chevron">▾</span></div><div class="accordion-body"><div class="accordion-body-inner" style="display:flex;flex-direction:column;gap:10px"><a id="menu-link" href="#" target="_blank" style="display:none;align-items:center;justify-content:center;gap:8px;background:#eef2f6;color:#374151;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none">📋 Voir le menu</a><a id="phone-link" href="#" style="display:none;align-items:center;justify-content:center;gap:8px;background:#eef2f6;color:#374151;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none">📞 Appeler la boutique</a><div id="hours-text" style="display:none;font-size:13px;color:#6b7280;text-align:center">🕒 <span id="hours-value"></span></div></div></div></div><div class="accordion" id="referral-box" style="display:none"><div class="accordion-header" data-act="toggle-accordion" data-arg="referral-box"><span>🎁 Parrainez un ami</span><span class="accordion-chevron">▾</span></div><div class="accordion-body"><div class="accordion-body-inner"><p style="font-size:12px;color:#6b7280;margin-bottom:10px;text-align:center">Votre ami reçoit des points, vous aussi !</p><div class="referral-link-box" id="referral-link-text"></div><button class="referral-copy-btn" data-act="copy-referral">📋 Copier mon lien de parrainage</button></div></div></div><div class="accordion" id="history-box" style="display:none"><div class="accordion-header" data-act="toggle-accordion" data-arg="history-box"><span>📋 Historique des visites</span><span class="accordion-chevron">▾</span></div><div class="accordion-body"><div class="accordion-body-inner"><div id="history-list"></div></div></div></div><div class="settings-links"><button class="unsub-link" id="unsub-link" data-act="disable-notifs" style="display:none">Se désabonner des notifications</button><button class="unsub-link" data-act="show-onboarding" style="display:block">🔄 Revoir le tuto</button></div></div><div class="booking-picker-overlay" id="booking-picker-overlay"><div class="booking-picker-card"><div class="booking-picker-header"><div class="section-title" id="booking-picker-title" style="margin:0">Choisissez une prestation</div><button class="booking-picker-close" data-act="close-booking">✕</button></div><div id="booking-dates-row"></div><div id="booking-slots-grid" class="booking-slots-grid"></div></div></div><div class="order-picker-overlay" id="order-picker-overlay"><div class="order-picker-card"><div class="booking-picker-header"><div class="section-title" id="order-picker-title" style="margin:0">Notre carte</div><button class="booking-picker-close" data-act="close-order">✕</button></div><div class="order-scroll-area"><div id="order-menu-view"><div id="order-categories-list"></div></div><div id="order-configurator-view" style="display:none;text-align:left"><div id="configurator-progress" style="display:flex;gap:6px;margin-bottom:14px"></div><div id="configurator-step-title" style="font-size:15px;font-weight:800;margin-bottom:4px"></div><div id="configurator-step-sub" style="font-size:11.5px;color:#94a3b8;margin-bottom:12px"></div><div id="configurator-choices-list"></div><div class="add-row" style="margin-top:16px;gap:8px"><button class="btn-back-order" style="flex:1" data-act="configurator-back">← Retour</button><button class="referral-copy-btn" id="configurator-next-btn" style="flex:2" data-act="configurator-next">Suivant</button></div></div><div id="order-cart-view" style="display:none;text-align:left"><div id="order-cart-items"></div><div class="order-mode-row"><button class="order-mode-btn" data-act="set-order-mode" data-arg="sur_place" id="mode-sur-place">🍽️ Sur place</button><button class="order-mode-btn" data-act="set-order-mode" data-arg="a_emporter" id="mode-a-emporter">🥡 À emporter</button></div><div class="order-timing-row"><button class="order-timing-btn" data-act="set-order-timing" data-arg="asap" id="timing-asap">Au plus vite</button><button class="order-timing-btn" data-act="set-order-timing" data-arg="planned" id="timing-planned">Planifier</button></div><input class="input" type="datetime-local" id="order-planned-time" style="display:none;margin-top:8px"><div class="order-cart-total" id="order-cart-total">Total : 0,00€</div><button class="referral-copy-btn" id="submit-order-btn" data-act="submit-order">Valider la commande</button><button class="btn-back-order" data-act="show-menu-view" style="width:100%;margin-top:8px;background:#f3f4f6;border:none;padding:12px;border-radius:12px;font-size:13px;font-weight:700;color:#374151;cursor:pointer">← Continuer mes achats</button></div></div><div class="order-cart-bar" id="order-cart-bar" style="display:none" data-act="show-cart-view"><span id="order-cart-count">0 article</span><span id="order-cart-bar-total">0,00€</span></div></div></div><script>
 const IS_IOS = ${isIOS};
 
 let OB_STEPS = [
@@ -1779,8 +1779,14 @@ document.addEventListener('click', function(e) {
   else if (act === 'open-ordering') openOrderPicker();
   else if (act === 'close-order') closeOrderPicker();
   else if (act === 'toggle-order-category') toggleOrderCategory(arg);
-  else if (act === 'cart-inc') cartIncrement(arg);
-  else if (act === 'cart-dec') cartDecrement(arg);
+  else if (act === 'cart-inc-simple') cartIncrementSimple(arg);
+  else if (act === 'cart-inc-simple-dec') cartDecrementSimple(arg);
+  else if (act === 'open-configurator') openItemConfigurator(arg);
+  else if (act === 'configurator-select') configuratorSelect(arg);
+  else if (act === 'configurator-next') configuratorNext();
+  else if (act === 'configurator-back') configuratorBack();
+  else if (act === 'cart-line-inc') cartLineInc(arg);
+  else if (act === 'cart-line-dec') cartLineDec(arg);
   else if (act === 'show-cart-view') showCartView();
   else if (act === 'show-menu-view') showMenuView();
   else if (act === 'set-order-mode') setOrderMode(arg);
@@ -1995,9 +2001,14 @@ function closeBookingPicker() {
 // ═══════════════════════════════════════════
 
 let orderMenuData = { categories: [], items: [] };
-let cart = {}; // { menu_item_id: quantity }
+let cartLines = []; // { uid, menu_item_id, name, unit_price, quantity, choice_ids, choice_summary }
+let cartLineSeq = 0;
 let orderMode = 'a_emporter';
 let orderTiming = 'asap';
+let configuratorItem = null;
+let configuratorGroups = [];
+let configuratorStep = 0;
+let configuratorSelections = {};
 
 async function openOrderPicker() {
   document.getElementById('order-picker-overlay').style.display = 'flex';
@@ -2041,10 +2052,16 @@ function renderOrderItemCard(item) {
     ? '<img class="order-item-photo" src="' + item.photo_base64 + '">'
     : '<div class="order-item-photo-placeholder">🍽️</div>';
   const desc = item.description ? '<div class="order-item-desc">' + item.description + '</div>' : '';
-  const qty = cart[item.id] || 0;
-  const control = qty > 0
-    ? '<div class="order-item-qty"><button data-act="cart-dec" data-arg="' + item.id + '">−</button><span>' + qty + '</span><button data-act="cart-inc" data-arg="' + item.id + '">+</button></div>'
-    : '<button class="order-item-add" data-act="cart-inc" data-arg="' + item.id + '">+</button>';
+  let control;
+  if (item.has_options) {
+    control = '<button class="order-item-add" data-act="open-configurator" data-arg="' + item.id + '">+</button>';
+  } else {
+    const line = cartLines.find(l => String(l.menu_item_id) === String(item.id) && (!l.choice_ids || l.choice_ids.length === 0));
+    const qty = line ? line.quantity : 0;
+    control = qty > 0
+      ? '<div class="order-item-qty"><button data-act="cart-inc-simple-dec" data-arg="' + item.id + '">−</button><span>' + qty + '</span><button data-act="cart-inc-simple" data-arg="' + item.id + '">+</button></div>'
+      : '<button class="order-item-add" data-act="cart-inc-simple" data-arg="' + item.id + '">+</button>';
+  }
   return '<div class="order-item-card" id="order-item-' + item.id + '">' + photo +
     '<div class="order-item-info"><div class="order-item-name">' + item.name + '</div>' + desc +
     '<div class="order-item-price">' + Number(item.price).toFixed(2).replace('.', ',') + '€</div></div>' + control + '</div>';
@@ -2055,17 +2072,152 @@ function toggleOrderCategory(catId) {
   if (el) el.classList.toggle('open');
 }
 
-function cartTotal() {
-  let total = 0;
-  for (const id in cart) {
-    const item = (orderMenuData.items || []).find(i => String(i.id) === String(id));
-    if (item) total += item.price * cart[id];
+function refreshItemCard(itemId) {
+  const item = (orderMenuData.items || []).find(i => String(i.id) === String(itemId));
+  const cardEl = document.getElementById('order-item-' + itemId);
+  if (cardEl && item) cardEl.outerHTML = renderOrderItemCard(item);
+}
+
+function isCartViewOpen() {
+  const el = document.getElementById('order-cart-view');
+  return el && el.style.display !== 'none';
+}
+
+// ── Articles simples (sans options) : ajout rapide en un tap ──
+function cartIncrementSimple(itemId) {
+  const item = (orderMenuData.items || []).find(i => String(i.id) === String(itemId));
+  if (!item) return;
+  let line = cartLines.find(l => String(l.menu_item_id) === String(item.id) && (!l.choice_ids || l.choice_ids.length === 0));
+  if (line) { line.quantity += 1; }
+  else { cartLines.push({ uid: ++cartLineSeq, menu_item_id: item.id, name: item.name, unit_price: item.price, quantity: 1, choice_ids: [], choice_summary: '' }); }
+  updateCartBar();
+  refreshItemCard(item.id);
+  if (isCartViewOpen()) renderCartItems();
+}
+
+function cartDecrementSimple(itemId) {
+  const line = cartLines.find(l => String(l.menu_item_id) === String(itemId) && (!l.choice_ids || l.choice_ids.length === 0));
+  if (!line) return;
+  line.quantity -= 1;
+  if (line.quantity <= 0) cartLines = cartLines.filter(l => l !== line);
+  updateCartBar();
+  refreshItemCard(itemId);
+  if (isCartViewOpen()) renderCartItems();
+}
+
+// ── Configurateur étape par étape (articles avec groupes d'options : viande, sauce, etc.) ──
+async function openItemConfigurator(itemId) {
+  const item = (orderMenuData.items || []).find(i => String(i.id) === String(itemId));
+  if (!item) return;
+  const res = await fetch('/api/menu-items/' + itemId + '/option-groups-public');
+  configuratorGroups = await res.json();
+  if (!configuratorGroups.length) { cartIncrementSimple(itemId); return; }
+  configuratorItem = item;
+  configuratorStep = 0;
+  configuratorSelections = {};
+  document.getElementById('order-menu-view').style.display = 'none';
+  document.getElementById('order-cart-view').style.display = 'none';
+  document.getElementById('order-configurator-view').style.display = 'block';
+  document.getElementById('order-picker-title').textContent = item.name;
+  document.getElementById('order-cart-bar').style.display = 'none';
+  renderConfiguratorStep();
+}
+
+function renderConfiguratorStep() {
+  const group = configuratorGroups[configuratorStep];
+  document.getElementById('configurator-progress').innerHTML = configuratorGroups.map((g, i) =>
+    '<div class="configurator-progress-dot' + (i < configuratorStep ? ' done' : i === configuratorStep ? ' current' : '') + '"></div>'
+  ).join('');
+  document.getElementById('configurator-step-title').textContent = group.name;
+  document.getElementById('configurator-step-sub').textContent = (group.is_required === 1 ? 'Obligatoire' : 'Optionnel') + ' · ' + (group.selection_type === 'multi' ? 'Plusieurs choix possibles' : 'Un seul choix');
+  const selected = configuratorSelections[group.id] || [];
+  document.getElementById('configurator-choices-list').innerHTML = group.choices.map(c => {
+    const isSel = selected.includes(c.id);
+    return '<div class="config-choice-row' + (isSel ? ' selected' : '') + '" data-act="configurator-select" data-arg="' + c.id + '"><span>' + c.name + (c.price_delta ? ' (+' + Number(c.price_delta).toFixed(2).replace('.', ',') + '€)' : '') + '</span><span class="config-choice-check">' + (isSel ? '✓' : '') + '</span></div>';
+  }).join('');
+  const isLast = configuratorStep === configuratorGroups.length - 1;
+  document.getElementById('configurator-next-btn').textContent = isLast ? 'Ajouter au panier' : 'Suivant';
+}
+
+function configuratorSelect(choiceIdStr) {
+  const choiceId = parseInt(choiceIdStr, 10);
+  const group = configuratorGroups[configuratorStep];
+  let selected = configuratorSelections[group.id] || [];
+  if (group.selection_type === 'multi') {
+    selected = selected.includes(choiceId) ? selected.filter(id => id !== choiceId) : [...selected, choiceId];
+  } else {
+    selected = [choiceId];
   }
-  return total;
+  configuratorSelections[group.id] = selected;
+  renderConfiguratorStep();
+}
+
+function configuratorNext() {
+  const group = configuratorGroups[configuratorStep];
+  const selected = configuratorSelections[group.id] || [];
+  if (group.is_required === 1 && selected.length === 0) {
+    alert('Merci de choisir une option pour "' + group.name + '".');
+    return;
+  }
+  if (configuratorStep < configuratorGroups.length - 1) {
+    configuratorStep += 1;
+    renderConfiguratorStep();
+  } else {
+    finishConfigurator();
+  }
+}
+
+function configuratorBack() {
+  if (configuratorStep > 0) {
+    configuratorStep -= 1;
+    renderConfiguratorStep();
+  } else {
+    document.getElementById('order-configurator-view').style.display = 'none';
+    configuratorItem = null;
+    showMenuView();
+  }
+}
+
+function finishConfigurator() {
+  const allChoiceIds = [];
+  const summaryParts = [];
+  let extraPrice = 0;
+  for (const group of configuratorGroups) {
+    const selected = configuratorSelections[group.id] || [];
+    if (!selected.length) continue;
+    const names = [];
+    for (const cid of selected) {
+      const choice = group.choices.find(c => c.id === cid);
+      if (choice) {
+        extraPrice += Number(choice.price_delta) || 0;
+        names.push(choice.name);
+      }
+    }
+    if (names.length) summaryParts.push(group.name + ': ' + names.join(', '));
+    allChoiceIds.push(...selected);
+  }
+  cartLines.push({
+    uid: ++cartLineSeq,
+    menu_item_id: configuratorItem.id,
+    name: configuratorItem.name,
+    unit_price: configuratorItem.price + extraPrice,
+    quantity: 1,
+    choice_ids: allChoiceIds,
+    choice_summary: summaryParts.join(' · ')
+  });
+  document.getElementById('order-configurator-view').style.display = 'none';
+  configuratorItem = null;
+  showMenuView();
+  updateCartBar();
+}
+
+// ── Panier, mode, horaire, validation ──
+function cartTotal() {
+  return cartLines.reduce((sum, l) => sum + l.unit_price * l.quantity, 0);
 }
 
 function cartCount() {
-  return Object.values(cart).reduce((a, b) => a + b, 0);
+  return cartLines.reduce((sum, l) => sum + l.quantity, 0);
 }
 
 function updateCartBar() {
@@ -2080,30 +2232,10 @@ function updateCartBar() {
   }
 }
 
-function cartIncrement(itemId) {
-  cart[itemId] = (cart[itemId] || 0) + 1;
-  updateCartBar();
-  const item = (orderMenuData.items || []).find(i => String(i.id) === String(itemId));
-  const cardEl = document.getElementById('order-item-' + itemId);
-  if (cardEl && item) cardEl.outerHTML = renderOrderItemCard(item);
-  if (!document.getElementById('order-cart-view') || document.getElementById('order-cart-view').style.display === 'none') return;
-  renderCartItems();
-}
-
-function cartDecrement(itemId) {
-  if (!cart[itemId]) return;
-  cart[itemId] -= 1;
-  if (cart[itemId] <= 0) delete cart[itemId];
-  updateCartBar();
-  const item = (orderMenuData.items || []).find(i => String(i.id) === String(itemId));
-  const cardEl = document.getElementById('order-item-' + itemId);
-  if (cardEl && item) cardEl.outerHTML = renderOrderItemCard(item);
-  renderCartItems();
-}
-
 function showMenuView() {
   document.getElementById('order-menu-view').style.display = 'block';
   document.getElementById('order-cart-view').style.display = 'none';
+  document.getElementById('order-configurator-view').style.display = 'none';
   document.getElementById('order-picker-title').textContent = 'Notre carte';
   updateCartBar();
 }
@@ -2111,6 +2243,7 @@ function showMenuView() {
 function showCartView() {
   document.getElementById('order-menu-view').style.display = 'none';
   document.getElementById('order-cart-view').style.display = 'block';
+  document.getElementById('order-configurator-view').style.display = 'none';
   document.getElementById('order-picker-title').textContent = 'Mon panier';
   document.getElementById('order-cart-bar').style.display = 'none';
   renderCartItems();
@@ -2118,19 +2251,35 @@ function showCartView() {
 
 function renderCartItems() {
   const el = document.getElementById('order-cart-items');
-  const ids = Object.keys(cart);
-  if (!ids.length) {
+  if (!cartLines.length) {
     el.innerHTML = '<div style="font-size:13px;color:#9ca3af;padding:16px 0;text-align:center">Votre panier est vide</div>';
   } else {
-    el.innerHTML = ids.map(id => {
-      const item = (orderMenuData.items || []).find(i => String(i.id) === String(id));
-      if (!item) return '';
-      return '<div class="order-cart-line"><div class="order-cart-line-name">' + item.name + '</div>' +
-        '<div class="order-item-qty"><button data-act="cart-dec" data-arg="' + id + '">−</button><span>' + cart[id] + '</span><button data-act="cart-inc" data-arg="' + id + '">+</button></div>' +
-        '<div style="font-weight:800;font-size:12.5px;min-width:52px;text-align:right">' + (item.price * cart[id]).toFixed(2).replace('.', ',') + '€</div></div>';
+    el.innerHTML = cartLines.map(l => {
+      const summary = l.choice_summary ? '<div style="font-size:11px;color:#9ca3af;margin-top:2px">' + l.choice_summary + '</div>' : '';
+      return '<div class="order-cart-line" style="align-items:flex-start"><div class="order-cart-line-name">' + l.name + summary + '</div>' +
+        '<div class="order-item-qty"><button data-act="cart-line-dec" data-arg="' + l.uid + '">−</button><span>' + l.quantity + '</span><button data-act="cart-line-inc" data-arg="' + l.uid + '">+</button></div>' +
+        '<div style="font-weight:800;font-size:12.5px;min-width:52px;text-align:right">' + (l.unit_price * l.quantity).toFixed(2).replace('.', ',') + '€</div></div>';
     }).join('');
   }
   document.getElementById('order-cart-total').textContent = 'Total : ' + cartTotal().toFixed(2).replace('.', ',') + '€';
+}
+
+function cartLineInc(uidStr) {
+  const uid = parseInt(uidStr, 10);
+  const line = cartLines.find(l => l.uid === uid);
+  if (line) line.quantity += 1;
+  updateCartBar();
+  renderCartItems();
+}
+
+function cartLineDec(uidStr) {
+  const uid = parseInt(uidStr, 10);
+  const line = cartLines.find(l => l.uid === uid);
+  if (!line) return;
+  line.quantity -= 1;
+  if (line.quantity <= 0) cartLines = cartLines.filter(l => l.uid !== uid);
+  updateCartBar();
+  renderCartItems();
 }
 
 function setOrderMode(mode) {
@@ -2147,13 +2296,12 @@ function setOrderTiming(timing) {
 }
 
 async function submitOrder() {
-  const ids = Object.keys(cart);
-  if (!ids.length) { alert('Votre panier est vide.'); return; }
+  if (!cartLines.length) { alert('Votre panier est vide.'); return; }
   if (orderTiming === 'planned' && !document.getElementById('order-planned-time').value) {
     alert('Choisissez une heure pour votre commande.');
     return;
   }
-  const items = ids.map(id => ({ menu_item_id: parseInt(id, 10), quantity: cart[id] }));
+  const items = cartLines.map(l => ({ menu_item_id: l.menu_item_id, quantity: l.quantity, choice_ids: l.choice_ids }));
   const requested_time = orderTiming === 'planned' ? new Date(document.getElementById('order-planned-time').value).toISOString() : null;
   const res = await fetch('/api/customers/${id}/orders', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -2161,7 +2309,7 @@ async function submitOrder() {
   });
   const data = await res.json();
   if (!data.success) { alert('❌ ' + (data.error || 'Erreur lors de la commande')); return; }
-  cart = {};
+  cartLines = [];
   updateCartBar();
   closeOrderPicker();
   alert('✅ Commande envoyée ! Suivez son statut dans "Mes commandes".');
@@ -2178,7 +2326,10 @@ async function loadMyOrders() {
   document.getElementById('my-orders-list').innerHTML = orders.map(o => {
     const d = new Date(o.created_at);
     const dateStr = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-    const linesStr = (o.items || []).map(li => li.quantity + '× ' + li.item_name).join(', ');
+    const linesStr = (o.items || []).map(li => {
+      const choiceStr = (li.choices && li.choices.length) ? ' (' + li.choices.map(c => c.choice_name).join(', ') + ')' : '';
+      return li.quantity + '× ' + li.item_name + choiceStr;
+    }).join('<br>');
     const cancelBtn = o.status === 'received' ? '<button class="appt-cancel-btn" data-act="cancel-order" data-arg="' + o.id + '" style="margin-top:6px">Annuler</button>' : '';
     return '<div class="my-order-row"><div class="my-order-head"><span>' + dateStr + '</span><span class="order-status-pill ' + o.status + '">' + statusLabels[o.status] + '</span></div>' +
       '<div style="color:#6b7280">' + linesStr + '</div>' +
