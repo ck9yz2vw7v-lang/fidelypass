@@ -571,54 +571,48 @@ app.delete('/api/customers/:id', requireShopAuth, async (req, res) => {
   res.json({ success: true });
 });
 
-app.post('/api/scan', requireShopAuth, async (req, res) => {
-  const { customer_id, shop_id, amount } = req.body;
-  const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
-  const customer = await db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(customer_id, shop_id);
-  if (!shop || !customer) return res.status(404).json({ success: false, error: 'Introuvable' });
+// Logique de crédit de points partagée entre le scan classique et la validation de commande :
+// calcule les points gagnés, détecte un palier fraîchement débloqué, met à jour le client,
+// journalise dans `scans`, et notifie le client par push. Retourne les infos pour la réponse HTTP.
+async function creditPointsForPurchase(shop, customer, amount, isManual) {
   const pointsPerEuro = shop.points_per_euro || 1;
   const pointsEarned = Math.floor((amount || 0) * pointsPerEuro);
   const newPoints = customer.points + pointsEarned;
-  const tiers = await db.prepare('SELECT * FROM reward_tiers WHERE shop_id = ? ORDER BY threshold_points ASC').all(shop_id);
-  // Palier fraîchement débloqué par ce scan (le plus haut atteint qui ne l'était pas avant)
+  const tiers = await db.prepare('SELECT * FROM reward_tiers WHERE shop_id = ? ORDER BY threshold_points ASC').all(shop.id);
   const newlyCrossedTier = tiers.length > 0
     ? [...tiers].reverse().find(t => newPoints >= t.threshold_points && customer.points < t.threshold_points)
     : null;
   const rewardUnlocked = tiers.length > 0
     ? tiers.some(t => newPoints >= t.threshold_points)
     : newPoints >= shop.points_goal;
-  // Objectif et récompense "effectifs" renvoyés au gérant : reste sur le palier le PLUS HAUT
-  // configuré (pas le plus petit) quand des paliers existent, sinon l'ancien objectif unique.
   const effectiveGoal = tiers.length > 0 ? tiers[tiers.length - 1].threshold_points : shop.points_goal;
   const effectiveRewardText = tiers.length > 0
     ? (newlyCrossedTier ? newlyCrossedTier.reward_text : tiers[tiers.length - 1].reward_text)
     : shop.reward_text;
-  await db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1, last_visit = CURRENT_TIMESTAMP WHERE id = ?').run(newPoints, customer_id);
-  await db.prepare('INSERT INTO scans (customer_id, shop_id, points_added, amount_paid) VALUES (?, ?, ?, ?)').run(customer_id, shop_id, pointsEarned, amount || 0);
-  touchPassAndPush(customer_id);
-  res.json({ success: true, customer_name: customer.name, points_before: customer.points, points_after: newPoints, points_added: pointsEarned, amount_paid: amount, reward_unlocked: rewardUnlocked, reward_text: effectiveRewardText, points_goal: effectiveGoal, google_review_url: shop.google_review_url || null });
+  await db.prepare('UPDATE customers SET points = ?, total_visits = total_visits + 1, last_visit = CURRENT_TIMESTAMP WHERE id = ?').run(newPoints, customer.id);
+  await db.prepare('INSERT INTO scans (customer_id, shop_id, points_added, amount_paid, is_manual) VALUES (?, ?, ?, ?, ?)').run(customer.id, shop.id, pointsEarned, amount || 0, isManual ? 1 : 0);
+  touchPassAndPush(customer.id);
 
-  // Notifie le client par push : récompense (ou palier) débloqué, ou simple progression
   if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-    const subs = await db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(customer_id);
+    const subs = await db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(customer.id);
     let payload;
     if (newlyCrossedTier) {
       const body = shop.google_review_url
         ? `Vous avez débloqué : ${newlyCrossedTier.reward_text} 🎁 Laissez un avis pour le récupérer !`
         : `Vous avez débloqué : ${newlyCrossedTier.reward_text} 🎁 Montrez cet écran au gérant !`;
-      payload = JSON.stringify({ title: `🎉 ${shop.name}`, body, url: '/card/' + customer_id, icon: shopIconUrl(shop.logo_base64, shop.id) });
+      payload = JSON.stringify({ title: `🎉 ${shop.name}`, body, url: '/card/' + customer.id, icon: shopIconUrl(shop.logo_base64, shop.id) });
     } else if (rewardUnlocked) {
       const body = shop.google_review_url
         ? `Vous avez débloqué : ${shop.reward_text} 🎁 Laissez un avis pour le récupérer !`
         : `Vous avez débloqué : ${shop.reward_text} 🎁 Montrez cet écran au gérant !`;
-      payload = JSON.stringify({ title: `🎉 ${shop.name}`, body, url: '/card/' + customer_id, icon: shopIconUrl(shop.logo_base64, shop.id) });
+      payload = JSON.stringify({ title: `🎉 ${shop.name}`, body, url: '/card/' + customer.id, icon: shopIconUrl(shop.logo_base64, shop.id) });
     } else if (tiers.length > 0) {
       const nextTier = tiers.find(t => newPoints < t.threshold_points);
       const remaining = nextTier ? nextTier.threshold_points - newPoints : 0;
       payload = JSON.stringify({
         title: `🎯 ${shop.name}`,
         body: nextTier ? `Vous avez ${newPoints} points. Encore ${remaining} pts pour : ${nextTier.reward_text} 🎁` : `Vous avez ${newPoints} points !`,
-        url: '/card/' + customer_id,
+        url: '/card/' + customer.id,
         icon: shopIconUrl(shop.logo_base64, shop.id)
       });
     } else {
@@ -626,7 +620,7 @@ app.post('/api/scan', requireShopAuth, async (req, res) => {
       payload = JSON.stringify({
         title: `🎯 ${shop.name}`,
         body: `Vous avez ${newPoints} points sur ${shop.points_goal}. Encore ${remaining} pts pour : ${shop.reward_text} 🎁`,
-        url: '/card/' + customer_id,
+        url: '/card/' + customer.id,
         icon: shopIconUrl(shop.logo_base64, shop.id)
       });
     }
@@ -641,6 +635,226 @@ app.post('/api/scan', requireShopAuth, async (req, res) => {
       });
     }
   }
+  return { points_before: customer.points, points_after: newPoints, points_added: pointsEarned, reward_unlocked: rewardUnlocked, reward_text: effectiveRewardText, points_goal: effectiveGoal };
+}
+
+app.post('/api/scan', requireShopAuth, async (req, res) => {
+  const { customer_id, shop_id, amount } = req.body;
+  const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(shop_id);
+  const customer = await db.prepare('SELECT * FROM customers WHERE id = ? AND shop_id = ?').get(customer_id, shop_id);
+  if (!shop || !customer) return res.status(404).json({ success: false, error: 'Introuvable' });
+  const result = await creditPointsForPurchase(shop, customer, amount, false);
+  res.json({ success: true, customer_name: customer.name, amount_paid: amount, google_review_url: shop.google_review_url || null, ...result });
+});
+
+// ─────────────────────────────────────────────
+// MODULE COMMANDE : menu (catégories/articles) + cycle de vie des commandes
+// ─────────────────────────────────────────────
+
+// Gérant : lecture/gestion des catégories du menu
+app.get('/api/shops/:id/menu-categories', requireShopAuth, async (req, res) => {
+  const rows = await db.prepare('SELECT * FROM menu_categories WHERE shop_id = ? ORDER BY display_order ASC, id ASC').all(req.params.id);
+  res.json(rows);
+});
+
+app.post('/api/shops/:id/menu-categories', requireShopAuth, async (req, res) => {
+  const { name, emoji } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ success: false, error: 'Nom requis' });
+  const countRow = await db.prepare('SELECT COUNT(*) as c FROM menu_categories WHERE shop_id = ?').get(req.params.id);
+  const result = await db.prepare('INSERT INTO menu_categories (shop_id, name, emoji, display_order) VALUES (?, ?, ?, ?) RETURNING id')
+    .run(req.params.id, name.trim(), (emoji || '').trim() || null, Number(countRow.c));
+  res.json({ success: true, id: result.lastInsertRowid });
+});
+
+app.put('/api/shops/:id/menu-categories/:catId', requireShopAuth, async (req, res) => {
+  const { name, emoji } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ success: false, error: 'Nom requis' });
+  await db.prepare('UPDATE menu_categories SET name = ?, emoji = ? WHERE id = ? AND shop_id = ?')
+    .run(name.trim(), (emoji || '').trim() || null, req.params.catId, req.params.id);
+  res.json({ success: true });
+});
+
+app.delete('/api/shops/:id/menu-categories/:catId', requireShopAuth, async (req, res) => {
+  await db.prepare('UPDATE menu_items SET category_id = NULL WHERE category_id = ? AND shop_id = ?').run(req.params.catId, req.params.id);
+  await db.prepare('DELETE FROM menu_categories WHERE id = ? AND shop_id = ?').run(req.params.catId, req.params.id);
+  res.json({ success: true });
+});
+
+// Gérant : lecture/gestion des articles du menu
+app.get('/api/shops/:id/menu-items', requireShopAuth, async (req, res) => {
+  const rows = await db.prepare('SELECT * FROM menu_items WHERE shop_id = ? ORDER BY display_order ASC, id ASC').all(req.params.id);
+  res.json(rows);
+});
+
+app.post('/api/shops/:id/menu-items', requireShopAuth, async (req, res) => {
+  const { name, description, price, photo_base64, category_id } = req.body;
+  if (!name || !name.trim() || price == null || price === '') {
+    return res.status(400).json({ success: false, error: 'Nom et prix requis' });
+  }
+  const countRow = await db.prepare('SELECT COUNT(*) as c FROM menu_items WHERE shop_id = ?').get(req.params.id);
+  const result = await db.prepare('INSERT INTO menu_items (shop_id, category_id, name, description, price, photo_base64, display_order) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id')
+    .run(req.params.id, category_id || null, name.trim(), (description || '').trim() || null, parseFloat(price), photo_base64 || null, Number(countRow.c));
+  res.json({ success: true, id: result.lastInsertRowid });
+});
+
+app.put('/api/shops/:id/menu-items/:itemId', requireShopAuth, async (req, res) => {
+  const { name, description, price, photo_base64, category_id, available } = req.body;
+  const item = await db.prepare('SELECT * FROM menu_items WHERE id = ? AND shop_id = ?').get(req.params.itemId, req.params.id);
+  if (!item) return res.status(404).json({ success: false, error: 'Article introuvable' });
+  const newName = (name && name.trim()) ? name.trim() : item.name;
+  const newPrice = (price != null && price !== '') ? parseFloat(price) : item.price;
+  const newDesc = description !== undefined ? ((description || '').trim() || null) : item.description;
+  const newPhoto = photo_base64 !== undefined ? (photo_base64 || null) : item.photo_base64;
+  const newCat = category_id !== undefined ? (category_id || null) : item.category_id;
+  const newAvailable = available !== undefined ? (available ? 1 : 0) : item.available;
+  await db.prepare('UPDATE menu_items SET name = ?, description = ?, price = ?, photo_base64 = ?, category_id = ?, available = ? WHERE id = ? AND shop_id = ?')
+    .run(newName, newDesc, newPrice, newPhoto, newCat, newAvailable, req.params.itemId, req.params.id);
+  res.json({ success: true });
+});
+
+app.delete('/api/shops/:id/menu-items/:itemId', requireShopAuth, async (req, res) => {
+  await db.prepare('DELETE FROM menu_items WHERE id = ? AND shop_id = ?').run(req.params.itemId, req.params.id);
+  res.json({ success: true });
+});
+
+// Client (public) : menu complet, catégories + leurs articles disponibles, pour composer sa commande
+app.get('/api/shops/:id/menu-public', async (req, res) => {
+  const categories = await db.prepare('SELECT id, name, emoji FROM menu_categories WHERE shop_id = ? ORDER BY display_order ASC, id ASC').all(req.params.id);
+  const items = await db.prepare('SELECT id, category_id, name, description, price, photo_base64 FROM menu_items WHERE shop_id = ? AND available = 1 ORDER BY display_order ASC, id ASC').all(req.params.id);
+  res.json({ categories, items });
+});
+
+// Client : créer une commande (mode sur place/à emporter, immédiat ou planifié, panier d'articles)
+app.post('/api/customers/:id/orders', async (req, res) => {
+  const customer = await db.prepare('SELECT * FROM customers WHERE id = ?').get(req.params.id);
+  if (!customer) return res.status(404).json({ success: false, error: 'Client introuvable' });
+  const { order_mode, requested_time, items } = req.body;
+  if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ success: false, error: 'Panier vide' });
+  if (!['sur_place', 'a_emporter'].includes(order_mode)) return res.status(400).json({ success: false, error: 'Mode de commande invalide' });
+
+  const itemIds = items.map(i => i.menu_item_id);
+  const placeholders = itemIds.map(() => '?').join(',');
+  const menuItems = itemIds.length ? await db.prepare(`SELECT * FROM menu_items WHERE id IN (${placeholders}) AND shop_id = ? AND available = 1`).all(...itemIds, customer.shop_id) : [];
+  if (menuItems.length !== new Set(itemIds).size) return res.status(400).json({ success: false, error: 'Un ou plusieurs articles ne sont plus disponibles' });
+
+  let total = 0;
+  const lines = items.map(reqItem => {
+    const menuItem = menuItems.find(m => m.id === reqItem.menu_item_id);
+    const qty = Math.max(1, parseInt(reqItem.quantity, 10) || 1);
+    total += menuItem.price * qty;
+    return { menu_item_id: menuItem.id, item_name: menuItem.name, item_price: menuItem.price, quantity: qty, notes: (reqItem.notes || '').trim() || null };
+  });
+
+  const orderResult = await db.prepare('INSERT INTO orders (shop_id, customer_id, status, order_mode, requested_time, total_amount) VALUES (?, ?, ?, ?, ?, ?) RETURNING id')
+    .run(customer.shop_id, customer.id, 'received', order_mode, requested_time || null, total);
+  const orderId = orderResult.lastInsertRowid;
+  for (const line of lines) {
+    await db.prepare('INSERT INTO order_items (order_id, menu_item_id, item_name, item_price, quantity, notes) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(orderId, line.menu_item_id, line.item_name, line.item_price, line.quantity, line.notes);
+  }
+  res.json({ success: true, order_id: orderId, total_amount: total });
+});
+
+// Client : historique de ses commandes (toutes, tous statuts confondus)
+app.get('/api/customers/:id/orders', async (req, res) => {
+  const orders = await db.prepare('SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC LIMIT 30').all(req.params.id);
+  for (const order of orders) {
+    order.items = await db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
+  }
+  res.json(orders);
+});
+
+// Client : annuler une commande tant qu'elle n'est pas encore en préparation
+app.post('/api/orders/:orderId/cancel', async (req, res) => {
+  const order = await db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.orderId);
+  if (!order) return res.status(404).json({ success: false, error: 'Commande introuvable' });
+  if (order.status !== 'received') return res.status(400).json({ success: false, error: 'Cette commande est déjà en préparation, impossible de l\'annuler' });
+  await db.prepare("UPDATE orders SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(req.params.orderId);
+  res.json({ success: true });
+});
+
+// Gérant : commandes du jour (en cours, tous statuts actifs) pour la file d'attente cuisine
+app.get('/api/shops/:id/orders', requireShopAuth, async (req, res) => {
+  const rows = await db.prepare(`
+    SELECT o.*, c.name as customer_name
+    FROM orders o
+    JOIN customers c ON c.id = o.customer_id
+    WHERE o.shop_id = ? AND o.status IN ('received', 'preparing', 'ready')
+    ORDER BY o.created_at ASC
+  `).all(req.params.id);
+  for (const order of rows) {
+    order.items = await db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
+  }
+  res.json(rows);
+});
+
+// Gérant : historique complet des commandes (toutes, y compris terminées/annulées)
+app.get('/api/shops/:id/orders-history', requireShopAuth, async (req, res) => {
+  const rows = await db.prepare(`
+    SELECT o.*, c.name as customer_name
+    FROM orders o
+    JOIN customers c ON c.id = o.customer_id
+    WHERE o.shop_id = ?
+    ORDER BY o.created_at DESC
+    LIMIT 100
+  `).all(req.params.id);
+  for (const order of rows) {
+    order.items = await db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
+  }
+  res.json(rows);
+});
+
+// Gérant : faire avancer le statut d'une commande (received -> preparing -> ready -> completed)
+// Le passage à "completed" crédite automatiquement les points au client, comme un scan classique.
+app.post('/api/shops/:id/orders/:orderId/status', requireShopAuth, async (req, res) => {
+  const { status } = req.body;
+  if (!['preparing', 'ready', 'completed', 'cancelled'].includes(status)) {
+    return res.status(400).json({ success: false, error: 'Statut invalide' });
+  }
+  const order = await db.prepare('SELECT * FROM orders WHERE id = ? AND shop_id = ?').get(req.params.orderId, req.params.id);
+  if (!order) return res.status(404).json({ success: false, error: 'Commande introuvable' });
+
+  await db.prepare('UPDATE orders SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, req.params.orderId);
+
+  let creditResult = null;
+  if (status === 'completed') {
+    const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+    const customer = await db.prepare('SELECT * FROM customers WHERE id = ?').get(order.customer_id);
+    if (shop && customer) {
+      creditResult = await creditPointsForPurchase(shop, customer, order.total_amount, false);
+    }
+  }
+
+  res.json({ success: true, credit: creditResult });
+
+  // Notifie le client par push à chaque étape (sauf "completed", déjà notifié par le crédit de points)
+  if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY && status !== 'completed') {
+    const customer = await db.prepare('SELECT * FROM customers WHERE id = ?').get(order.customer_id);
+    const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+    if (customer && shop) {
+      const labels = { preparing: 'est en préparation 👨‍🍳', ready: 'est prête, venez la récupérer ! ✅', cancelled: 'a été annulée' };
+      const subs = await db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(customer.id);
+      const payload = JSON.stringify({ title: `🛍️ ${shop.name}`, body: `Votre commande ${labels[status] || status}`, url: '/card/' + customer.id, icon: shopIconUrl(shop.logo_base64, shop.id) });
+      for (const sub of subs) {
+        webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload).catch(async err => {
+          if (err.statusCode === 404 || err.statusCode === 410) {
+            await db.prepare('DELETE FROM push_subscriptions WHERE id = ?').run(sub.id);
+          }
+        });
+      }
+    }
+  }
+});
+
+// Gérant : compteur de commandes non vues (badge dashboard)
+app.get('/api/shops/:id/orders/unseen-count', requireShopAuth, async (req, res) => {
+  const row = await db.prepare("SELECT COUNT(*) as c FROM orders WHERE shop_id = ? AND seen = 0 AND status IN ('received','preparing','ready')").get(req.params.id);
+  res.json({ count: Number(row.c) });
+});
+
+app.post('/api/shops/:id/orders/mark-seen', requireShopAuth, async (req, res) => {
+  await db.prepare('UPDATE orders SET seen = 1 WHERE shop_id = ?').run(req.params.id);
+  res.json({ success: true });
 });
 
 app.post('/api/reward/:customer_id', requireShopAuth, async (req, res) => {

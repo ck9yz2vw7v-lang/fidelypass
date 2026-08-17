@@ -161,6 +161,54 @@ async function initSchema() {
       FOREIGN KEY (shop_id) REFERENCES shops(id),
       FOREIGN KEY (staff_id) REFERENCES staff_members(id)
     );
+    CREATE TABLE IF NOT EXISTS menu_categories (
+      id SERIAL PRIMARY KEY,
+      shop_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      emoji TEXT,
+      display_order INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (shop_id) REFERENCES shops(id)
+    );
+    CREATE TABLE IF NOT EXISTS menu_items (
+      id SERIAL PRIMARY KEY,
+      shop_id INTEGER NOT NULL,
+      category_id INTEGER,
+      name TEXT NOT NULL,
+      description TEXT,
+      price REAL NOT NULL,
+      photo_base64 TEXT,
+      available INTEGER DEFAULT 1,
+      display_order INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (shop_id) REFERENCES shops(id),
+      FOREIGN KEY (category_id) REFERENCES menu_categories(id)
+    );
+    CREATE TABLE IF NOT EXISTS orders (
+      id SERIAL PRIMARY KEY,
+      shop_id INTEGER NOT NULL,
+      customer_id INTEGER NOT NULL,
+      status TEXT DEFAULT 'received',
+      order_mode TEXT DEFAULT 'a_emporter',
+      requested_time TIMESTAMP,
+      total_amount REAL,
+      seen INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (shop_id) REFERENCES shops(id),
+      FOREIGN KEY (customer_id) REFERENCES customers(id)
+    );
+    CREATE TABLE IF NOT EXISTS order_items (
+      id SERIAL PRIMARY KEY,
+      order_id INTEGER NOT NULL,
+      menu_item_id INTEGER,
+      item_name TEXT NOT NULL,
+      item_price REAL NOT NULL,
+      quantity INTEGER NOT NULL DEFAULT 1,
+      notes TEXT,
+      FOREIGN KEY (order_id) REFERENCES orders(id),
+      FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
+    );
   `);
 
   const alterStatements = [
@@ -212,6 +260,12 @@ async function initSchema() {
     'CREATE INDEX IF NOT EXISTS idx_services_shop_id ON services(shop_id)',
     'CREATE INDEX IF NOT EXISTS idx_staff_members_shop_id ON staff_members(shop_id)',
     'CREATE INDEX IF NOT EXISTS idx_shop_closures_shop_id ON shop_closures(shop_id)',
+    'CREATE INDEX IF NOT EXISTS idx_menu_categories_shop_id ON menu_categories(shop_id)',
+    'CREATE INDEX IF NOT EXISTS idx_menu_items_shop_id ON menu_items(shop_id)',
+    'CREATE INDEX IF NOT EXISTS idx_menu_items_category_id ON menu_items(category_id)',
+    'CREATE INDEX IF NOT EXISTS idx_orders_shop_id ON orders(shop_id)',
+    'CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id)',
+    'CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id)',
     'CREATE INDEX IF NOT EXISTS idx_staff_availability_staff_id ON staff_availability(staff_id)',
   ];
   for (const stmt of indexStatements) {
