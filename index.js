@@ -733,6 +733,32 @@ app.delete('/api/shops/:id/menu-items/:itemId', requireShopAuth, async (req, res
   res.json({ success: true });
 });
 
+// Gérant : dupliquer un article (nom + prix + photo + description + toutes ses options/choix) —
+// pratique pour créer une variante rapide (ex: "Tacos" -> "Sandwich" avec les mêmes suppléments)
+app.post('/api/shops/:id/menu-items/:itemId/duplicate', requireShopAuth, async (req, res) => {
+  const item = await db.prepare('SELECT * FROM menu_items WHERE id = ? AND shop_id = ?').get(req.params.itemId, req.params.id);
+  if (!item) return res.status(404).json({ success: false, error: 'Article introuvable' });
+
+  const countRow = await db.prepare('SELECT COUNT(*) as c FROM menu_items WHERE shop_id = ?').get(req.params.id);
+  const result = await db.prepare('INSERT INTO menu_items (shop_id, category_id, name, description, price, photo_base64, available, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id')
+    .run(req.params.id, item.category_id, item.name + ' (copie)', item.description, item.price, item.photo_base64, item.available, Number(countRow.c));
+  const newItemId = result.lastInsertRowid;
+
+  const groups = await db.prepare('SELECT * FROM item_option_groups WHERE menu_item_id = ?').all(req.params.itemId);
+  for (const g of groups) {
+    const gResult = await db.prepare('INSERT INTO item_option_groups (menu_item_id, name, is_required, selection_type, display_order) VALUES (?, ?, ?, ?, ?) RETURNING id')
+      .run(newItemId, g.name, g.is_required, g.selection_type, g.display_order);
+    const newGroupId = gResult.lastInsertRowid;
+    const choices = await db.prepare('SELECT * FROM item_option_choices WHERE option_group_id = ?').all(g.id);
+    for (const c of choices) {
+      await db.prepare('INSERT INTO item_option_choices (option_group_id, name, price_delta, display_order) VALUES (?, ?, ?, ?)')
+        .run(newGroupId, c.name, c.price_delta, c.display_order);
+    }
+  }
+
+  res.json({ success: true, id: newItemId });
+});
+
 // ── Groupes d'options et choix (configurateur d'article, ex: viande / crudités / sauce) ──
 
 // Gérant : voir les groupes d'un article, avec leurs choix imbriqués

@@ -465,6 +465,7 @@ body{background:#f2f2f7;font-family:-apple-system,'SF Pro Display',Arial,sans-se
       <button class="btn-add" style="flex:1" onclick="saveArticleEditor()">Enregistrer</button>
       <button class="btn-back" onclick="closeArticleEditor()">Annuler</button>
     </div>
+    <button class="btn-back" id="duplicate-article-btn" style="width:100%;margin-top:8px;display:none" onclick="duplicateArticle()">📋 Dupliquer cet article</button>
     <button class="btn-back" id="delete-article-btn" style="width:100%;margin-top:8px;color:#dc2626;display:none" onclick="deleteArticleFromEditor()">Retirer cet article</button>
   </div>
 </div>
@@ -1183,6 +1184,7 @@ function openArticleEditor(itemId) {
     document.getElementById('edit-item-description').value = '';
     document.getElementById('edit-item-available').checked = true;
     document.getElementById('edit-item-photo-preview').style.display = 'none';
+    document.getElementById('duplicate-article-btn').style.display = 'none';
     document.getElementById('delete-article-btn').style.display = 'none';
     document.getElementById('option-groups-list').innerHTML = '';
     document.getElementById('option-groups-form').style.display = 'none';
@@ -1199,6 +1201,7 @@ function openArticleEditor(itemId) {
     const preview = document.getElementById('edit-item-photo-preview');
     if (it.photo_base64) { preview.src = it.photo_base64; preview.style.display = 'block'; }
     else { preview.style.display = 'none'; }
+    document.getElementById('duplicate-article-btn').style.display = 'block';
     document.getElementById('delete-article-btn').style.display = 'block';
     document.getElementById('option-groups-form').style.display = 'block';
     document.getElementById('option-groups-disabled-hint').style.display = 'none';
@@ -1250,6 +1253,19 @@ async function deleteArticleFromEditor() {
   await fetch('/api/shops/' + currentShop.id + '/menu-items/' + currentOptionsItemId, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
   closeArticleEditor();
   loadMenuItems();
+}
+
+async function duplicateArticle() {
+  if (currentOptionsItemId === null) return;
+  const res = await fetch('/api/shops/' + currentShop.id + '/menu-items/' + currentOptionsItemId + '/duplicate', {
+    method: 'POST', headers: { 'x-shop-token': shopToken }
+  });
+  const data = await res.json();
+  if (!data.success) { alert(data.error || 'Erreur'); return; }
+  await loadMenuItems();
+  openArticleEditor(data.id);
+  document.getElementById('edit-item-name').focus();
+  document.getElementById('edit-item-name').select();
 }
 
 // ── Groupes d'options (viande / crudités / sauce), imbriqués dans l'éditeur d'article ──
