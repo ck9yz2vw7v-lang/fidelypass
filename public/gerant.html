@@ -1284,7 +1284,12 @@ async function loadOptionGroups() {
     const tag = (g.is_required === 1 ? 'Obligatoire' : 'Optionnel') + ' · ' + (g.selection_type === 'multi' ? 'Plusieurs choix' : 'Un seul choix');
     const choicesHtml = g.choices.map(c => {
       const desc = c.description ? '<div style="font-size:10.5px;color:#9ca3af;margin-top:1px">' + c.description + '</div>' : '';
-      return '<div class="option-choice-row" style="align-items:flex-start"><div style="flex:1"><div>' + c.name + (c.price_delta ? ' (+' + Number(c.price_delta).toFixed(2) + '€)' : '') + '</div>' + desc + '</div>' +
+      const thumb = c.photo_base64
+        ? '<img src="' + c.photo_base64 + '" style="width:32px;height:32px;border-radius:8px;object-fit:cover;cursor:pointer;flex-shrink:0" onclick="document.getElementById(\'choice-photo-input-' + c.id + '\').click()">'
+        : '<div style="width:32px;height:32px;border-radius:8px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;flex-shrink:0" onclick="document.getElementById(\'choice-photo-input-' + c.id + '\').click()">📷</div>';
+      return '<div class="option-choice-row" style="align-items:flex-start;gap:8px">' + thumb +
+        '<input type="file" id="choice-photo-input-' + c.id + '" accept="image/*" style="display:none" onchange="uploadChoicePhoto(' + c.id + ', this.files[0])">' +
+        '<div style="flex:1"><div>' + c.name + (c.price_delta ? ' (+' + Number(c.price_delta).toFixed(2) + '€)' : '') + '</div>' + desc + '</div>' +
         '<div style="display:flex;gap:4px;flex-shrink:0"><button class="btn-back" onclick="editChoicePrompt(' + g.id + ',' + c.id + ')">✏️</button><button class="btn-back" onclick="deleteOptionChoice(' + c.id + ')">✕</button></div></div>';
     }).join('');
     return '<div class="option-group-block">' +
@@ -1295,6 +1300,7 @@ async function loadOptionGroups() {
       '<input class="input" type="text" id="new-choice-name-' + g.id + '" placeholder="Ex : Poulet" style="flex:2;min-width:100px;margin-bottom:0">' +
       '<input class="input" type="number" id="new-choice-price-' + g.id + '" placeholder="+€" step="0.01" style="flex:1;min-width:60px;margin-bottom:0">' +
       '<button class="btn-add" onclick="addOptionChoice(' + g.id + ')">+</button></div>' +
+      '<input type="file" id="new-choice-photo-' + g.id + '" accept="image/*" style="margin-top:6px;font-size:11px">' +
       '<input class="input" type="text" id="new-choice-desc-' + g.id + '" placeholder="Description (optionnel, ex : sauce brûlée, oignons, fromage)" style="margin-top:6px">' +
       '</div>';
   }).join('');
@@ -1336,13 +1342,25 @@ async function addOptionChoice(groupId) {
   const nameEl = document.getElementById('new-choice-name-' + groupId);
   const priceEl = document.getElementById('new-choice-price-' + groupId);
   const descEl = document.getElementById('new-choice-desc-' + groupId);
+  const photoEl = document.getElementById('new-choice-photo-' + groupId);
   const name = nameEl.value.trim();
   const price_delta = priceEl.value;
   const description = descEl.value.trim();
   if (!name) { alert('Le nom du choix est requis.'); return; }
+  const photo_base64 = await fileToBase64(photoEl.files[0]);
   await fetch('/api/shops/' + currentShop.id + '/option-groups/' + groupId + '/choices', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
-    body: JSON.stringify({ name, price_delta, description })
+    body: JSON.stringify({ name, price_delta, description, photo_base64 })
+  });
+  loadOptionGroups();
+}
+
+async function uploadChoicePhoto(choiceId, file) {
+  if (!file) return;
+  const photo_base64 = await fileToBase64(file);
+  await fetch('/api/shops/' + currentShop.id + '/option-choices/' + choiceId, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ photo_base64 })
   });
   loadOptionGroups();
 }

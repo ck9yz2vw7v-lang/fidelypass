@@ -751,8 +751,8 @@ app.post('/api/shops/:id/menu-items/:itemId/duplicate', requireShopAuth, async (
     const newGroupId = gResult.lastInsertRowid;
     const choices = await db.prepare('SELECT * FROM item_option_choices WHERE option_group_id = ?').all(g.id);
     for (const c of choices) {
-      await db.prepare('INSERT INTO item_option_choices (option_group_id, name, price_delta, description, display_order) VALUES (?, ?, ?, ?, ?)')
-        .run(newGroupId, c.name, c.price_delta, c.description, c.display_order);
+      await db.prepare('INSERT INTO item_option_choices (option_group_id, name, price_delta, description, photo_base64, display_order) VALUES (?, ?, ?, ?, ?, ?)')
+        .run(newGroupId, c.name, c.price_delta, c.description, c.photo_base64, c.display_order);
     }
   }
 
@@ -794,19 +794,24 @@ app.delete('/api/shops/:id/option-groups/:groupId', requireShopAuth, async (req,
 });
 
 app.post('/api/shops/:id/option-groups/:groupId/choices', requireShopAuth, async (req, res) => {
-  const { name, price_delta, description } = req.body;
+  const { name, price_delta, description, photo_base64 } = req.body;
   if (!name || !name.trim()) return res.status(400).json({ success: false, error: 'Nom du choix requis' });
   const countRow = await db.prepare('SELECT COUNT(*) as c FROM item_option_choices WHERE option_group_id = ?').get(req.params.groupId);
-  const result = await db.prepare('INSERT INTO item_option_choices (option_group_id, name, price_delta, description, display_order) VALUES (?, ?, ?, ?, ?) RETURNING id')
-    .run(req.params.groupId, name.trim(), price_delta ? parseFloat(price_delta) : 0, (description || '').trim() || null, Number(countRow.c));
+  const result = await db.prepare('INSERT INTO item_option_choices (option_group_id, name, price_delta, description, photo_base64, display_order) VALUES (?, ?, ?, ?, ?, ?) RETURNING id')
+    .run(req.params.groupId, name.trim(), price_delta ? parseFloat(price_delta) : 0, (description || '').trim() || null, photo_base64 || null, Number(countRow.c));
   res.json({ success: true, id: result.lastInsertRowid });
 });
 
 app.put('/api/shops/:id/option-choices/:choiceId', requireShopAuth, async (req, res) => {
-  const { name, price_delta, description } = req.body;
-  if (!name || !name.trim()) return res.status(400).json({ success: false, error: 'Nom du choix requis' });
-  await db.prepare('UPDATE item_option_choices SET name = ?, price_delta = ?, description = ? WHERE id = ?')
-    .run(name.trim(), price_delta ? parseFloat(price_delta) : 0, (description || '').trim() || null, req.params.choiceId);
+  const { name, price_delta, description, photo_base64 } = req.body;
+  const choice = await db.prepare('SELECT * FROM item_option_choices WHERE id = ?').get(req.params.choiceId);
+  if (!choice) return res.status(404).json({ success: false, error: 'Choix introuvable' });
+  const newName = (name && name.trim()) ? name.trim() : choice.name;
+  const newPrice = price_delta !== undefined ? (price_delta ? parseFloat(price_delta) : 0) : choice.price_delta;
+  const newDesc = description !== undefined ? ((description || '').trim() || null) : choice.description;
+  const newPhoto = photo_base64 !== undefined ? (photo_base64 || null) : choice.photo_base64;
+  await db.prepare('UPDATE item_option_choices SET name = ?, price_delta = ?, description = ?, photo_base64 = ? WHERE id = ?')
+    .run(newName, newPrice, newDesc, newPhoto, req.params.choiceId);
   res.json({ success: true });
 });
 
@@ -819,7 +824,7 @@ app.delete('/api/shops/:id/option-choices/:choiceId', requireShopAuth, async (re
 app.get('/api/menu-items/:itemId/option-groups-public', async (req, res) => {
   const groups = await db.prepare('SELECT id, name, is_required, selection_type, display_order FROM item_option_groups WHERE menu_item_id = ? ORDER BY display_order ASC, id ASC').all(req.params.itemId);
   for (const g of groups) {
-    g.choices = await db.prepare('SELECT id, name, price_delta, description FROM item_option_choices WHERE option_group_id = ? ORDER BY display_order ASC, id ASC').all(g.id);
+    g.choices = await db.prepare('SELECT id, name, price_delta, description, photo_base64 FROM item_option_choices WHERE option_group_id = ? ORDER BY display_order ASC, id ASC').all(g.id);
   }
   res.json(groups);
 });
@@ -2264,7 +2269,8 @@ function renderConfiguratorStep() {
   document.getElementById('configurator-choices-list').innerHTML = group.choices.map(c => {
     const isSel = selected.includes(c.id);
     const desc = c.description ? '<div style="font-size:11px;color:#9ca3af;margin-top:2px;font-weight:400">' + c.description + '</div>' : '';
-    return '<div class="config-choice-row' + (isSel ? ' selected' : '') + '" data-act="configurator-select" data-arg="' + c.id + '"><div><span>' + c.name + (c.price_delta ? ' (+' + Number(c.price_delta).toFixed(2).replace('.', ',') + '€)' : '') + '</span>' + desc + '</div><span class="config-choice-check">' + (isSel ? '✓' : '') + '</span></div>';
+    const thumb = c.photo_base64 ? '<img src="' + c.photo_base64 + '" style="width:40px;height:40px;border-radius:9px;object-fit:cover;flex-shrink:0;margin-right:10px">' : '';
+    return '<div class="config-choice-row' + (isSel ? ' selected' : '') + '" data-act="configurator-select" data-arg="' + c.id + '" style="align-items:center">' + thumb + '<div style="flex:1"><span>' + c.name + (c.price_delta ? ' (+' + Number(c.price_delta).toFixed(2).replace('.', ',') + '€)' : '') + '</span>' + desc + '</div><span class="config-choice-check">' + (isSel ? '✓' : '') + '</span></div>';
   }).join('');
   const isLast = configuratorStep === configuratorGroups.length - 1;
   document.getElementById('configurator-next-btn').textContent = isLast ? 'Ajouter au panier' : 'Suivant';
