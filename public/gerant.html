@@ -1394,7 +1394,12 @@ function renderOrderCard(o, showActions) {
   const modeLabel = o.order_mode === 'sur_place' ? 'Sur place' : 'À emporter';
   const whenLabel = o.requested_time ? ('prévu ' + new Date(o.requested_time).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : 'au plus vite';
   const statusLabels = { received: 'Reçue', preparing: 'En préparation', ready: 'Prête', completed: 'Récupérée', cancelled: 'Annulée' };
-  const linesHtml = (o.items || []).map(li => li.quantity + '× ' + li.item_name + (li.notes ? ' (' + li.notes + ')' : '')).join('<br>');
+  const linesHtml = (o.items || []).map(li => {
+    const choicesStr = (li.choices && li.choices.length)
+      ? '<div style="font-size:11px;color:#6b7280;margin:2px 0 6px 14px">' + li.choices.map(c => c.group_name + ' : ' + c.choice_name).join(' · ') + '</div>'
+      : '';
+    return '<div>' + li.quantity + '× ' + li.item_name + (li.notes ? ' (' + li.notes + ')' : '') + '</div>' + choicesStr;
+  }).join('');
 
   let actions = '';
   if (showActions) {
