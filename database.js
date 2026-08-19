@@ -266,6 +266,7 @@ async function initSchema() {
     'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS service_id INTEGER',
     'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS staff_id INTEGER',
     'ALTER TABLE appointments ADD COLUMN IF NOT EXISTS is_manual INTEGER DEFAULT 0',
+    'ALTER TABLE item_option_choices ADD COLUMN IF NOT EXISTS description TEXT',
     'ALTER TABLE staff_members ADD COLUMN IF NOT EXISTS photo_base64 TEXT',
     'ALTER TABLE staff_members ADD COLUMN IF NOT EXISTS specialty TEXT',
   ];

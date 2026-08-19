@@ -1269,9 +1269,12 @@ async function duplicateArticle() {
 }
 
 // ── Groupes d'options (viande / crudités / sauce), imbriqués dans l'éditeur d'article ──
+let optionGroupsCache = [];
+
 async function loadOptionGroups() {
   const res = await fetch('/api/shops/' + currentShop.id + '/menu-items/' + currentOptionsItemId + '/option-groups', { headers: { 'x-shop-token': shopToken } });
   const groups = await res.json();
+  optionGroupsCache = groups;
   const el = document.getElementById('option-groups-list');
   if (!groups.length) {
     el.innerHTML = '<div class="empty-list">Aucun groupe d\'options pour cet article — il s\'ajoutera directement au panier, sans étape de configuration.</div>';
@@ -1279,16 +1282,21 @@ async function loadOptionGroups() {
   }
   el.innerHTML = groups.map(g => {
     const tag = (g.is_required === 1 ? 'Obligatoire' : 'Optionnel') + ' · ' + (g.selection_type === 'multi' ? 'Plusieurs choix' : 'Un seul choix');
-    const choicesHtml = g.choices.map(c =>
-      '<div class="option-choice-row"><span>' + c.name + (c.price_delta ? ' (+' + Number(c.price_delta).toFixed(2) + '€)' : '') + '</span><button class="btn-back" onclick="deleteOptionChoice(' + c.id + ')">✕</button></div>'
-    ).join('');
+    const choicesHtml = g.choices.map(c => {
+      const desc = c.description ? '<div style="font-size:10.5px;color:#9ca3af;margin-top:1px">' + c.description + '</div>' : '';
+      return '<div class="option-choice-row" style="align-items:flex-start"><div style="flex:1"><div>' + c.name + (c.price_delta ? ' (+' + Number(c.price_delta).toFixed(2) + '€)' : '') + '</div>' + desc + '</div>' +
+        '<div style="display:flex;gap:4px;flex-shrink:0"><button class="btn-back" onclick="editChoicePrompt(' + g.id + ',' + c.id + ')">✏️</button><button class="btn-back" onclick="deleteOptionChoice(' + c.id + ')">✕</button></div></div>';
+    }).join('');
     return '<div class="option-group-block">' +
-      '<div class="option-group-head"><div><b>' + g.name + '</b><span class="option-group-tag">' + tag + '</span></div><button class="btn-back" onclick="deleteOptionGroup(' + g.id + ')">Retirer groupe</button></div>' +
+      '<div class="option-group-head"><div><b>' + g.name + '</b><span class="option-group-tag">' + tag + '</span></div>' +
+      '<div style="display:flex;gap:4px;flex-shrink:0"><button class="btn-back" onclick="editGroupPrompt(' + g.id + ')">✏️</button><button class="btn-back" onclick="deleteOptionGroup(' + g.id + ')">Retirer</button></div></div>' +
       choicesHtml +
-      '<div class="add-row" style="margin-top:8px;gap:6px">' +
-      '<input class="input" type="text" id="new-choice-name-' + g.id + '" placeholder="Ex : Poulet" style="flex:2;margin-bottom:0">' +
-      '<input class="input" type="number" id="new-choice-price-' + g.id + '" placeholder="+€" step="0.01" style="flex:1;margin-bottom:0">' +
-      '<button class="btn-add" onclick="addOptionChoice(' + g.id + ')">+</button></div></div>';
+      '<div class="add-row" style="margin-top:8px;gap:6px;flex-wrap:wrap">' +
+      '<input class="input" type="text" id="new-choice-name-' + g.id + '" placeholder="Ex : Poulet" style="flex:2;min-width:100px;margin-bottom:0">' +
+      '<input class="input" type="number" id="new-choice-price-' + g.id + '" placeholder="+€" step="0.01" style="flex:1;min-width:60px;margin-bottom:0">' +
+      '<button class="btn-add" onclick="addOptionChoice(' + g.id + ')">+</button></div>' +
+      '<input class="input" type="text" id="new-choice-desc-' + g.id + '" placeholder="Description (optionnel, ex : sauce brûlée, oignons, fromage)" style="margin-top:6px">' +
+      '</div>';
   }).join('');
 }
 
@@ -1307,6 +1315,17 @@ async function addOptionGroup() {
   loadOptionGroups();
 }
 
+function editGroupPrompt(groupId) {
+  const g = optionGroupsCache.find(x => x.id === groupId);
+  if (!g) return;
+  const name = prompt('Nom du groupe', g.name);
+  if (name === null || !name.trim()) return;
+  fetch('/api/shops/' + currentShop.id + '/option-groups/' + groupId, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ name: name.trim(), is_required: g.is_required, selection_type: g.selection_type })
+  }).then(() => loadOptionGroups());
+}
+
 async function deleteOptionGroup(groupId) {
   if (!confirm('Retirer ce groupe et tous ses choix ?')) return;
   await fetch('/api/shops/' + currentShop.id + '/option-groups/' + groupId, { method: 'DELETE', headers: { 'x-shop-token': shopToken } });
@@ -1316,14 +1335,33 @@ async function deleteOptionGroup(groupId) {
 async function addOptionChoice(groupId) {
   const nameEl = document.getElementById('new-choice-name-' + groupId);
   const priceEl = document.getElementById('new-choice-price-' + groupId);
+  const descEl = document.getElementById('new-choice-desc-' + groupId);
   const name = nameEl.value.trim();
   const price_delta = priceEl.value;
+  const description = descEl.value.trim();
   if (!name) { alert('Le nom du choix est requis.'); return; }
   await fetch('/api/shops/' + currentShop.id + '/option-groups/' + groupId + '/choices', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
-    body: JSON.stringify({ name, price_delta })
+    body: JSON.stringify({ name, price_delta, description })
   });
   loadOptionGroups();
+}
+
+function editChoicePrompt(groupId, choiceId) {
+  const g = optionGroupsCache.find(x => x.id === groupId);
+  if (!g) return;
+  const c = g.choices.find(x => x.id === choiceId);
+  if (!c) return;
+  const name = prompt('Nom du choix', c.name);
+  if (name === null || !name.trim()) return;
+  const price = prompt('Supplément de prix (€, laisser à 0 si aucun)', c.price_delta || 0);
+  if (price === null) return;
+  const description = prompt('Description (laisser vide si aucune)', c.description || '');
+  if (description === null) return;
+  fetch('/api/shops/' + currentShop.id + '/option-choices/' + choiceId, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
+    body: JSON.stringify({ name: name.trim(), price_delta: price, description })
+  }).then(() => loadOptionGroups());
 }
 
 async function deleteOptionChoice(choiceId) {
