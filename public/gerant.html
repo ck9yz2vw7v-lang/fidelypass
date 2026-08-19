@@ -1395,10 +1395,21 @@ function renderOrderCard(o, showActions) {
   const whenLabel = o.requested_time ? ('prévu ' + new Date(o.requested_time).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })) : 'au plus vite';
   const statusLabels = { received: 'Reçue', preparing: 'En préparation', ready: 'Prête', completed: 'Récupérée', cancelled: 'Annulée' };
   const linesHtml = (o.items || []).map(li => {
-    const choicesStr = (li.choices && li.choices.length)
-      ? '<div style="font-size:11px;color:#6b7280;margin:2px 0 6px 14px">' + li.choices.map(c => c.group_name + ' : ' + c.choice_name).join(' · ') + '</div>'
-      : '';
-    return '<div>' + li.quantity + '× ' + li.item_name + (li.notes ? ' (' + li.notes + ')' : '') + '</div>' + choicesStr;
+    let choicesHtml = '';
+    if (li.choices && li.choices.length) {
+      const byGroup = {};
+      li.choices.forEach(c => {
+        if (!byGroup[c.group_name]) byGroup[c.group_name] = [];
+        byGroup[c.group_name].push(c.choice_name);
+      });
+      choicesHtml = '<div style="margin:4px 0 8px 12px;padding-left:10px;border-left:2px solid #f1f1f1">' +
+        Object.keys(byGroup).map(gName =>
+          '<div style="font-size:11.5px;color:#6b7280;line-height:1.6"><span style="color:#9ca3af">' + gName + ' :</span> ' + byGroup[gName].join(', ') + '</div>'
+        ).join('') +
+        '</div>';
+    }
+    const notesHtml = li.notes ? '<div style="margin:2px 0 8px 12px;padding-left:10px;border-left:2px solid #f1f1f1;font-size:11.5px;color:#6b7280">📝 ' + li.notes + '</div>' : '';
+    return '<div style="font-weight:700">' + li.quantity + '× ' + li.item_name + '</div>' + choicesHtml + notesHtml;
   }).join('');
 
   let actions = '';
