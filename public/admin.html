@@ -206,6 +206,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
 <div class="modal-overlay" id="modal-edit">
   <div class="modal" id="modal-edit-content">
     <div class="modal-title">✏️ Modifier la boutique</div>
+    <button type="button" onclick="previewAsCustomer()" style="width:100%;padding:11px;margin-bottom:14px;background:#eff6ff;color:#1d4ed8;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px">👁️ Prévisualiser en tant que client</button>
     <input type="hidden" id="edit-id">
     <div class="form-grid">
       <div class="form-group"><label>Nom</label><input type="text" id="edit-name"></div>
@@ -660,6 +661,7 @@ function showQR(slug, name, id) {
 function resetEditModal() {
   document.getElementById('modal-edit-content').innerHTML = `
     <div class="modal-title">✏️ Modifier la boutique</div>
+    <button type="button" onclick="previewAsCustomer()" style="width:100%;padding:11px;margin-bottom:14px;background:#eff6ff;color:#1d4ed8;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px">👁️ Prévisualiser en tant que client</button>
     <input type="hidden" id="edit-id">
     <div class="form-grid">
       <div class="form-group"><label>Nom</label><input type="text" id="edit-name"></div>
@@ -780,6 +782,15 @@ function clearEditMenuFileInput() {
 }
 
 let currentEditShopId = null;
+
+async function previewAsCustomer() {
+  const shopId = document.getElementById('edit-id').value;
+  if (!shopId) { alert('Ouvrez d\'abord la fiche d\'une boutique.'); return; }
+  const res = await fetch('/api/admin/shops/' + shopId + '/preview-customer', { method: 'POST' });
+  const data = await res.json();
+  if (!data.success) { alert('❌ ' + (data.error || 'Erreur')); return; }
+  window.open('/card/' + data.customer_id, '_blank');
+}
 
 async function loadAdminServices(shopId) {
   currentEditShopId = shopId;

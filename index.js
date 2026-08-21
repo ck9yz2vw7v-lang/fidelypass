@@ -229,6 +229,21 @@ app.get('/api/admin/shops/:id/full', requireAdmin, async (req, res) => {
   res.json(shop);
 });
 
+// Admin : voir le rendu exact de la carte client sans créer un vrai client à chaque fois —
+// crée un unique client "🔍 Aperçu Admin" par boutique (réutilisé ensuite) et n'apparaît jamais
+// dans les listes/stats du gérant (is_preview = 1)
+app.post('/api/admin/shops/:id/preview-customer', requireAdmin, async (req, res) => {
+  const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+  if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
+  let previewCustomer = await db.prepare('SELECT * FROM customers WHERE shop_id = ? AND is_preview = 1').get(req.params.id);
+  if (!previewCustomer) {
+    const result = await db.prepare('INSERT INTO customers (shop_id, name, points, is_preview) VALUES (?, ?, 0, 1) RETURNING id')
+      .run(req.params.id, '🔍 Aperçu Admin');
+    previewCustomer = { id: result.lastInsertRowid };
+  }
+  res.json({ success: true, customer_id: previewCustomer.id });
+});
+
 app.post('/api/shops/login', loginLimiter, async (req, res) => {
   const { slug, password } = req.body;
   const shop = await db.prepare('SELECT * FROM shops WHERE slug = ?').get(slug);
@@ -323,8 +338,8 @@ app.get('/api/shops/:id/analytics', requireShopAuth, async (req, res) => {
   atRiskList.sort((a, b) => new Date(a.last_seen) - new Date(b.last_seen));
 
   // 2. Meilleurs clients
-  const topByVisits = await db.prepare('SELECT id, name, total_visits, points FROM customers WHERE shop_id = ? ORDER BY total_visits DESC LIMIT 10').all(shopId);
-  const topByPoints = await db.prepare('SELECT id, name, total_visits, points FROM customers WHERE shop_id = ? ORDER BY points DESC LIMIT 10').all(shopId);
+  const topByVisits = await db.prepare('SELECT id, name, total_visits, points FROM customers WHERE shop_id = ? AND is_preview = 0 ORDER BY total_visits DESC LIMIT 10').all(shopId);
+  const topByPoints = await db.prepare('SELECT id, name, total_visits, points FROM customers WHERE shop_id = ? AND is_preview = 0 ORDER BY points DESC LIMIT 10').all(shopId);
   const avgStats = await db.prepare('SELECT AVG(total_visits) as avg_visits, AVG(points) as avg_points FROM customers WHERE shop_id = ?').get(shopId);
 
   // 2bis. Panier moyen, valeur client (LTV) et évolution du panier sur 8 semaines
@@ -1068,7 +1083,7 @@ app.get('/api/shops/:shop_id/customers', requireShopAuth, async (req, res) => {
            EXISTS(SELECT 1 FROM push_subscriptions ps WHERE ps.customer_id = c.id) as has_push
     FROM customers c
     LEFT JOIN avg_rhythm r ON r.customer_id = c.id
-    WHERE c.shop_id = ?
+    WHERE c.shop_id = ? AND c.is_preview = 0
     ORDER BY c.points DESC
   `).all(shopId, shopId);
 
