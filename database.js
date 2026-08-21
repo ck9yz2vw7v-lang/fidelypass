@@ -248,9 +248,13 @@ async function initSchema() {
   const alterStatements = [
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS points_per_euro REAL DEFAULT 1',
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS referral_bonus_points INTEGER DEFAULT 10',
+    'ALTER TABLE shops ADD COLUMN IF NOT EXISTS birthday_bonus_points INTEGER DEFAULT 15',
     'ALTER TABLE customers ADD COLUMN IF NOT EXISTS last_visit TIMESTAMP',
     'ALTER TABLE customers ADD COLUMN IF NOT EXISTS last_reminder_sent TIMESTAMP',
     'ALTER TABLE customers ADD COLUMN IF NOT EXISTS referred_by INTEGER',
+    'ALTER TABLE customers ADD COLUMN IF NOT EXISTS birthday_month INTEGER',
+    'ALTER TABLE customers ADD COLUMN IF NOT EXISTS birthday_day INTEGER',
+    'ALTER TABLE customers ADD COLUMN IF NOT EXISTS last_birthday_bonus_year INTEGER',
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS last_message_read_at TIMESTAMP',
     'ALTER TABLE customers ADD COLUMN IF NOT EXISTS reward_cycles_completed INTEGER DEFAULT 0',
     'ALTER TABLE scans ADD COLUMN IF NOT EXISTS amount_paid REAL',

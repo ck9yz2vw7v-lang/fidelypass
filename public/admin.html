@@ -160,6 +160,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       </div>
       <div class="form-group"><label>Objectif points</label><input type="number" id="points_goal" value="100"></div>
       <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="referral_bonus_points" value="10"></div>
+      <div class="form-group"><label>🎂 Points bonus anniversaire</label><input type="number" id="birthday_bonus_points" value="15"></div>
       <div class="form-group"><label>⚠️ Seuil "à risque" (jours sans visite)</label><input type="number" id="risk_threshold_days" min="1" placeholder="30"></div>
       <div class="form-group"><label>🔴 Seuil "perdu" (jours sans visite)</label><input type="number" id="lost_threshold_days" min="1" placeholder="60"></div>
       <div class="form-group" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="booking_enabled" style="width:auto"><label for="booking_enabled" style="margin:0">💇 Coiffeur / Institut (rendez-vous avec prestations)</label></div>
@@ -220,6 +221,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       </div>
       <div class="form-group"><label>Objectif points</label><input type="number" id="edit-points-goal"></div>
       <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="edit-referral-bonus"></div>
+      <div class="form-group"><label>🎂 Points bonus anniversaire</label><input type="number" id="edit-birthday-bonus"></div>
       <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
@@ -518,6 +520,7 @@ async function createShop() {
     currency:           document.getElementById('currency').value,
     points_goal:        parseInt(document.getElementById('points_goal').value),
     referral_bonus_points: parseInt(document.getElementById('referral_bonus_points').value),
+    birthday_bonus_points: parseInt(document.getElementById('birthday_bonus_points').value),
     risk_threshold_days: document.getElementById('risk_threshold_days').value || null,
     lost_threshold_days: document.getElementById('lost_threshold_days').value || null,
     manual_shop_count: document.getElementById('manual_shop_count').value || null,
@@ -672,6 +675,7 @@ function resetEditModal() {
       </div>
       <div class="form-group"><label>Objectif points</label><input type="number" id="edit-points-goal"></div>
       <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="edit-referral-bonus"></div>
+      <div class="form-group"><label>🎂 Points bonus anniversaire</label><input type="number" id="edit-birthday-bonus"></div>
       <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
@@ -829,6 +833,7 @@ async function openEdit(shopId) {
   document.getElementById('edit-currency').value        = shop.currency || 'EUR';
   document.getElementById('edit-points-goal').value     = shop.points_goal;
   document.getElementById('edit-referral-bonus').value  = shop.referral_bonus_points != null ? shop.referral_bonus_points : 10;
+  document.getElementById('edit-birthday-bonus').value  = shop.birthday_bonus_points != null ? shop.birthday_bonus_points : 15;
   document.getElementById('edit-color').value           = shop.color;
   document.getElementById('edit-reward').value          = shop.reward_text;
   document.getElementById('edit-google-review').value   = shop.google_review_url || '';
@@ -864,6 +869,7 @@ async function saveEdit() {
     currency:              document.getElementById('edit-currency').value,
     points_goal:           parseInt(document.getElementById('edit-points-goal').value),
     referral_bonus_points: parseInt(document.getElementById('edit-referral-bonus').value),
+    birthday_bonus_points: parseInt(document.getElementById('edit-birthday-bonus').value),
     color:                 document.getElementById('edit-color').value,
     reward_text:           document.getElementById('edit-reward').value,
     google_review_url:     document.getElementById('edit-google-review').value || null,
