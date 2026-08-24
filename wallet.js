@@ -215,7 +215,7 @@ const sharp = require('sharp');
 // (jamais de déformation du logo).
 async function resizeToPngBuffer(srcBuffer, targetHeight, maxWidth) {
   return sharp(srcBuffer)
-    .resize({ height: targetHeight, width: maxWidth, fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .resize({ height: targetHeight, width: maxWidth, fit: 'inside', withoutEnlargement: false })
     .png()
     .toBuffer();
 }
