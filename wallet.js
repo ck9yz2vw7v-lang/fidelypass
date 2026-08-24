@@ -61,6 +61,12 @@ async function ensureShopLoyaltyClass(customer) {
       description: 'Notre menu',
     };
   }
+  if (customer.strip_image_base64) {
+    classResource.heroImage = {
+      sourceUri: { uri: `https://fidelypass-production.up.railway.app/shops/${customer.shop_id}/strip-file` },
+      contentDescription: { defaultValue: { language: 'fr', value: customer.shop_name || 'FidélyPass' } },
+    };
+  }
 
   try {
     await google.walletobjects('v1').loyaltyclass.get({ resourceId: classId });
@@ -172,6 +178,15 @@ function hexToRgb(hex) {
 
 // Génère une bannière (strip) avec un dégradé vertical + une légère touche de lumière en haut à
 // gauche, pour un rendu moins plat qu'un aplat uni
+// Prépare une bande personnalisée uploadée par le commerçant pour remplir exactement le cadre
+// attendu par Apple (recadrage "cover" : contrairement au logo, ici on veut TOUJOURS remplir
+// tout le cadre sans marge, quitte à rogner légèrement l'image).
+async function prepareCustomStripPng(imageBase64, width, height) {
+  const raw = imageBase64.includes(',') ? imageBase64.split(',').pop() : imageBase64;
+  const buf = Buffer.from(raw, 'base64');
+  return sharp(buf).resize({ width, height, fit: 'cover' }).png().toBuffer();
+}
+
 function generateStripPng(hex, width, height) {
   const { r, g, b } = hexToRgbParts(hex);
   const png = new PNG({ width, height });
@@ -407,6 +422,15 @@ async function createApplePassBuffer(customer) {
   }
 
   const shopLogoFiles = await buildShopLogoFiles(customer.logo_base64);
+  const stripFiles = customer.strip_image_base64 ? {
+    'strip.png': await prepareCustomStripPng(customer.strip_image_base64, 375, 123),
+    'strip@2x.png': await prepareCustomStripPng(customer.strip_image_base64, 750, 246),
+    'strip@3x.png': await prepareCustomStripPng(customer.strip_image_base64, 1125, 369),
+  } : {
+    'strip.png': generateStripPng(customer.color, 375, 123),
+    'strip@2x.png': generateStripPng(customer.color, 750, 246),
+    'strip@3x.png': generateStripPng(customer.color, 1125, 369),
+  };
 
   const pass = new PKPass({
     'pass.json': Buffer.from(JSON.stringify(passJson)),
@@ -416,9 +440,7 @@ async function createApplePassBuffer(customer) {
     'logo.png': shopLogoFiles ? shopLogoFiles['logo.png'] : Buffer.from(PASS_ASSETS.logo, 'base64'),
     'logo@2x.png': shopLogoFiles ? shopLogoFiles['logo@2x.png'] : Buffer.from(PASS_ASSETS.logo_2x, 'base64'),
     'logo@3x.png': shopLogoFiles ? shopLogoFiles['logo@3x.png'] : Buffer.from(PASS_ASSETS.logo_3x, 'base64'),
-    'strip.png': generateStripPng(customer.color, 375, 123),
-    'strip@2x.png': generateStripPng(customer.color, 750, 246),
-    'strip@3x.png': generateStripPng(customer.color, 1125, 369),
+    ...stripFiles,
   }, certificates);
 
   return pass.getAsBuffer();

@@ -190,6 +190,10 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
           <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearLogoInput()">Retirer</button>
         </div>
       </div>
+      <div class="form-group form-full">
+        <label>🖼️ Bande personnalisée (optionnel — remplace le dégradé de couleur derrière les points)</label>
+        <input type="file" id="strip_file" accept="image/*">
+      </div>
       <div class="form-full"><button class="btn btn-primary" onclick="createShop()">Créer la boutique</button></div>
     </div>
     </div>
@@ -260,6 +264,14 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
         <div id="edit-logo-preview-wrap" style="display:none;margin-top:8px">
           <img id="edit-logo-preview" style="max-height:60px;border-radius:8px;background:#0f172a;padding:6px">
           <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearEditLogoInput()">Retirer</button>
+        </div>
+      </div>
+      <div class="form-group form-full">
+        <label>🖼️ Bande personnalisée (optionnel — remplace le dégradé de couleur derrière les points)</label>
+        <input type="file" id="edit-strip-file" accept="image/*">
+        <div id="edit-strip-preview-wrap" style="display:none;margin-top:8px">
+          <img id="edit-strip-preview" style="max-height:60px;border-radius:8px;background:#0f172a;padding:6px">
+          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearEditStripInput()">Retirer</button>
         </div>
       </div>
     </div>
@@ -462,6 +474,20 @@ async function loadShops() {
 }
 
 let pendingLogoBase64Create = null;
+let pendingStripBase64Create = null;
+
+document.getElementById('strip_file').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) { pendingStripBase64Create = null; return; }
+  if (file.size > 2 * 1024 * 1024) {
+    alert('❌ Cette image est trop lourde (max 2 Mo). Choisis une image plus légère.');
+    e.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(ev) { pendingStripBase64Create = ev.target.result; };
+  reader.readAsDataURL(file);
+});
 
 document.getElementById('logo_file').addEventListener('change', function(e) {
   const file = e.target.files[0];
@@ -536,6 +562,7 @@ async function createShop() {
     latitude:           document.getElementById('latitude').value || null,
     longitude:          document.getElementById('longitude').value || null,
     logo_base64:        pendingLogoBase64Create,
+    strip_image_base64: pendingStripBase64Create,
     menu_file_base64:   pendingMenuFileBase64Create
   };
   const res    = await fetch('/api/shops', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
@@ -545,6 +572,8 @@ async function createShop() {
     setTimeout(() => document.getElementById('success-msg').style.display = 'none', 3000);
     ['name','slug','password','email','reward_text','google_review_url','menu_url','latitude','longitude','phone','opening_hours','risk_threshold_days','lost_threshold_days','manual_shop_count'].forEach(id => document.getElementById(id).value = '');
     clearLogoInput();
+    pendingStripBase64Create = null;
+    document.getElementById('strip_file').value = '';
     clearMenuFileInput();
     loadShops();
   } else {
@@ -717,6 +746,14 @@ function resetEditModal() {
           <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearEditLogoInput()">Retirer</button>
         </div>
       </div>
+      <div class="form-group form-full">
+        <label>🖼️ Bande personnalisée (optionnel — remplace le dégradé de couleur derrière les points)</label>
+        <input type="file" id="edit-strip-file" accept="image/*">
+        <div id="edit-strip-preview-wrap" style="display:none;margin-top:8px">
+          <img id="edit-strip-preview" style="max-height:60px;border-radius:8px;background:#0f172a;padding:6px">
+          <button type="button" class="btn-sm" style="background:#334155;color:#f1f5f9;margin-left:8px" onclick="clearEditStripInput()">Retirer</button>
+        </div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal('modal-edit')">Annuler</button>
@@ -727,6 +764,7 @@ function resetEditModal() {
 }
 
 let editLogoBase64; // undefined = pas de changement, '' = suppression explicite, dataURL = nouveau logo
+let editStripBase64; // undefined = pas de changement, '' = suppression explicite, dataURL = nouvelle bande
 let editMenuFileBase64; // undefined = pas de changement, '' = suppression explicite, dataURL = nouveau fichier
 
 function attachEditLogoListener() {
@@ -748,6 +786,26 @@ function attachEditLogoListener() {
     };
     reader.readAsDataURL(file);
   });
+
+  const stripInput = document.getElementById('edit-strip-file');
+  if (stripInput) {
+    stripInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        alert('❌ Cette image est trop lourde (max 2 Mo). Choisis une image plus légère.');
+        e.target.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        editStripBase64 = ev.target.result;
+        document.getElementById('edit-strip-preview').src = editStripBase64;
+        document.getElementById('edit-strip-preview-wrap').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
 
   const menuInput = document.getElementById('edit-menu-file');
   if (!menuInput) return;
@@ -773,6 +831,12 @@ function clearEditLogoInput() {
   editLogoBase64 = '';
   document.getElementById('edit-logo-file').value = '';
   document.getElementById('edit-logo-preview-wrap').style.display = 'none';
+}
+
+function clearEditStripInput() {
+  editStripBase64 = '';
+  document.getElementById('edit-strip-file').value = '';
+  document.getElementById('edit-strip-preview-wrap').style.display = 'none';
 }
 
 function clearEditMenuFileInput() {
@@ -834,6 +898,7 @@ async function deleteAdminService(id) {
 async function openEdit(shopId) {
   resetEditModal();
   editLogoBase64 = undefined;
+  editStripBase64 = undefined;
   editMenuFileBase64 = undefined;
   const shop = await (await fetch('/api/admin/shops/' + shopId + '/full')).json();
   document.getElementById('edit-id').value              = shop.id;
@@ -864,6 +929,10 @@ async function openEdit(shopId) {
   if (shop.logo_base64) {
     document.getElementById('edit-logo-preview').src = shop.logo_base64;
     document.getElementById('edit-logo-preview-wrap').style.display = 'block';
+  }
+  if (shop.strip_image_base64) {
+    document.getElementById('edit-strip-preview').src = shop.strip_image_base64;
+    document.getElementById('edit-strip-preview-wrap').style.display = 'block';
   }
   if (shop.menu_file_base64) {
     document.getElementById('edit-menu-file-preview-name').textContent = 'Fichier déjà configuré (' + (shop.menu_file_type || 'fichier') + ')';
@@ -897,6 +966,7 @@ async function saveEdit() {
     latitude:              document.getElementById('edit-latitude').value || null,
     longitude:             document.getElementById('edit-longitude').value || null,
     logo_base64:           editLogoBase64,
+    strip_image_base64:    editStripBase64,
     menu_file_base64:      editMenuFileBase64
   };
   const res = await fetch('/api/shops/' + id, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});

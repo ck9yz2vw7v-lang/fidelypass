@@ -201,12 +201,12 @@ app.post('/api/admin/migrate-to-postgres', requireAdmin, async (req, res) => {
 });
 
 app.post('/api/shops', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, birthday_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count, booking_enabled, ordering_enabled } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, birthday_bonus_points, currency, menu_url, latitude, longitude, logo_base64, strip_image_base64, menu_file_base64, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count, booking_enabled, ordering_enabled } = req.body;
   try {
     const menuFile = parseDataUrl(menu_file_base64);
     const hashedPassword = await bcrypt.hash(password, 10);
-    const stmt = await db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, birthday_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, menu_file_type, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count, booking_enabled, ordering_enabled, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) RETURNING id`);
-    const result = await stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, birthday_bonus_points != null ? birthday_bonus_points : 15, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null, phone || null, opening_hours || null, risk_threshold_days ? parseInt(risk_threshold_days, 10) : 30, lost_threshold_days ? parseInt(lost_threshold_days, 10) : 60, manual_shop_count ? parseInt(manual_shop_count, 10) : null, booking_enabled ? 1 : 0, ordering_enabled ? 1 : 0);
+    const stmt = await db.prepare(`INSERT INTO shops (name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, birthday_bonus_points, currency, menu_url, latitude, longitude, logo_base64, strip_image_base64, menu_file_base64, menu_file_type, phone, opening_hours, risk_threshold_days, lost_threshold_days, manual_shop_count, booking_enabled, ordering_enabled, active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1) RETURNING id`);
+    const result = await stmt.run(name, slug, hashedPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null, email || null, referral_bonus_points != null ? referral_bonus_points : 10, birthday_bonus_points != null ? birthday_bonus_points : 15, currency || 'EUR', menu_url || null, latitude != null && latitude !== '' ? parseFloat(latitude) : null, longitude != null && longitude !== '' ? parseFloat(longitude) : null, logo_base64 || null, strip_image_base64 || null, menuFile ? menuFile.base64 : null, menuFile ? menuFile.mime : null, phone || null, opening_hours || null, risk_threshold_days ? parseInt(risk_threshold_days, 10) : 30, lost_threshold_days ? parseInt(lost_threshold_days, 10) : 60, manual_shop_count ? parseInt(manual_shop_count, 10) : null, booking_enabled ? 1 : 0, ordering_enabled ? 1 : 0);
     res.json({ success: true, id: result.lastInsertRowid });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -1115,7 +1115,7 @@ app.get('/api/customers/:id/wallet', async (req, res) => {
   try {
     const customer = await db.prepare(`
       SELECT c.*, s.id as shop_id, s.name as shop_name, s.reward_text, s.points_goal, s.color,
-             s.menu_url, s.google_review_url, s.logo_base64, s.phone, s.opening_hours,
+             s.menu_url, s.google_review_url, s.logo_base64, s.phone, s.opening_hours, s.strip_image_base64,
              (s.menu_file_base64 IS NOT NULL) as has_menu_file
       FROM customers c JOIN shops s ON s.id = c.shop_id
       WHERE c.id = ?
@@ -2818,7 +2818,7 @@ if ('serviceWorker' in navigator && Notification.permission === 'granted') {
 });
 
 app.put('/api/shops/:id', async (req, res) => {
-  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, birthday_bonus_points, currency, menu_url, latitude, longitude, logo_base64, menu_file_base64, phone, opening_hours, manual_shop_count, risk_threshold_days, lost_threshold_days, booking_enabled, ordering_enabled } = req.body;
+  const { name, slug, password, reward_text, points_per_euro, points_goal, color, google_review_url, email, referral_bonus_points, birthday_bonus_points, currency, menu_url, latitude, longitude, logo_base64, strip_image_base64, menu_file_base64, phone, opening_hours, manual_shop_count, risk_threshold_days, lost_threshold_days, booking_enabled, ordering_enabled } = req.body;
   try {
     const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
     if (!shop) return res.status(404).json({ success: false, error: 'Boutique introuvable' });
@@ -2838,7 +2838,7 @@ app.put('/api/shops/:id', async (req, res) => {
         newMenuFileType = menuFile ? menuFile.mime : null;
       }
     }
-    await db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, birthday_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=?, menu_file_base64=?, menu_file_type=?, phone=?, opening_hours=?, manual_shop_count=?, risk_threshold_days=?, lost_threshold_days=?, booking_enabled=?, ordering_enabled=? WHERE id=?`)
+    await db.prepare(`UPDATE shops SET name=?, slug=?, password=?, reward_text=?, points_per_euro=?, points_goal=?, color=?, google_review_url=?, email=?, referral_bonus_points=?, birthday_bonus_points=?, currency=?, menu_url=?, latitude=?, longitude=?, logo_base64=?, strip_image_base64=?, menu_file_base64=?, menu_file_type=?, phone=?, opening_hours=?, manual_shop_count=?, risk_threshold_days=?, lost_threshold_days=?, booking_enabled=?, ordering_enabled=? WHERE id=?`)
       .run(
         name, slug, newPassword, reward_text, points_per_euro || 1, points_goal, color, google_review_url || null,
         email || shop.email || null, referral_bonus_points != null ? referral_bonus_points : (shop.referral_bonus_points || 10),
@@ -2848,6 +2848,7 @@ app.put('/api/shops/:id', async (req, res) => {
         latitude !== undefined && latitude !== '' ? (latitude != null ? parseFloat(latitude) : null) : shop.latitude,
         longitude !== undefined && longitude !== '' ? (longitude != null ? parseFloat(longitude) : null) : shop.longitude,
         logo_base64 !== undefined ? (logo_base64 || null) : shop.logo_base64,
+        strip_image_base64 !== undefined ? (strip_image_base64 || null) : shop.strip_image_base64,
         newMenuFileBase64,
         newMenuFileType,
         phone !== undefined ? (phone || null) : shop.phone,
@@ -2889,6 +2890,17 @@ app.get('/shops/:id/logo-file', async (req, res) => {
   const match = String(shop.logo_base64).match(/^data:([^;]+);base64,(.+)$/);
   const mime = match ? match[1] : 'image/png';
   const raw = match ? match[2] : shop.logo_base64;
+  res.set('Content-Type', mime);
+  res.send(Buffer.from(raw, 'base64'));
+});
+
+// Sert la bande graphique personnalisée d'une boutique (utilisée en image héros par Google Wallet)
+app.get('/shops/:id/strip-file', async (req, res) => {
+  const shop = await db.prepare('SELECT strip_image_base64 FROM shops WHERE id = ?').get(req.params.id);
+  if (!shop || !shop.strip_image_base64) return res.status(404).send('Aucune bande personnalisée disponible');
+  const match = String(shop.strip_image_base64).match(/^data:([^;]+);base64,(.+)$/);
+  const mime = match ? match[1] : 'image/png';
+  const raw = match ? match[2] : shop.strip_image_base64;
   res.set('Content-Type', mime);
   res.send(Buffer.from(raw, 'base64'));
 });

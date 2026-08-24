@@ -249,6 +249,7 @@ async function initSchema() {
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS points_per_euro REAL DEFAULT 1',
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS referral_bonus_points INTEGER DEFAULT 10',
     'ALTER TABLE shops ADD COLUMN IF NOT EXISTS birthday_bonus_points INTEGER DEFAULT 15',
+    'ALTER TABLE shops ADD COLUMN IF NOT EXISTS strip_image_base64 TEXT',
     'ALTER TABLE customers ADD COLUMN IF NOT EXISTS last_visit TIMESTAMP',
     'ALTER TABLE customers ADD COLUMN IF NOT EXISTS last_reminder_sent TIMESTAMP',
     'ALTER TABLE customers ADD COLUMN IF NOT EXISTS referred_by INTEGER',
