@@ -180,11 +180,17 @@ function hexToRgb(hex) {
 // gauche, pour un rendu moins plat qu'un aplat uni
 // Prépare une bande personnalisée uploadée par le commerçant pour remplir exactement le cadre
 // attendu par Apple (recadrage "cover" : contrairement au logo, ici on veut TOUJOURS remplir
-// tout le cadre sans marge, quitte à rogner légèrement l'image).
+// tout le cadre sans marge, quitte à rogner légèrement l'image), puis assombrit légèrement
+// l'image avec un voile semi-transparent pour garantir que le texte blanc des points reste
+// lisible par-dessus, quelle que soit la luminosité de la photo choisie par le commerçant.
 async function prepareCustomStripPng(imageBase64, width, height) {
   const raw = imageBase64.includes(',') ? imageBase64.split(',').pop() : imageBase64;
   const buf = Buffer.from(raw, 'base64');
-  return sharp(buf).resize({ width, height, fit: 'cover' }).png().toBuffer();
+  const resized = await sharp(buf).resize({ width, height, fit: 'cover' }).png().toBuffer();
+  const darkVeil = await sharp({
+    create: { width, height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0.4 } },
+  }).png().toBuffer();
+  return sharp(resized).composite([{ input: darkVeil, blend: 'over' }]).png().toBuffer();
 }
 
 function generateStripPng(hex, width, height) {
