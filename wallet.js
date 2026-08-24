@@ -208,44 +208,45 @@ function generateStripPng(hex, width, height) {
 // Redimensionne (plus proche voisin, sans dépendance externe) une image PNG uploadée par le
 // commerçant pour produire les 3 résolutions attendues par Apple (@1x/@2x/@3x), en conservant
 // les proportions et en plafonnant la largeur au format attendu pour un logo de carte
-function resizePngBuffer(srcBuffer, targetHeight, maxWidth) {
-  const src = PNG.sync.read(srcBuffer);
-  const scale = targetHeight / src.height;
-  let targetWidth = Math.round(src.width * scale);
-  if (targetWidth > maxWidth) targetWidth = maxWidth;
-  if (targetWidth < 1) targetWidth = 1;
-  const dst = new PNG({ width: targetWidth, height: targetHeight });
-  const scaleX = src.width / targetWidth;
-  const scaleY = src.height / targetHeight;
-  for (let y = 0; y < targetHeight; y++) {
-    const sy = Math.min(src.height - 1, Math.floor(y * scaleY));
-    for (let x = 0; x < targetWidth; x++) {
-      const sx = Math.min(src.width - 1, Math.floor(x * scaleX));
-      const srcIdx = (src.width * sy + sx) << 2;
-      const dstIdx = (targetWidth * y + x) << 2;
-      dst.data[dstIdx] = src.data[srcIdx];
-      dst.data[dstIdx + 1] = src.data[srcIdx + 1];
-      dst.data[dstIdx + 2] = src.data[srcIdx + 2];
-      dst.data[dstIdx + 3] = src.data[srcIdx + 3];
-    }
-  }
-  return PNG.sync.write(dst);
+const sharp = require('sharp');
+
+// Redimensionne n'importe quelle image d'entrée (JPG, PNG, WebP...) vers un PNG de la taille
+// exacte demandée par Apple Wallet, en conservant le ratio et en complétant avec du transparent
+// (jamais de déformation du logo).
+async function resizeToPngBuffer(srcBuffer, targetHeight, maxWidth) {
+  return sharp(srcBuffer)
+    .resize({ height: targetHeight, width: maxWidth, fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png()
+    .toBuffer();
 }
 
-// Construit les 3 fichiers logo (@1x/@2x/@3x) à partir du logo base64 fourni par la boutique.
-// Retourne null si aucun logo n'est fourni, ou s'il n'a pas pu être décodé (doit être un PNG valide)
-function buildShopLogoFiles(logoBase64) {
+// Construit les 3 fichiers logo (@1x/@2x/@3x) ET les 3 fichiers icône (@1x/@2x/@3x, utilisés
+// sur Apple Watch et dans les notifications) à partir du logo fourni par la boutique, dans
+// n'importe quel format d'image courant. Retourne null si aucun logo n'est fourni, ou s'il n'a
+// pas pu être décodé.
+async function buildShopLogoFiles(logoBase64) {
   if (!logoBase64) return null;
   try {
     const raw = logoBase64.includes(',') ? logoBase64.split(',').pop() : logoBase64;
     const buf = Buffer.from(raw, 'base64');
+    const [logo1x, logo2x, logo3x, icon1x, icon2x, icon3x] = await Promise.all([
+      resizeToPngBuffer(buf, 50, 160),
+      resizeToPngBuffer(buf, 100, 320),
+      resizeToPngBuffer(buf, 150, 480),
+      resizeToPngBuffer(buf, 29, 29),
+      resizeToPngBuffer(buf, 58, 58),
+      resizeToPngBuffer(buf, 87, 87),
+    ]);
     return {
-      'logo.png': resizePngBuffer(buf, 50, 160),
-      'logo@2x.png': resizePngBuffer(buf, 100, 320),
-      'logo@3x.png': resizePngBuffer(buf, 150, 480),
+      'logo.png': logo1x,
+      'logo@2x.png': logo2x,
+      'logo@3x.png': logo3x,
+      'icon.png': icon1x,
+      'icon@2x.png': icon2x,
+      'icon@3x.png': icon3x,
     };
   } catch (e) {
-    console.error('Logo boutique invalide (PNG attendu), utilisation du logo par défaut:', e.message);
+    console.error('Logo boutique invalide, utilisation du logo par défaut:', e.message);
     return null;
   }
 }
@@ -405,13 +406,13 @@ async function createApplePassBuffer(customer) {
     }];
   }
 
-  const shopLogoFiles = buildShopLogoFiles(customer.logo_base64);
+  const shopLogoFiles = await buildShopLogoFiles(customer.logo_base64);
 
   const pass = new PKPass({
     'pass.json': Buffer.from(JSON.stringify(passJson)),
-    'icon.png': Buffer.from(PASS_ASSETS.icon, 'base64'),
-    'icon@2x.png': Buffer.from(PASS_ASSETS.icon_2x, 'base64'),
-    'icon@3x.png': Buffer.from(PASS_ASSETS.icon_3x, 'base64'),
+    'icon.png': shopLogoFiles ? shopLogoFiles['icon.png'] : Buffer.from(PASS_ASSETS.icon, 'base64'),
+    'icon@2x.png': shopLogoFiles ? shopLogoFiles['icon@2x.png'] : Buffer.from(PASS_ASSETS.icon_2x, 'base64'),
+    'icon@3x.png': shopLogoFiles ? shopLogoFiles['icon@3x.png'] : Buffer.from(PASS_ASSETS.icon_3x, 'base64'),
     'logo.png': shopLogoFiles ? shopLogoFiles['logo.png'] : Buffer.from(PASS_ASSETS.logo, 'base64'),
     'logo@2x.png': shopLogoFiles ? shopLogoFiles['logo@2x.png'] : Buffer.from(PASS_ASSETS.logo_2x, 'base64'),
     'logo@3x.png': shopLogoFiles ? shopLogoFiles['logo@3x.png'] : Buffer.from(PASS_ASSETS.logo_3x, 'base64'),
