@@ -166,7 +166,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="booking_enabled" style="width:auto"><label for="booking_enabled" style="margin:0">💇 Coiffeur / Institut (rendez-vous avec prestations)</label></div>
       <div class="form-group" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="ordering_enabled" style="width:auto"><label for="ordering_enabled" style="margin:0">🛍️ Commande en ligne (snack, boulangerie...)</label></div>
       <div class="form-group"><label>🏪 Nombre de boutiques du gérant</label><input type="number" id="manual_shop_count" min="1" placeholder="1"><div style="font-size:11px;color:#94a3b8;margin-top:4px">Si ≥ 2, un seul abonnement Stripe facturé 24€ × ce nombre</div></div>
-      <div class="form-group"><label>Couleur carte</label><input type="color" id="color" value="#b45309"></div>
+      <div class="form-group"><label>Couleur carte</label><div style="display:flex;gap:8px;align-items:center"><input type="color" id="color" value="#b45309" style="width:46px;height:40px;padding:2px;border-radius:8px;border:1px solid #ddd;cursor:pointer;flex-shrink:0"><input type="text" id="color-hex" value="#b45309" placeholder="#RRGGBB" maxlength="7" style="flex:1;padding:9px 10px;border-radius:8px;border:1px solid #ddd;font-family:monospace;font-size:14px;text-transform:uppercase"></div></div>
       <div class="form-group form-full"><label>Récompense offerte</label><input type="text" id="reward_text" placeholder="Ex: 1 sandwich offert"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis (optionnel)</label><input type="url" id="google_review_url" placeholder="https://g.page/r/..."></div>
       <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="menu_url" placeholder="https://..."></div>
@@ -223,7 +223,7 @@ body{background:#0f172a;font-family:'Segoe UI',Arial,sans-serif;color:#f1f5f9;mi
       <div class="form-group"><label>Objectif points</label><input type="number" id="edit-points-goal"></div>
       <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="edit-referral-bonus"></div>
       <div class="form-group"><label>🎂 Points bonus anniversaire</label><input type="number" id="edit-birthday-bonus"></div>
-      <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
+      <div class="form-group"><label>Couleur</label><div style="display:flex;gap:8px;align-items:center"><input type="color" id="edit-color" style="width:46px;height:40px;padding:2px;border-radius:8px;border:1px solid #ddd;cursor:pointer;flex-shrink:0"><input type="text" id="edit-color-hex" placeholder="#RRGGBB" maxlength="7" style="flex:1;padding:9px 10px;border-radius:8px;border:1px solid #ddd;font-family:monospace;font-size:14px;text-transform:uppercase"></div></div>
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
       <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="edit-menu-url" placeholder="https://..."></div>
@@ -678,7 +678,7 @@ function resetEditModal() {
       <div class="form-group"><label>Objectif points</label><input type="number" id="edit-points-goal"></div>
       <div class="form-group"><label>🎁 Points bonus parrainage</label><input type="number" id="edit-referral-bonus"></div>
       <div class="form-group"><label>🎂 Points bonus anniversaire</label><input type="number" id="edit-birthday-bonus"></div>
-      <div class="form-group"><label>Couleur</label><input type="color" id="edit-color"></div>
+      <div class="form-group"><label>Couleur</label><div style="display:flex;gap:8px;align-items:center"><input type="color" id="edit-color" style="width:46px;height:40px;padding:2px;border-radius:8px;border:1px solid #ddd;cursor:pointer;flex-shrink:0"><input type="text" id="edit-color-hex" placeholder="#RRGGBB" maxlength="7" style="flex:1;padding:9px 10px;border-radius:8px;border:1px solid #ddd;font-family:monospace;font-size:14px;text-transform:uppercase"></div></div>
       <div class="form-group form-full"><label>Récompense</label><input type="text" id="edit-reward"></div>
       <div class="form-group form-full"><label>⭐ Lien Google Avis</label><input type="url" id="edit-google-review" placeholder="https://g.page/r/..."></div>
       <div class="form-group form-full"><label>📋 Lien du menu (optionnel)</label><input type="url" id="edit-menu-url" placeholder="https://..."></div>
@@ -846,6 +846,8 @@ async function openEdit(shopId) {
   document.getElementById('edit-referral-bonus').value  = shop.referral_bonus_points != null ? shop.referral_bonus_points : 10;
   document.getElementById('edit-birthday-bonus').value  = shop.birthday_bonus_points != null ? shop.birthday_bonus_points : 15;
   document.getElementById('edit-color').value           = shop.color;
+  document.getElementById('edit-color-hex').value        = shop.color;
+  syncColorPair('edit-color', 'edit-color-hex');
   document.getElementById('edit-reward').value          = shop.reward_text;
   document.getElementById('edit-google-review').value   = shop.google_review_url || '';
   document.getElementById('edit-menu-url').value        = shop.menu_url || '';
@@ -1060,6 +1062,21 @@ async function deleteAdminMessage(id) {
   await fetch('/api/admin/messages/' + id, { method: 'DELETE' });
   loadMessageHistory();
 }
+
+// Synchronise chaque sélecteur de couleur avec son champ texte hex (#RRGGBB),
+// pour visualiser la couleur choisie ET pouvoir saisir une teinte précise.
+function syncColorPair(pickerId, hexId) {
+  const picker = document.getElementById(pickerId);
+  const hex = document.getElementById(hexId);
+  if (!picker || !hex) return;
+  picker.addEventListener('input', () => { hex.value = picker.value.toUpperCase(); });
+  hex.addEventListener('input', () => {
+    let v = hex.value.trim();
+    if (v && v[0] !== '#') v = '#' + v;
+    if (/^#[0-9A-Fa-f]{6}$/.test(v)) picker.value = v;
+  });
+}
+syncColorPair('color', 'color-hex');
 </script>
 </body>
 </html>
