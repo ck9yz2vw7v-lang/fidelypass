@@ -1197,7 +1197,7 @@ app.get('/apple-wallet/v1/passes/:passTypeIdentifier/:serialNumber', async (req,
     if (!await checkApplePassAuth(req, customerId)) return res.status(401).end();
     const customer = await db.prepare(`
       SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.color,
-             s.menu_url, s.latitude, s.longitude, s.logo_base64, s.phone, s.opening_hours,
+             s.menu_url, s.latitude, s.longitude, s.logo_base64, s.phone, s.opening_hours, s.strip_image_base64,
              (s.menu_file_base64 IS NOT NULL) as has_menu_file
       FROM customers c JOIN shops s ON s.id = c.shop_id
       WHERE c.id = ?
@@ -1227,7 +1227,7 @@ app.get('/api/customers/:id/apple-wallet', async (req, res) => {
   try {
     const customer = await db.prepare(`
       SELECT c.*, s.name as shop_name, s.reward_text, s.points_goal, s.color,
-             s.menu_url, s.latitude, s.longitude, s.logo_base64, s.phone, s.opening_hours,
+             s.menu_url, s.latitude, s.longitude, s.logo_base64, s.phone, s.opening_hours, s.strip_image_base64,
              (s.menu_file_base64 IS NOT NULL) as has_menu_file
       FROM customers c JOIN shops s ON s.id = c.shop_id
       WHERE c.id = ?
