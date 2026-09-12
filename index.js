@@ -605,6 +605,16 @@ app.delete('/api/customers/:id', requireShopAuth, async (req, res) => {
   await db.prepare('DELETE FROM scans WHERE customer_id = ?').run(req.params.id);
   await db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ?').run(req.params.id);
   await db.prepare('DELETE FROM apple_pass_registrations WHERE serial_number = ?').run('fidelypass-' + req.params.id);
+  await db.prepare('DELETE FROM appointments WHERE customer_id = ?').run(req.params.id);
+  const customerOrderIds = (await db.prepare('SELECT id FROM orders WHERE customer_id = ?').all(req.params.id)).map(o => o.id);
+  for (const orderId of customerOrderIds) {
+    const itemIds = (await db.prepare('SELECT id FROM order_items WHERE order_id = ?').all(orderId)).map(i => i.id);
+    for (const itemId of itemIds) {
+      await db.prepare('DELETE FROM order_item_choices WHERE order_item_id = ?').run(itemId);
+    }
+    await db.prepare('DELETE FROM order_items WHERE order_id = ?').run(orderId);
+  }
+  await db.prepare('DELETE FROM orders WHERE customer_id = ?').run(req.params.id);
   await db.prepare('DELETE FROM customers WHERE id = ?').run(req.params.id);
   res.json({ success: true });
 });
