@@ -786,6 +786,9 @@ app.delete('/api/shops/:id/menu-items/:itemId', requireShopAuth, async (req, res
     await db.prepare('DELETE FROM item_option_choices WHERE option_group_id = ?').run(gid);
   }
   await db.prepare('DELETE FROM item_option_groups WHERE menu_item_id = ?').run(req.params.itemId);
+  // Détache l'article des anciennes commandes plutôt que de bloquer la suppression : l'historique
+  // reste intact car chaque ligne de commande garde déjà son propre nom/prix enregistrés à part.
+  await db.prepare('UPDATE order_items SET menu_item_id = NULL WHERE menu_item_id = ?').run(req.params.itemId);
   await db.prepare('DELETE FROM menu_items WHERE id = ? AND shop_id = ?').run(req.params.itemId, req.params.id);
   res.json({ success: true });
 });
@@ -1523,6 +1526,7 @@ app.put('/api/shops/:id/staff/:staffId', requireShopAuth, async (req, res) => {
 // Gérant : retirer un membre d'équipe (et ses créneaux associés)
 app.delete('/api/shops/:id/staff/:staffId', requireShopAuth, async (req, res) => {
   await db.prepare('DELETE FROM staff_availability WHERE staff_id = ?').run(req.params.staffId);
+  await db.prepare('DELETE FROM shop_closures WHERE staff_id = ?').run(req.params.staffId);
   await db.prepare('DELETE FROM staff_members WHERE id = ? AND shop_id = ?').run(req.params.staffId, req.params.id);
   res.json({ success: true });
 });
@@ -2913,18 +2917,68 @@ app.put('/api/shops/:id', async (req, res) => {
 
 app.delete('/api/shops/:id', async (req, res) => {
   try {
-    const customerIds = (await db.prepare('SELECT id FROM customers WHERE shop_id = ?').all(req.params.id)).map(c => c.id);
-    if (customerIds.length) {
-      const placeholders = customerIds.map(() => '?').join(',');
-      await db.prepare(`DELETE FROM push_subscriptions WHERE customer_id IN (${placeholders})`).run(...customerIds);
-      const serials = customerIds.map(id => 'fidelypass-' + id);
-      const serialPlaceholders = serials.map(() => '?').join(',');
-      await db.prepare(`DELETE FROM apple_pass_registrations WHERE serial_number IN (${serialPlaceholders})`).run(...serials);
+    const shopId = req.params.id;
+
+    // 1) Tout ce qui dépend des CLIENTS de cette boutique (RDV, commandes + leurs lignes/options,
+    // scans, notifications, cartes Apple Wallet enregistrées), avant de pouvoir supprimer les clients.
+    const customerIds = (await db.prepare('SELECT id FROM customers WHERE shop_id = ?').all(shopId)).map(c => c.id);
+    for (const custId of customerIds) {
+      await db.prepare('DELETE FROM scans WHERE customer_id = ?').run(custId);
+      await db.prepare('DELETE FROM push_subscriptions WHERE customer_id = ?').run(custId);
+      await db.prepare('DELETE FROM apple_pass_registrations WHERE serial_number = ?').run('fidelypass-' + custId);
+      await db.prepare('DELETE FROM appointments WHERE customer_id = ?').run(custId);
+      const orderIds = (await db.prepare('SELECT id FROM orders WHERE customer_id = ?').all(custId)).map(o => o.id);
+      for (const orderId of orderIds) {
+        const itemIds = (await db.prepare('SELECT id FROM order_items WHERE order_id = ?').all(orderId)).map(i => i.id);
+        for (const itemId of itemIds) {
+          await db.prepare('DELETE FROM order_item_choices WHERE order_item_id = ?').run(itemId);
+        }
+        await db.prepare('DELETE FROM order_items WHERE order_id = ?').run(orderId);
+      }
+      await db.prepare('DELETE FROM orders WHERE customer_id = ?').run(custId);
     }
-    await db.prepare('DELETE FROM sessions_store WHERE shop_id = ?').run(req.params.id);
-    await db.prepare('DELETE FROM scans WHERE shop_id = ?').run(req.params.id);
-    await db.prepare('DELETE FROM customers WHERE shop_id = ?').run(req.params.id);
-    await db.prepare('DELETE FROM shops WHERE id = ?').run(req.params.id);
+
+    // 2) Tout ce qui dépend directement de la boutique elle-même (RDV/commandes restants,
+    // équipe + leurs plannings, fermetures, menu + options, prestations, paliers, abonnements gérant)
+    await db.prepare('DELETE FROM sessions_store WHERE shop_id = ?').run(shopId);
+    await db.prepare('DELETE FROM reward_tiers WHERE shop_id = ?').run(shopId);
+    await db.prepare('DELETE FROM shop_availability WHERE shop_id = ?').run(shopId);
+    await db.prepare('DELETE FROM gerant_subscriptions WHERE shop_id = ?').run(shopId);
+    await db.prepare('DELETE FROM shop_closures WHERE shop_id = ?').run(shopId);
+
+    const staffIds = (await db.prepare('SELECT id FROM staff_members WHERE shop_id = ?').all(shopId)).map(s => s.id);
+    for (const staffId of staffIds) {
+      await db.prepare('DELETE FROM staff_availability WHERE staff_id = ?').run(staffId);
+    }
+    await db.prepare('DELETE FROM staff_members WHERE shop_id = ?').run(shopId);
+
+    await db.prepare('DELETE FROM appointments WHERE shop_id = ?').run(shopId);
+
+    const orderIdsLeft = (await db.prepare('SELECT id FROM orders WHERE shop_id = ?').all(shopId)).map(o => o.id);
+    for (const orderId of orderIdsLeft) {
+      const itemIds = (await db.prepare('SELECT id FROM order_items WHERE order_id = ?').all(orderId)).map(i => i.id);
+      for (const itemId of itemIds) {
+        await db.prepare('DELETE FROM order_item_choices WHERE order_item_id = ?').run(itemId);
+      }
+      await db.prepare('DELETE FROM order_items WHERE order_id = ?').run(orderId);
+    }
+    await db.prepare('DELETE FROM orders WHERE shop_id = ?').run(shopId);
+
+    const menuItemIds = (await db.prepare('SELECT id FROM menu_items WHERE shop_id = ?').all(shopId)).map(m => m.id);
+    for (const itemId of menuItemIds) {
+      const groupIds = (await db.prepare('SELECT id FROM item_option_groups WHERE menu_item_id = ?').all(itemId)).map(g => g.id);
+      for (const groupId of groupIds) {
+        await db.prepare('DELETE FROM item_option_choices WHERE option_group_id = ?').run(groupId);
+      }
+      await db.prepare('DELETE FROM item_option_groups WHERE menu_item_id = ?').run(itemId);
+    }
+    await db.prepare('DELETE FROM menu_items WHERE shop_id = ?').run(shopId);
+    await db.prepare('DELETE FROM menu_categories WHERE shop_id = ?').run(shopId);
+    await db.prepare('DELETE FROM services WHERE shop_id = ?').run(shopId);
+
+    // 3) Les clients eux-mêmes, puis la boutique
+    await db.prepare('DELETE FROM customers WHERE shop_id = ?').run(shopId);
+    await db.prepare('DELETE FROM shops WHERE id = ?').run(shopId);
     res.json({ success: true });
   } catch (err) { res.status(400).json({ success: false, error: err.message }); }
 });
