@@ -1615,8 +1615,26 @@ app.post('/api/shops/:id/appointments/:apptId/status', requireShopAuth, async (r
   if (!['completed', 'no_show', 'confirmed'].includes(status)) {
     return res.status(400).json({ success: false, error: 'Statut invalide' });
   }
+  const appt = await db.prepare('SELECT * FROM appointments WHERE id = ? AND shop_id = ?').get(req.params.apptId, req.params.id);
+  if (!appt) return res.status(404).json({ success: false, error: 'Rendez-vous introuvable' });
+
   await db.prepare('UPDATE appointments SET status = ? WHERE id = ? AND shop_id = ?').run(status, req.params.apptId, req.params.id);
-  res.json({ success: true });
+
+  let creditResult = null;
+  // Crédite les points de la prestation uniquement au moment où le RDV passe à "Honoré" pour la
+  // première fois (jamais deux fois si on re-clique, jamais si le RDV était déjà honoré avant).
+  if (status === 'completed' && appt.status !== 'completed' && appt.service_id) {
+    const service = await db.prepare('SELECT * FROM services WHERE id = ?').get(appt.service_id);
+    if (service && service.price) {
+      const shop = await db.prepare('SELECT * FROM shops WHERE id = ?').get(req.params.id);
+      const customer = await db.prepare('SELECT * FROM customers WHERE id = ?').get(appt.customer_id);
+      if (shop && customer) {
+        creditResult = await creditPointsForPurchase(shop, customer, service.price, false);
+      }
+    }
+  }
+
+  res.json({ success: true, credit: creditResult });
 });
 
 // Gérant : créer un rendez-vous manuellement (client au téléphone plutôt que depuis sa carte)

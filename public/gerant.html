@@ -997,10 +997,14 @@ function toggleAgendaView() {
 }
 
 async function markApptStatus(id, status) {
-  await fetch('/api/shops/' + currentShop.id + '/appointments/' + id + '/status', {
+  const res = await fetch('/api/shops/' + currentShop.id + '/appointments/' + id + '/status', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'x-shop-token': shopToken },
     body: JSON.stringify({ status })
   });
+  const data = await res.json();
+  if (data.credit) {
+    alert('✅ Rendez-vous honoré — ' + data.credit.points_added + ' points crédités au client.');
+  }
   if (agendaWeekMode) loadAppointmentsWeek(); else loadAppointments();
 }
 
