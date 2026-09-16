@@ -131,6 +131,12 @@ html.has-custom-cursor, html.has-custom-cursor a, html.has-custom-cursor button{
 .section h2{font-size:36px;line-height:1.15;margin-bottom:14px}
 .section-sub{font-size:16px;font-weight:500;color:var(--text-dim);line-height:1.65}
 .card{background:var(--bg-elev);border:1px solid var(--line);border-radius:16px}
+.testimonial-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:920px;margin:0 auto}
+.testimonial-card{padding:32px 28px}
+.testimonial-stars{color:#F5B400;font-size:18px;letter-spacing:2px;margin-bottom:16px}
+.testimonial-quote{font-size:16px;line-height:1.65;color:var(--text);margin-bottom:20px}
+.testimonial-author{font-size:14px;color:var(--text-dimmer)}
+@media(max-width:760px){.testimonial-grid{grid-template-columns:1fr}}
 
 /* ---------- HERO ---------- */
 .hero{padding:64px 0 40px;position:relative;z-index:1}
@@ -771,9 +777,17 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
       <div class="section-tag">résultats</div>
       <h2>Déjà en place chez de vrais commerçants</h2>
     </div>
-    <div class="card reveal" style="max-width:640px;margin:0 auto;padding:36px 32px;text-align:center">
-      <p style="font-size:19px;line-height:1.6;color:var(--text);margin-bottom:20px">« [Citation à valider avec le commerçant — ex : depuis FidélyPass, on voit clairement plus de clients revenir] »</p>
-      <p style="font-size:14px;color:var(--text-dimmer)">— [Nom du commerçant], [Nom de la boutique]</p>
+    <div class="testimonial-grid">
+      <div class="card reveal testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">« Un vrai snack à l'ancienne — j'ai eu l'impression de faire un bond dans les années 2000. Et avec le système de fidélité en plus, les récompenses donnent encore plus envie d'y retourner. Je recommande ZI FOOD à fond ! »</p>
+        <p class="testimonial-author">— Client de <strong>ZI FOOD</strong></p>
+      </div>
+      <div class="card reveal testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">« J'ai pris rendez-vous directement depuis la plateforme, qui sert aussi de carte de fidélité — super pratique, sans prise de tête, et plus besoin d'attendre sur place. Coupe au top, et en plus je suis reparti avec ma récompense. Ça donne vraiment envie de revenir chez le coiffeur ! »</p>
+        <p class="testimonial-author">— Client de <strong>MS Barber</strong></p>
+      </div>
     </div>
   </div>
 </section>
