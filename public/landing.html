@@ -6,6 +6,42 @@
 <meta name="color-scheme" content="dark">
 <title>FidélyPass — La carte de fidélité qui remplace le papier</title>
 <meta name="description" content="Transformez votre carte de fidélité papier en carte digitale dans le téléphone de vos clients — récompenses automatiques, notifications, parrainage et statistiques.">
+<link rel="canonical" href="https://fidelypass-production.up.railway.app/landing.html">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FidélyPass">
+<meta property="og:title" content="FidélyPass — La carte de fidélité qui remplace le papier">
+<meta property="og:description" content="Transformez votre carte de fidélité papier en carte digitale dans le téléphone de vos clients — récompenses automatiques, notifications, parrainage et statistiques.">
+<meta property="og:image" content="https://fidelypass-production.up.railway.app/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://fidelypass-production.up.railway.app/landing.html">
+<meta property="og:locale" content="fr_FR">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FidélyPass — La carte de fidélité qui remplace le papier">
+<meta name="twitter:description" content="Transformez votre carte de fidélité papier en carte digitale dans le téléphone de vos clients.">
+<meta name="twitter:image" content="https://fidelypass-production.up.railway.app/og-image.png">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "FidélyPass",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "iOS, Android, Web",
+  "description": "Carte de fidélité digitale dans Apple Wallet et Google Wallet pour commerçants indépendants — récompenses automatiques, notifications, parrainage et statistiques.",
+  "url": "https://fidelypass-production.up.railway.app/landing.html",
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "EUR",
+    "price": "29"
+  }
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -358,7 +394,7 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
         <button class="btn-primary" onclick="location.href='#contact'">Créer ma carte de fidélité →</button>
         <button class="btn-ghost" onclick="location.href='#comment'">Voir comment ça marche</button>
       </div>
-      <div class="hero-note"><span><b>2 min</b> d'installation</span><span>&nbsp;·&nbsp;</span><span><b>0€</b> pour vos clients</span><span>&nbsp;·&nbsp;</span><span><b>sans engagement</b></span></div>
+      <div class="hero-note"><span><b>2 min</b> d'installation</span><span>&nbsp;·&nbsp;</span><span><b>0€</b> pour vos clients</span></div>
     </div>
     <div class="hero-visual">
       <canvas id="seal-canvas" class="seal-canvas" aria-hidden="true"></canvas>
@@ -475,8 +511,8 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
         <h2>Sa carte, dans le portefeuille de son téléphone.</h2>
         <p class="section-sub">Pas d'application supplémentaire à télécharger. Pas de mot de passe. Pas de compte compliqué.</p>
         <div class="wallet-badges">
-          <div class="wallet-badge"><img src="/wallet-icons/apple-wallet-icon-96.png" width="18" height="18" style="border-radius:4px;vertical-align:-4px;margin-right:2px"> Apple Wallet</div>
-          <div class="wallet-badge"><img src="/wallet-icons/google-wallet-icon-96.png" width="18" height="18" style="border-radius:4px;vertical-align:-4px;margin-right:2px"> Google Wallet</div>
+          <div class="wallet-badge"><img src="/wallet-icons/apple-wallet-icon-96.png" alt="" width="18" height="18" style="border-radius:4px;vertical-align:-4px;margin-right:2px"> Apple Wallet</div>
+          <div class="wallet-badge"><img src="/wallet-icons/google-wallet-icon-96.png" alt="" width="18" height="18" style="border-radius:4px;vertical-align:-4px;margin-right:2px"> Google Wallet</div>
         </div>
         <div class="wallet-checks">
           <div><span>✓</span> Votre logo, vos couleurs, le nom de votre commerce</div>
@@ -728,13 +764,27 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
   </div>
 </section>
 
+<!-- RÉSULTATS -->
+<section class="section" id="resultats">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <div class="section-tag">résultats</div>
+      <h2>Déjà en place chez de vrais commerçants</h2>
+    </div>
+    <div class="card reveal" style="max-width:640px;margin:0 auto;padding:36px 32px;text-align:center">
+      <p style="font-size:19px;line-height:1.6;color:var(--text);margin-bottom:20px">« [Citation à valider avec le commerçant — ex : depuis FidélyPass, on voit clairement plus de clients revenir] »</p>
+      <p style="font-size:14px;color:var(--text-dimmer)">— [Nom du commerçant], [Nom de la boutique]</p>
+    </div>
+  </div>
+</section>
+
 <!-- TARIFS -->
 <section class="section" id="tarifs">
   <div class="wrap">
     <div class="section-head center reveal">
       <div class="section-tag">tarifs</div>
       <h2>Simple. Clair. Sans surprise.</h2>
-      <p class="section-sub">Installation prise en charge intégralement. Sans engagement.</p>
+      <p class="section-sub">Installation prise en charge intégralement.</p>
     </div>
     <div class="pricing-grid reveal">
       <div class="card price-card">
@@ -785,7 +835,7 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
         <button class="btn-ghost" style="width:100%;justify-content:center" onclick="location.href='#contact'">Nous contacter</button>
       </div>
     </div>
-    <p class="price-footnote">✓ Installation prise en charge · ✓ Sans engagement · ✓ Aucun frais caché · ✓ Résiliation quand vous voulez</p>
+    <p class="price-footnote">✓ Installation prise en charge · ✓ Aucun frais caché · ✓ Résiliation quand vous voulez</p>
   </div>
 </section>
 
@@ -820,10 +870,6 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
       <div class="card faq-item">
         <div class="faq-q">Puis-je avoir plusieurs boutiques ?<span class="plus">+</span></div>
         <div class="faq-a"><div class="faq-a-inner">Oui, avec un tarif dégressif automatique dès la deuxième boutique.</div></div>
-      </div>
-      <div class="card faq-item">
-        <div class="faq-q">Suis-je engagé sur la durée ?<span class="plus">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Non. L'abonnement est sans engagement, vous partez quand vous le souhaitez.</div></div>
       </div>
       <div class="card faq-item">
         <div class="faq-q">Puis-je voir mes clients les plus fidèles ?<span class="plus">+</span></div>

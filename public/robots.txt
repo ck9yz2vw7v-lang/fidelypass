@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /landing.html
+Allow: /mentions-legales.html
+Allow: /cgv.html
+Allow: /confidentialite.html
+Disallow: /admin
+Disallow: /gerant.html
+Disallow: /stats.html
+Disallow: /card/
+Disallow: /join/
+Disallow: /api/
+
+Sitemap: https://fidelypass-production.up.railway.app/sitemap.xml

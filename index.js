@@ -3398,6 +3398,15 @@ app.post('/webhook', async (req, res) => {
   res.json({ received: true });
 });
 
+// Doit rester la toute dernière route enregistrée : ne matche que ce qu'aucune route au-dessus
+// n'a intercepté. Renvoie du JSON pour les appels API, une vraie page à l'image du site sinon.
+app.use((req, res) => {
+  if (req.path.startsWith('/api/') || req.path.startsWith('/webhook')) {
+    return res.status(404).json({ error: 'Route introuvable' });
+  }
+  res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+});
+
 // ─────────────────────────────────────────────
 // RELANCE CLIENTS INACTIFS (30 jours sans visite)
 // ─────────────────────────────────────────────
