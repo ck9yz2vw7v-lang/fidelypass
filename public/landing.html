@@ -153,6 +153,9 @@ html.has-custom-cursor, html.has-custom-cursor a, html.has-custom-cursor button{
 .hero-note{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);display:flex;flex-wrap:wrap;align-items:center;row-gap:8px}
 .hero-note span{white-space:nowrap}
 .hero-note b{color:var(--text)}
+.hero-trust{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:13.5px;color:var(--text-dim)}
+.hero-trust-stars{color:#F5B400;letter-spacing:1px;font-size:14px}
+.hero-trust b{color:var(--text)}
 
 /* Terminal mock */
 .terminal-caption{font-size:11.5px;color:var(--text-dimmer);margin-bottom:10px;text-align:center}
@@ -401,6 +404,7 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
         <button class="btn-ghost" onclick="location.href='#comment'">Voir comment ça marche</button>
       </div>
       <div class="hero-note"><span><b>2 min</b> d'installation</span><span>&nbsp;·&nbsp;</span><span><b>0€</b> pour vos clients</span></div>
+      <div class="hero-trust"><span class="hero-trust-stars">★★★★★</span><span>Déjà adopté par <b>ZI FOOD</b> et <b>MS Barber</b></span></div>
     </div>
     <div class="hero-visual">
       <canvas id="seal-canvas" class="seal-canvas" aria-hidden="true"></canvas>
@@ -904,7 +908,7 @@ footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index
       <button type="submit" class="btn-primary" id="lead-submit">Être contacté →</button>
     </form>
     <div id="lead-success" class="lead-success" style="display:none">✓ Merci ! On vous rappelle très vite.</div>
-    <div class="final-note">Réponse sous 24h · Aucun engagement</div>
+    <div class="final-note">Réponse sous 24h</div>
   </div>
 </section>
 
