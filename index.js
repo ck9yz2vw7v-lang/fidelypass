@@ -1361,11 +1361,11 @@ app.post('/api/shops/:id/notify', requireShopAuth, async (req, res) => {
     WHERE c.shop_id = ?
   `).all(req.params.id);
 
-  const payload = JSON.stringify({ title: shop.name, body: message.trim(), icon: shopIconUrl(shop.logo_base64, shop.id) });
   let sent = 0, failed = 0;
 
   for (const sub of subs) {
     try {
+      const payload = JSON.stringify({ title: shop.name, body: message.trim(), icon: shopIconUrl(shop.logo_base64, shop.id), url: '/card/' + sub.customer_id });
       await webpush.sendNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
         payload
@@ -1399,7 +1399,7 @@ app.post('/api/shops/:id/customers/:customerId/notify', requireShopAuth, async (
   const subs = await db.prepare('SELECT * FROM push_subscriptions WHERE customer_id = ?').all(req.params.customerId);
   if (!subs.length) return res.status(404).json({ success: false, error: "Ce client n'a pas activé les notifications" });
 
-  const payload = JSON.stringify({ title: shop.name, body: message.trim(), icon: shopIconUrl(shop.logo_base64, shop.id) });
+  const payload = JSON.stringify({ title: shop.name, body: message.trim(), icon: shopIconUrl(shop.logo_base64, shop.id), url: '/card/' + customer.id });
   let sent = 0, failed = 0;
 
   for (const sub of subs) {
@@ -3120,7 +3120,8 @@ app.post('/api/leads', async (req, res) => {
       const admins = await db.prepare('SELECT * FROM admin_subscriptions').all();
       const payload = JSON.stringify({
         title: '📩 Nouvelle demande FidélyPass',
-        body: business_name.trim() + ' souhaite être contacté'
+        body: business_name.trim() + ' souhaite être contacté',
+        url: '/admin'
       });
       for (const sub of admins) {
         webpush.sendNotification(
