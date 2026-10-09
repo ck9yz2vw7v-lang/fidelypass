@@ -59,10 +59,10 @@
   color-scheme: light;
   accent-color: var(--brand);
   /* Neutres */
-  --bg:#F7F8FA;
+  --bg:#ECEEF3;
   --surface:#FFFFFF;
-  --surface-2:#F1F3F6;
-  --line:#E5E8EE;
+  --surface-2:#E9ECF2;
+  --line:#DCE0E8;
   --line-strong:#D3D8E1;
   --ink:#0B0D12;
   --ink-2:#4B5263;
@@ -146,6 +146,8 @@ p{text-wrap:pretty}
 .chip{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:13px;font-weight:500;color:var(--ink-2)}
 .chip .ic{width:16px;height:16px;color:var(--brand)}
 .chip img{width:16px;height:16px;border-radius:4px}
+a.chip{min-height:44px;text-decoration:none;color:var(--brand);border-color:var(--brand-soft);background:var(--brand-softer)}
+a.chip:hover{border-color:var(--brand)}
 .new{font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--brand);background:var(--brand-soft);padding:2px 8px;border-radius:999px}
 
 /* ---------- En-tête ---------- */
@@ -170,8 +172,8 @@ p{text-wrap:pretty}
 .lede b{color:var(--ink);font-weight:600}
 .hero-ctas{display:flex;flex-direction:column;gap:10px;margin-top:24px}
 .hero-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
-.scene{position:relative;border-radius:28px;background:linear-gradient(160deg, var(--brand-soft) 0%, var(--brand-softer) 45%, var(--surface) 100%);border:1px solid var(--line);padding:24px 16px 20px;overflow:hidden}
-.scene-dots{position:absolute;inset:0;background-image:radial-gradient(var(--on-brand-2) 1.2px, transparent 1.3px);background-size:22px 22px;opacity:0.7;-webkit-mask-image:linear-gradient(180deg, black, transparent 70%);mask-image:linear-gradient(180deg, black, transparent 70%)}
+.scene{position:relative;border-radius:28px;background:linear-gradient(160deg, #2A2370 0%, var(--deep) 60%, #0F0C2E 100%);border:1px solid #2A2560;padding:24px 16px 20px;overflow:hidden}
+.scene-dots{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,0.16) 1.2px, transparent 1.3px);background-size:22px 22px;opacity:1;-webkit-mask-image:linear-gradient(180deg, black, transparent 70%);mask-image:linear-gradient(180deg, black, transparent 70%)}
 
 /* Téléphone */
 .phone{position:relative;width:min(290px, 78vw);margin:0 auto;background:var(--device);border-radius:46px;padding:10px;box-shadow:inset 0 0 0 2px var(--device-edge), var(--shadow-lg)}
@@ -215,13 +217,21 @@ p{text-wrap:pretty}
 .float{position:absolute;z-index:4;display:none}
 .demo-controls{position:relative;display:flex;gap:8px;justify-content:center;margin-top:16px}
 .btn-round{width:48px;padding:0;flex:none}
-.demo-caption{position:relative;margin-top:10px;font-size:13px;color:var(--ink-3);text-align:center}
+.demo-caption{position:relative;margin-top:10px;font-size:13px;color:var(--deep-2);text-align:center}
+.scene .btn-line{background:var(--deep-well);color:var(--on-brand);box-shadow:inset 0 0 0 1px var(--deep-line)}
+.scene .btn-ink{background:var(--surface);color:var(--ink)}
+.scene :focus-visible{outline-color:var(--on-brand)}
 
 .js .rise{opacity:0;transform:translateY(28px)}
 .js .rise.in{opacity:1;transform:none;transition:opacity .6s ease, transform .9s var(--ease)}
 
 /* ---------- Sections ---------- */
 .section{padding:48px 0}
+.section.dark-soft{background:#201A55;color:var(--on-brand)}
+.dark-soft h2{color:var(--on-brand)}
+.dark-soft .trust-line{color:var(--deep-2)}
+.dark-soft .wordmark{background:var(--deep-well);border-color:var(--deep-line);color:var(--on-brand)}
+.dark-soft .review{border-color:transparent;color:var(--ink)}
 .section.white{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .head{max-width:720px;margin-bottom:24px}
 .head.center{margin-left:auto;margin-right:auto;text-align:center}
@@ -327,6 +337,40 @@ p{text-wrap:pretty}
 .wallet-row img{width:20px;height:20px;border-radius:5px}
 .also{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
 .also > span:first-child{font-size:14px;font-weight:600;color:var(--ink-2);margin-right:4px}
+
+/* Option commandes et rendez-vous */
+.opt-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--deep);background:var(--gold);padding:5px 11px;border-radius:999px}
+.addon .head{margin-bottom:24px}
+.addon .head h2{margin-top:14px}
+.addon-grid{display:grid;gap:14px}
+.addon-card{display:grid;gap:18px;padding:22px 20px;border-radius:var(--r-lg);background:var(--surface);color:var(--ink)}
+.addon-card h3{font-size:21px;letter-spacing:-0.02em;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.addon-card p{font-size:15px;color:var(--ink-2);margin-top:8px}
+.addon-visual{border-radius:var(--r-md);background:var(--brand-softer);padding:16px;display:flex;justify-content:center}
+.ticket{width:100%;max-width:320px;background:var(--surface);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow-md)}
+.ticket-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--ink-3);padding-bottom:10px;border-bottom:1px dashed var(--line-strong)}
+.ticket-top b{color:var(--ink);font-size:15px}
+.mode{font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-soft);padding:3px 9px;border-radius:999px}
+.ticket-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;font-size:14px}
+.ticket-row small{display:block;font-size:12px;color:var(--ink-3)}
+.ticket-total{display:flex;justify-content:space-between;padding-top:10px;border-top:1px dashed var(--line-strong);font-weight:700}
+.slots-day{display:flex;gap:6px;margin-bottom:12px}
+.slots-day span{flex:1;text-align:center;padding:7px 0;border-radius:10px;font-size:12px;font-weight:600;color:var(--ink-2);background:var(--surface-2)}
+.slots-day span b{display:block;font-size:16px;color:var(--ink)}
+.slots-day span.on{background:var(--deep);color:var(--deep-2)}
+.slots-day span.on b{color:var(--on-brand)}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.slots span{text-align:center;padding:8px 0;border-radius:10px;font-size:13px;font-weight:600;border:1px solid var(--line);color:var(--ink-2)}
+.slots span.off{color:var(--line-strong);text-decoration:line-through}
+.slots span.on{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.addon-foot{display:flex;flex-direction:column;gap:12px;align-items:flex-start;margin-top:18px;color:var(--deep-2);font-size:15px}
+.addon-foot b{color:var(--on-brand);font-family:var(--font-display);font-size:22px;letter-spacing:-0.02em}
+.option{display:grid;gap:14px;margin-top:14px;padding:20px;border:1px dashed var(--brand);background:var(--brand-softer);box-shadow:none}
+.option h3{font-size:18px;letter-spacing:-0.02em;margin-top:10px}
+.option p{font-size:15px;color:var(--ink-2);margin-top:4px}
+.option-price{display:flex;align-items:baseline;gap:6px}
+.option-price b{font-family:var(--font-display);font-size:40px;font-weight:700;letter-spacing:-0.04em;line-height:1;color:var(--brand)}
+.option-price span{font-size:15px;color:var(--ink-2);font-weight:500}
 
 /* Statistiques (bleu nuit) */
 .dark{background:var(--deep);color:var(--on-brand)}
@@ -508,6 +552,10 @@ footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0
   .offer{grid-template-columns:1fr 1fr;align-items:center;gap:32px;padding:28px}
   .prices{grid-template-columns:1fr 1fr}
   .price{padding:26px}
+  .addon-grid{grid-template-columns:1fr 1fr}
+  .addon-card{padding:26px}
+  .addon-foot{flex-direction:row;align-items:center;justify-content:space-between}
+  .option{grid-template-columns:1fr auto auto;align-items:center;gap:24px;padding:22px 26px}
   .network{flex-direction:row;align-items:center;justify-content:space-between;padding:20px 26px}
   .foot{flex-direction:row;justify-content:space-between;align-items:center}
   .mbar{display:none}
@@ -522,7 +570,7 @@ footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0
   .scene{padding:124px 24px 24px}
   .float{display:flex}
   .float.f1{left:22px;top:24px;width:240px;transform:rotate(-3deg)}
-  .float.f2{right:16px;bottom:116px;width:200px;transform:rotate(3deg)}
+  .float.f2{right:16px;bottom:116px;width:230px;transform:rotate(3deg)}
   .feat-layout{grid-template-columns:minmax(0,0.72fr) minmax(0,1.28fr);gap:48px;align-items:start}
   .feat-side{position:sticky;top:96px}
   .stats-layout{grid-template-columns:0.85fr 1.15fr;gap:52px}
@@ -647,7 +695,7 @@ footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0
 </section>
 
 <!-- AVIS (tôt dans la page) -->
-<section class="section white" id="avis" aria-labelledby="avis-title">
+<section class="section dark-soft" id="avis" aria-labelledby="avis-title">
   <div class="wrap">
     <div class="head center reveal">
       <h2 id="avis-title">Ce qu’en disent les clients de nos commerçants</h2>
@@ -833,10 +881,9 @@ footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0
       </div>
       <div class="also reveal">
         <span>Et aussi :</span>
-        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-bag"/></svg>Commande en ligne <span class="new">Nouveau</span></span>
-        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Prise de rendez-vous</span>
         <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-star"/></svg>Avis Google au bon moment</span>
         <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Export CSV</span>
+        <a class="chip" href="#option"><svg class="ic" aria-hidden="true"><use href="#i-bag"/></svg>Commandes et rendez-vous : en option</a>
       </div>
     </div>
   </div>
@@ -893,6 +940,49 @@ footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0
   </div>
 </section>
 
+<!-- OPTION COMMANDES ET RENDEZ-VOUS -->
+<section class="section dark addon" id="option" aria-labelledby="option-title">
+  <div class="wrap">
+    <div class="head reveal">
+      <span class="opt-badge">Option · +10 € / mois</span>
+      <h2 id="option-title">Commandes et rendez-vous, depuis la même carte.</h2>
+      <p class="sub">Vous prenez des commandes ou des rendez-vous ? Ajoutez l’option. Vos clients passent par la carte qu’ils ont déjà, et tout arrive dans votre espace gérant.</p>
+    </div>
+    <div class="addon-grid">
+      <article class="addon-card reveal">
+        <div>
+          <h3><svg class="ic" aria-hidden="true"><use href="#i-bag"/></svg>Commande en ligne <span class="new">Nouveau</span></h3>
+          <p>Votre menu en ligne, avec les options de chaque produit. Vos clients commandent sur place ou à emporter, tout de suite ou pour plus tard. Vous suivez chaque commande depuis votre espace.</p>
+        </div>
+        <div class="addon-visual" aria-hidden="true">
+          <div class="ticket">
+            <div class="ticket-top"><b>Nouvelle commande</b><span class="mode">À emporter · 12:30</span></div>
+            <div class="ticket-row"><span>1 × Menu burger<small>Boisson : citron</small></span><span class="num">9,50 €</span></div>
+            <div class="ticket-row"><span>1 × Frites</span><span class="num">3,00 €</span></div>
+            <div class="ticket-total"><span>Total</span><span class="num">12,50 €</span></div>
+          </div>
+        </div>
+      </article>
+      <article class="addon-card reveal">
+        <div>
+          <h3><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Prise de rendez-vous</h3>
+          <p>Vos clients choisissent un créneau en ligne, sans vous appeler. Les rendez-vous arrivent dans votre espace, et vous pouvez aussi en ajouter à la main.</p>
+        </div>
+        <div class="addon-visual" aria-hidden="true">
+          <div class="ticket">
+            <div class="slots-day"><span>Lun<b>13</b></span><span class="on">Mar<b>14</b></span><span>Mer<b>15</b></span><span>Jeu<b>16</b></span></div>
+            <div class="slots"><span class="off">9:00</span><span>9:30</span><span class="off">10:00</span><span>10:30</span><span class="on">11:00</span><span>11:30</span></div>
+          </div>
+        </div>
+      </article>
+    </div>
+    <div class="addon-foot reveal">
+      <span><b>+10 € par mois</b>, en plus de votre abonnement. Exemples ci-dessus fictifs.</span>
+      <a class="btn btn-brand" href="#contact">Ajouter l’option <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    </div>
+  </div>
+</section>
+
 <!-- TARIFS -->
 <section class="section white" id="tarifs" aria-labelledby="tarifs-title">
   <div class="wrap">
@@ -930,7 +1020,6 @@ footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0
           <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Carte digitale, clients illimités</li>
           <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Apple et Google Wallet</li>
           <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Notifications push et relance automatique</li>
-          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Prise de rendez-vous</li>
           <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Statistiques avancées</li>
         </ul>
         <a class="btn btn-brand" href="#contact">Créer ma carte</a>
@@ -952,6 +1041,11 @@ footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0
         </ul>
         <a class="btn btn-brand" href="#contact">Créer mes cartes</a>
       </article>
+    </div>
+    <div class="card option reveal">
+      <div><span class="opt-badge">Option</span><h3>Commande en ligne et prise de rendez-vous</h3><p>À ajouter à votre formule, quand vous voulez.</p></div>
+      <div class="option-price"><b class="num">+10 €</b><span>/ mois</span></div>
+      <a class="btn btn-line" href="#option">Voir l’option</a>
     </div>
     <div class="card network reveal">
       <div><b>Réseau ou franchise</b><p>Un tarif sur mesure selon votre nombre de boutiques, avec un accompagnement dédié.</p></div>
@@ -975,6 +1069,7 @@ footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0
       <details name="faq"><summary>Dois-je acheter un lecteur QR ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Non. Votre téléphone ou votre tablette suffit pour scanner les cartes de vos clients.</p></details>
       <details name="faq"><summary>Puis-je choisir mes propres récompenses ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Oui. Vous définissez vos règles de points et vos récompenses, y compris plusieurs paliers.</p></details>
       <details name="faq"><summary>Les notifications sont-elles payantes ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Non. Elles sont incluses et illimitées, sans surcoût par envoi.</p></details>
+      <details name="faq"><summary>Comment fonctionne l’option commandes et rendez-vous ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Elle coûte <b>10 € de plus par mois</b>. Vos clients commandent ou réservent un créneau en ligne, et vous retrouvez tout dans votre espace gérant.</p></details>
       <details name="faq"><summary>Puis-je avoir plusieurs boutiques ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Oui. Chaque boutique est à 24 € par mois au lieu de 29 €, avec son propre tableau de bord.</p></details>
     </div>
   </div>
