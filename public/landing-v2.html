@@ -512,8 +512,8 @@ footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0
 /* Curseur personnalisé (souris uniquement) */
 .cursor-dot,.cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;opacity:0;will-change:transform}
 .cursor-dot{width:8px;height:8px;margin:-4px 0 0 -4px;background:var(--brand);box-shadow:0 0 0 2px rgba(255,255,255,0.85);z-index:999}
-.cursor-ring{width:32px;height:32px;margin:-16px 0 0 -16px;border:1.5px solid var(--brand);z-index:998;transition:width .2s,height .2s,margin .2s,background-color .2s,opacity .2s}
-.cursor-ring.grow{width:56px;height:56px;margin:-28px 0 0 -28px;background:rgba(75,59,245,0.1)}
+.cursor-ring{width:32px;height:32px;margin:-16px 0 0 -16px;border:1.5px solid var(--brand);z-index:998;transition:scale .2s,background-color .2s,opacity .2s}
+.cursor-ring.grow{scale:1.75;background:rgba(75,59,245,0.1)}
 html.has-custom-cursor .cursor-dot,html.has-custom-cursor .cursor-ring{opacity:1}
 html.has-custom-cursor,html.has-custom-cursor a,html.has-custom-cursor button,html.has-custom-cursor summary{cursor:none}
 
