@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
 <meta name="color-scheme" content="light">
-<meta name="theme-color" content="#F4F4F1">
+<meta name="theme-color" content="#FFFFFF">
 <title>FidélyPass · La carte de fidélité qui remplace le papier</title>
 <meta name="description" content="La carte de fidélité digitale de votre commerce, dans Apple Wallet et Google Wallet : points et récompenses automatiques, notifications, parrainage et statistiques.">
 <link rel="canonical" href="https://fidelypass-production.up.railway.app/landing.html">
@@ -53,319 +53,308 @@
 <script>document.documentElement.classList.add('js');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@400..500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@600..800&family=Funnel+Sans:wght@400..700&display=swap" rel="stylesheet">
 <style>
 :root{
   color-scheme: light;
+  accent-color: var(--brand);
   /* Neutres */
-  --paper:#F4F4F1;
+  --bg:#F7F8FA;
   --surface:#FFFFFF;
-  --sunken:#ECECE8;
-  --line:#E0E0DA;
-  --line-2:#C9C9C1;
-  --grid:rgba(13,14,17,0.045);
-  --ink:#0D0E11;
-  --ink-2:#43464D;
-  --ink-3:#5C6068;
-  /* Accent unique */
-  --accent:#4B3BF5;
-  --accent-hover:#3B2BDE;
-  --accent-soft:#ECEAFE;
-  --on-accent:#FFFFFF;
-  --on-accent-2:#D9D4FF;
-  /* Section sombre */
-  --night:#0D0E11;
-  --night-2:#17191E;
-  --night-line:rgba(255,255,255,0.11);
-  --night-ink:#F4F4F1;
-  --night-ink-2:#A5A9B2;
-  --night-accent:#A49BFF;
+  --surface-2:#F1F3F6;
+  --line:#E5E8EE;
+  --line-strong:#D3D8E1;
+  --ink:#0B0D12;
+  --ink-2:#4B5263;
+  --ink-3:#5A6274;
+  /* Marque */
+  --brand:#4B3BF5;
+  --brand-hover:#3A2BE0;
+  --brand-soft:#EEEBFF;
+  --brand-softer:#F6F4FF;
+  --on-brand:#FFFFFF;
+  --on-brand-2:#E4E0FF;
+  --deep:#16123F;
+  --deep-2:#B9B3E8;
+  --deep-line:rgba(255,255,255,0.14);
+  --deep-well:rgba(255,255,255,0.08);
   /* États */
   --ok:#0B7A57;
-  --ok-soft:#E4F4EC;
-  --err:#B42318;
-  --err-soft:#FDECEA;
+  --ok-soft:#E6F6EF;
+  --no:#B42318;
+  --warn:#C2410C;
+  --warn-soft:#FFF1E6;
+  --gold-ink:#8A6100;
+  --gold-soft:#FFF4D6;
+  --gold:#FFB020;
+  --focus:#4B3BF5;
   /* Objets */
-  --device:#0D0E11;
-  --device-edge:#2B2E35;
+  --device:#0B0D12;
+  --device-edge:#2A2E38;
   --screen:#F2F2F7;
+  --qr:#0B0D12;
+  --shadow-sm:0 1px 2px rgba(11,13,18,0.06);
+  --shadow-btn:0 1px 2px rgba(11,13,18,0.12), inset 0 1px 0 rgba(255,255,255,0.18);
+  --shadow-md:0 1px 2px rgba(11,13,18,0.05), 0 8px 24px rgba(11,13,18,0.07);
+  --shadow-lg:0 2px 6px rgba(11,13,18,0.06), 0 24px 56px rgba(11,13,18,0.14);
 
-  --shadow-sm:0 1px 2px rgba(13,14,17,0.06);
-  --shadow-md:0 1px 2px rgba(13,14,17,0.05), 0 10px 28px rgba(13,14,17,0.08);
-  --shadow-lg:0 2px 6px rgba(13,14,17,0.06), 0 30px 60px -12px rgba(13,14,17,0.22);
-
-  --sans:'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font:'Funnel Sans', system-ui, -apple-system, sans-serif;
+  --font-display:'Funnel Display', 'Funnel Sans', system-ui, sans-serif;
+  --r-lg:24px;
+  --r-md:16px;
+  --r-sm:10px;
   --gutter:16px;
-  --r:14px;
   --ease:cubic-bezier(.22,1,.36,1);
 }
 *{margin:0;padding:0;box-sizing:border-box}
 [hidden]{display:none !important}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;scroll-padding-top:72px}
-body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:clip}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
 img{max-width:100%;height:auto;display:block}
+main{overflow-x:clip}
 a{color:inherit}
-h1,h2,h3{font-weight:600;letter-spacing:-0.035em;line-height:1.04;text-wrap:balance}
+h1,h2,h3{font-family:var(--font-display);font-weight:700;letter-spacing:-0.03em;line-height:1.05;text-wrap:balance}
 p{text-wrap:pretty}
-::selection{background:var(--accent);color:var(--on-accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
-.night :focus-visible{outline-color:var(--night-accent)}
+::selection{background:var(--brand);color:var(--on-brand)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:8px}
+.deep :focus-visible,.dark :focus-visible,.install :focus-visible{outline-color:var(--on-brand)}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-.skip-link{position:absolute;left:var(--gutter);top:-80px;z-index:100;background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:8px;font-weight:600;text-decoration:none}
+.skip-link{position:absolute;left:var(--gutter);top:-80px;z-index:100;background:var(--ink);color:var(--surface);padding:12px 18px;border-radius:999px;font-weight:600;text-decoration:none}
 .skip-link:focus{top:12px}
-.ic{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .wrap{max-width:1200px;margin:0 auto;padding:0 var(--gutter)}
 .num{font-variant-numeric:tabular-nums}
-.mono{font-family:var(--mono);font-weight:400;letter-spacing:0}
 
-/* ---------- Boutons ---------- */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:10px;font:500 15px/1.2 var(--sans);letter-spacing:-0.005em;text-decoration:none;border:none;cursor:pointer;white-space:nowrap;transition:background-color .2s ease, box-shadow .2s ease, transform .15s ease, color .2s ease}
-.btn:active{transform:translateY(1px)}
-.btn-accent{background:var(--accent);color:var(--on-accent);box-shadow:0 1px 0 rgba(255,255,255,0.18) inset, 0 1px 2px rgba(13,14,17,0.2)}
-.btn-ink{background:var(--ink);color:var(--paper)}
-.btn-line{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line-2)}
-.btn-night{background:transparent;color:var(--night-ink);box-shadow:inset 0 0 0 1px var(--night-line)}
+/* ---------- Éléments de base ---------- */
+.label{font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-3);line-height:1.3}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:999px;font:600 15px/1.2 var(--font);text-decoration:none;border:none;cursor:pointer;white-space:nowrap;transition:background-color .2s ease, box-shadow .2s ease, transform .2s ease}
+.btn:active{transform:scale(0.98)}
+.btn-brand{background:var(--brand);color:var(--on-brand);box-shadow:var(--shadow-btn)}
+.btn-ink{background:var(--ink);color:var(--surface)}
+.btn-line{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.btn-ghost-deep{background:var(--deep-well);color:var(--on-brand);box-shadow:inset 0 0 0 1px var(--deep-line)}
 @media (hover:hover){
-  .btn-accent:hover{background:var(--accent-hover)}
-  .btn-ink:hover{background:#2A2D33}
-  .btn-line:hover{box-shadow:inset 0 0 0 1px var(--ink)}
-  .btn-night:hover{box-shadow:inset 0 0 0 1px var(--night-ink-2)}
-  .btn .ic-arrow{transition:transform .2s var(--ease)}
-  .btn:hover .ic-arrow{transform:translateX(3px)}
+  .btn-brand:hover{background:var(--brand-hover)}
+  .btn-ink:hover{background:var(--ink-2)}
+  .btn-line:hover{box-shadow:inset 0 0 0 1px var(--ink-3)}
+  .btn-ghost-deep:hover{background:var(--deep-line)}
 }
 .btn-sm{min-height:44px;padding:0 16px;font-size:14px}
 .btn-lg{min-height:52px;padding:0 24px;font-size:16px}
-.btn:disabled{opacity:0.6;cursor:default}
-
-/* ---------- Détails techniques ---------- */
-.kicker{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;color:var(--ink-3)}
-.kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
-.sec-label{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:0.02em;color:var(--ink-3);margin-bottom:28px}
-.sec-label b{font-weight:500;color:var(--ink)}
-.sec-label::after{content:'';flex:1;height:1px;background:var(--line)}
-.night .sec-label{color:var(--night-ink-2)}
-.night .sec-label b{color:var(--night-ink)}
-.night .sec-label::after{background:var(--night-line)}
-/* Repères d'angle autour des éléments cadrés */
-.marks{position:relative}
-.marks::before{content:'';position:absolute;inset:-7px;pointer-events:none;
-  background:
-    linear-gradient(var(--line-2),var(--line-2)) top left/12px 1px no-repeat,
-    linear-gradient(var(--line-2),var(--line-2)) top left/1px 12px no-repeat,
-    linear-gradient(var(--line-2),var(--line-2)) top right/12px 1px no-repeat,
-    linear-gradient(var(--line-2),var(--line-2)) top right/1px 12px no-repeat,
-    linear-gradient(var(--line-2),var(--line-2)) bottom left/12px 1px no-repeat,
-    linear-gradient(var(--line-2),var(--line-2)) bottom left/1px 12px no-repeat,
-    linear-gradient(var(--line-2),var(--line-2)) bottom right/12px 1px no-repeat,
-    linear-gradient(var(--line-2),var(--line-2)) bottom right/1px 12px no-repeat}
-.grid-bg{background-image:linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);background-size:40px 40px;background-position:-1px -1px}
-.tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.03em;padding:4px 8px;border-radius:6px;border:1px solid var(--line-2);color:var(--ink-2);background:var(--surface);white-space:nowrap}
-.tag-new{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
-.wallet-ico{width:20px;height:20px;border-radius:5px}
+.btn:disabled{opacity:0.55;cursor:default}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:13px;font-weight:500;color:var(--ink-2)}
+.chip .ic{width:16px;height:16px;color:var(--brand)}
+.chip img{width:16px;height:16px;border-radius:4px}
+.new{font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--brand);background:var(--brand-soft);padding:2px 8px;border-radius:999px}
 
 /* ---------- En-tête ---------- */
-.top{position:sticky;top:0;z-index:50;background:rgba(244,244,241,0.92);border-bottom:1px solid var(--line);-webkit-backdrop-filter:saturate(1.4) blur(10px);backdrop-filter:saturate(1.4) blur(10px)}
-.top-inner{display:flex;align-items:center;gap:4px;min-height:60px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px;letter-spacing:-0.02em;text-decoration:none;margin-right:auto;min-height:44px}
-.logo{width:26px;height:26px;flex:none}
+.top{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-inner{display:flex;align-items:center;gap:6px;min-height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:-0.02em;text-decoration:none;margin-right:auto;min-height:44px}
+.logo{width:28px;height:28px;border-radius:8px;background:var(--brand);position:relative;flex:none}
+.logo::before{content:'';position:absolute;left:6px;right:6px;top:8px;height:3px;border-radius:2px;background:var(--on-brand-2)}
+.logo::after{content:'';position:absolute;right:6px;bottom:6px;width:7px;height:7px;border-radius:50%;background:var(--gold)}
 .top-links{display:none}
-.top-links a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;font-size:14px;color:var(--ink-2);text-decoration:none;border-radius:8px}
-.top-links a:hover{color:var(--ink)}
-.top-phone{display:none;align-items:center;gap:8px;min-height:44px;padding:0 12px;font-family:var(--mono);font-size:13px;color:var(--ink);text-decoration:none;border-radius:8px}
-.top-phone:hover{background:var(--sunken)}
+.top-links a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:999px;font-size:14px;font-weight:500;color:var(--ink-2);text-decoration:none}
+.top-links a:hover{color:var(--ink);background:var(--surface-2)}
+.top-phone{display:none;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 12px;border-radius:999px;text-decoration:none;font-weight:600;font-size:14px;color:var(--ink);white-space:nowrap}
+.top-phone:hover{background:var(--surface-2)}
 
 /* ---------- Hero ---------- */
-.hero{position:relative;padding:36px 0 56px;border-bottom:1px solid var(--line)}
-.hero::before{content:'';position:absolute;inset:0;pointer-events:none;-webkit-mask-image:radial-gradient(120% 80% at 70% 30%, #000 30%, transparent 75%);mask-image:radial-gradient(120% 80% at 70% 30%, #000 30%, transparent 75%)}
-.hero-bg{position:absolute;inset:0;pointer-events:none;-webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 90%);mask-image:linear-gradient(180deg,#000 0%,transparent 90%)}
-.hero-grid{position:relative;display:grid;gap:44px;align-items:center}
-.hero h1{font-size:clamp(2.3rem, 9.4vw, 3.9rem);letter-spacing:-0.045em;line-height:1;margin-top:18px}
-.hero h1 .hl{color:var(--accent)}
-.lede{font-size:18px;line-height:1.5;color:var(--ink-2);margin-top:18px;max-width:34em}
-.lede strong{color:var(--ink);font-weight:500}
-.hero-ctas{display:flex;flex-direction:column;gap:10px;margin-top:28px}
-.hero-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-top:24px;font-size:14px;color:var(--ink-2)}
-.hero-meta span{display:inline-flex;align-items:center;gap:8px}
-.hero-meta span + span::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--ink-3);margin-right:2px}
+.hero{padding:28px 0 36px}
+.hero-grid{display:grid;gap:28px;align-items:center}
+.hero h1{font-size:clamp(2.5rem, 9.2vw, 4.4rem);letter-spacing:-0.04em;line-height:0.98}
+.hero h1 em{font-style:normal;color:var(--brand)}
+.lede{font-size:18px;color:var(--ink-2);margin-top:16px;max-width:31em}
+.lede b{color:var(--ink);font-weight:600}
+.hero-ctas{display:flex;flex-direction:column;gap:10px;margin-top:24px}
+.hero-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.scene{position:relative;border-radius:28px;background:linear-gradient(160deg, var(--brand-soft) 0%, var(--brand-softer) 45%, var(--surface) 100%);border:1px solid var(--line);padding:24px 16px 20px;overflow:hidden}
+.scene-dots{position:absolute;inset:0;background-image:radial-gradient(var(--on-brand-2) 1.2px, transparent 1.3px);background-size:22px 22px;opacity:0.7;-webkit-mask-image:linear-gradient(180deg, black, transparent 70%);mask-image:linear-gradient(180deg, black, transparent 70%)}
 
-/* Scène de démo */
-.stage{position:relative;display:flex;flex-direction:column;align-items:center}
-.stage-frame{position:relative;width:100%;max-width:440px;padding:26px 0 22px;display:flex;flex-direction:column;align-items:center}
-.stage-meta{display:flex;justify-content:space-between;width:100%;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.03em;color:var(--ink-3);margin-bottom:18px}
-.phone{position:relative;width:min(290px, 78vw);background:var(--device);border-radius:46px;padding:9px;box-shadow:inset 0 0 0 1.5px var(--device-edge), var(--shadow-lg)}
-.phone-screen{position:relative;border-radius:38px;overflow:hidden;background:var(--screen);color:var(--ink)}
-.island{position:absolute;top:10px;left:50%;width:88px;height:25px;margin-left:-44px;border-radius:20px;background:var(--device);z-index:6}
+/* Téléphone */
+.phone{position:relative;width:min(290px, 78vw);margin:0 auto;background:var(--device);border-radius:46px;padding:10px;box-shadow:inset 0 0 0 2px var(--device-edge), var(--shadow-lg)}
+.phone-screen{position:relative;border-radius:37px;overflow:hidden;background:var(--screen);color:var(--ink)}
+.island{position:absolute;top:10px;left:50%;width:92px;height:26px;margin-left:-46px;border-radius:20px;background:var(--device);z-index:6}
 .statusbar{display:flex;justify-content:space-between;align-items:center;height:44px;padding:13px 26px 0;font-size:13px;font-weight:600}
 .batt{display:inline-block;width:23px;height:11px;border-radius:3px;box-shadow:inset 0 0 0 1.5px currentColor;position:relative}
-.batt::after{content:'';position:absolute;inset:2.5px 6px 2.5px 2.5px;border-radius:1px;background:currentColor}
-.tilt{transition:transform .5s var(--ease);transform-style:preserve-3d;will-change:transform}
+.batt::after{content:'';position:absolute;inset:2.5px 5px 2.5px 2.5px;border-radius:1px;background:currentColor}
 
-/* Pass Wallet rendu en HTML, calqué sur la vraie carte */
-.pass{position:relative;margin:8px 10px 16px;border-radius:14px;background:var(--accent);color:var(--on-accent);overflow:hidden;box-shadow:0 1px 2px rgba(13,14,17,0.2)}
-.pass::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 40%);pointer-events:none}
-.pass-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px}
-.shop{display:flex;align-items:center;gap:9px;font-weight:600;font-size:15px;letter-spacing:-0.01em;white-space:nowrap}
-.shop-logo{width:30px;height:30px;border-radius:8px;background:var(--surface);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
-.shop-logo .ic{width:16px;height:16px}
-.pf{display:flex;flex-direction:column;gap:1px}
-.pf.r{text-align:right}
-.pf .k{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--on-accent-2)}
-.pf b{font-size:14px;font-weight:500}
-.pass-main{padding:12px 14px 12px;background:rgba(13,14,17,0.10);border-top:1px solid rgba(255,255,255,0.12);border-bottom:1px solid rgba(255,255,255,0.12)}
-.pts{font-size:50px;font-weight:300;line-height:1;letter-spacing:-0.04em;display:inline-block}
-.pts-u{display:block;font-size:12px;font-weight:500;letter-spacing:0.04em;color:var(--on-accent-2);margin-top:4px}
-.pass-row{display:grid;grid-template-columns:auto auto 1fr;gap:14px;padding:10px 14px 4px;align-items:start}
-.segs{height:17px;align-items:center}
-.segs{display:flex;gap:2px;margin-top:2px}
-.segs i{flex:1;height:9px;border-radius:1px;background:rgba(255,255,255,0.22);transition:background-color .35s ease}
-.segs i.on{background:var(--surface)}
-.pass-qr{display:flex;justify-content:center;padding:14px 14px 16px}
-.qr{position:relative;width:98px;height:98px;padding:7px;background:var(--surface);border-radius:8px;overflow:hidden}
-.qr svg{width:100%;height:100%;display:block;fill:var(--ink)}
-.scanline{position:absolute;left:0;right:0;top:0;height:2px;background:var(--accent);opacity:0}
-.scanline.run{animation:scan .6s var(--ease)}
-@keyframes scan{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(96px)}}
-.pop{animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
-@keyframes pop{from{transform:scale(1.12)}to{transform:scale(1)}}
+/* Pass Wallet (démo) */
+.pass{position:relative;margin:8px 10px 14px;border-radius:16px;background:var(--brand);color:var(--on-brand);box-shadow:var(--shadow-md);overflow:hidden}
+.pass .label{color:var(--on-brand-2)}
+.pass-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 10px;white-space:nowrap}
+.shop{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+.shop-logo{width:34px;height:34px;border-radius:9px;background:var(--surface);color:var(--brand);display:flex;align-items:center;justify-content:center;flex:none}
+.shop-logo .ic{width:18px;height:18px}
+.pass-f{display:flex;flex-direction:column;gap:2px}
+.pass-f.r{text-align:right}
+.pass-f b{font-size:15px;font-weight:600}
+.pass-main{padding:6px 16px 14px}
+.pts{font-family:var(--font-display);font-size:54px;font-weight:700;line-height:1;letter-spacing:-0.04em}
+.pts small{font-size:26px;font-weight:600;color:var(--on-brand-2);letter-spacing:-0.02em}
+.bar{height:8px;border-radius:99px;background:var(--deep-well);box-shadow:inset 0 0 0 1px var(--deep-line);overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;width:100%;background:var(--gold);border-radius:99px;transform-origin:left;transform:scaleX(.6);transition:transform .6s var(--ease)}
+.pass-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:12px 16px;border-top:1px solid var(--deep-line)}
+.pass-qr{display:flex;justify-content:center;padding:6px 16px 18px}
+.qr{width:104px;height:104px;padding:8px;background:var(--surface);border-radius:10px}
+.qr svg{width:100%;height:100%;display:block;fill:var(--qr)}
+.pop{animation:pop .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(1.18)}to{transform:scale(1)}}
 
 /* Notification iOS */
-.notif{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,0.96);color:var(--ink);border-radius:16px;padding:11px 12px;box-shadow:0 1px 2px rgba(13,14,17,0.08), 0 10px 28px rgba(13,14,17,0.14);text-align:left}
-.notif .shop-logo{width:30px;height:30px;border-radius:7px;background:var(--accent);color:var(--on-accent)}
-.notif-top{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--ink-3)}
-.notif strong{display:block;font-size:14px;font-weight:600;letter-spacing:-0.01em}
-.notif p{font-size:13px;color:var(--ink-2);line-height:1.35}
+.notif{display:flex;gap:10px;align-items:flex-start;background:var(--surface);color:var(--ink);border-radius:16px;padding:11px 12px;box-shadow:var(--shadow-lg);text-align:left}
+.notif .shop-logo{width:32px;height:32px;border-radius:8px;background:var(--brand);color:var(--on-brand)}
 .notif > div{flex:1;min-width:0}
-.demo-notif{position:absolute;left:8px;right:8px;top:46px;z-index:5;opacity:0;transform:translateY(-12px) scale(.97);pointer-events:none;transition:opacity .3s ease, transform .5s var(--ease)}
+.notif-top{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--ink-3);font-weight:500}
+.notif strong{display:block;font-size:14px;font-weight:600}
+.notif p{font-size:13px;color:var(--ink-2);line-height:1.35}
+.demo-notif{position:absolute;left:8px;right:8px;top:48px;z-index:5;opacity:0;transform:translateY(-14px) scale(.97);pointer-events:none;transition:opacity .3s ease, transform .45s var(--ease)}
 .demo-notif.show{opacity:1;transform:none}
-.demo-controls{display:flex;gap:8px;justify-content:center;margin-top:22px}
-.btn-round{width:48px;padding:0}
-.demo-caption{margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--ink-3);text-align:center}
+.float{position:absolute;z-index:4;display:none}
+.demo-controls{position:relative;display:flex;gap:8px;justify-content:center;margin-top:16px}
+.btn-round{width:48px;padding:0;flex:none}
+.demo-caption{position:relative;margin-top:10px;font-size:13px;color:var(--ink-3);text-align:center}
 
-/* Repères numérotés sur le téléphone + légende */
-.tilt{position:relative}
-.pin{display:none}
-.legend{display:none}
-.js .rise{opacity:0;transform:translateY(24px)}
-.js .rise.in{opacity:1;transform:none;transition:opacity .7s ease, transform 1s var(--ease)}
+.js .rise{opacity:0;transform:translateY(28px)}
+.js .rise.in{opacity:1;transform:none;transition:opacity .6s ease, transform .9s var(--ease)}
 
 /* ---------- Sections ---------- */
-.section{padding:72px 0;border-bottom:1px solid var(--line)}
-.section h2{font-size:clamp(1.95rem, 6.8vw, 3.2rem);letter-spacing:-0.04em}
-.sub{font-size:18px;line-height:1.5;color:var(--ink-2);margin-top:16px;max-width:36em}
-.head{max-width:760px;margin-bottom:40px}
+.section{padding:48px 0}
+.section.white{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.head{max-width:720px;margin-bottom:24px}
+.head.center{margin-left:auto;margin-right:auto;text-align:center}
+.section h2{font-size:clamp(1.9rem, 6.2vw, 3rem);letter-spacing:-0.04em}
+.sub{font-size:17px;color:var(--ink-2);margin-top:12px}
 
 /* Avis */
-.proof-intro{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin-bottom:32px}
-.proof-intro h2{font-size:clamp(1.6rem, 5.4vw, 2.4rem)}
-.quotes{display:grid;border-top:1px solid var(--line)}
-.quote{padding:28px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:22px}
-.quote blockquote p{font-size:clamp(1.15rem, 3.6vw, 1.4rem);line-height:1.45;letter-spacing:-0.015em;color:var(--ink)}
-.quote figcaption{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto}
-.quote figcaption b{font-weight:500;font-size:15px}
-.quote-mark{display:block;font-size:44px;line-height:0.5;color:var(--accent);font-weight:500;height:18px}
-.proof-note{margin-top:18px;font-size:14px;color:var(--ink-3)}
+.trust-line{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 10px;margin-top:14px;font-size:14px;color:var(--ink-3)}
+.wordmark{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-family:var(--font-display);font-weight:800;font-size:14px;letter-spacing:0.04em;color:var(--ink)}
+.reviews{display:grid;gap:14px}
+.review{padding:22px 20px;display:flex;flex-direction:column;gap:16px}
+.review blockquote{font-size:17px;line-height:1.55;letter-spacing:-0.01em;color:var(--ink)}
+.review figcaption{display:flex;align-items:center;gap:12px;margin-top:auto}
+.review figcaption .avatar{width:40px;height:40px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:none}
+.review figcaption b{display:block;font-size:15px}
+.review figcaption span{font-size:13px;color:var(--ink-3)}
 
 /* Papier vs FidélyPass */
-.compare{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
-.cmp-head,.cmp-row{display:grid;grid-template-columns:1fr}
-.cmp-head{display:none}
-.cmp-row{border-top:1px solid var(--line)}
-.cmp-row:first-of-type{border-top:none}
-.cmp-cell{padding:16px 18px;display:flex;gap:12px;align-items:flex-start;font-size:16px}
-.cmp-cell .n{font-family:var(--mono);font-size:12px;color:var(--ink-3);padding-top:3px;min-width:20px}
-.cmp-cell.paper{color:var(--ink-3);background:var(--paper)}
-.cmp-cell.paper .lbl,.cmp-cell.fp .lbl{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:4px}
-.cmp-cell.fp .lbl{color:var(--accent)}
-.cmp-cell.paper s{text-decoration-color:rgba(92,96,104,0.45);text-decoration-thickness:1px}
-.cmp-cell.fp{color:var(--ink)}
-.cmp-cell.fp .ic{color:var(--accent);margin-top:3px}
+.versus{display:grid;overflow:hidden}
+.vs-col{padding:22px 20px}
+.vs-col + .vs-col{border-top:1px solid var(--line)}
+.vs-col h3{font-size:18px;letter-spacing:-0.02em;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.vs-col.fp{background:var(--brand-softer)}
+.vs-col.fp h3 .logo{width:24px;height:24px;border-radius:7px}
+.vs-list{list-style:none;display:grid;gap:12px}
+.vs-list li{display:flex;gap:10px;align-items:flex-start;font-size:16px}
+.vs-col.paper li{color:var(--ink-2)}
+.vs-list .ic{margin-top:2px;width:18px;height:18px}
+.vs-col.paper .ic{color:var(--no)}
+.vs-col.fp .ic{color:var(--brand)}
+.vs-list b{font-weight:600}
 
 /* Comment ça marche */
-.steps{list-style:none;display:grid;gap:0;position:relative}
-.step{position:relative;display:grid;grid-template-columns:44px 1fr;gap:0 16px;padding-bottom:34px}
-.step:last-child{padding-bottom:0}
-.step::before{content:'';position:absolute;left:21px;top:44px;bottom:6px;width:1px;background:var(--line-2)}
-.step:last-child::before{display:none}
-.step-n{width:44px;height:44px;border-radius:50%;border:1px solid var(--line-2);background:var(--surface);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;color:var(--ink)}
-.step h3{font-size:21px;letter-spacing:-0.025em;padding-top:9px}
-.step p{font-size:16px;color:var(--ink-2);margin-top:8px}
-.aside{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-left:2px solid var(--accent);background:var(--surface);font-size:14px;color:var(--ink-2);border-radius:0 8px 8px 0}
-.aside b{color:var(--ink);font-weight:500}
-.aside .wallets{display:inline-flex;gap:6px;margin-right:2px;vertical-align:-4px}
+.steps{list-style:none;display:grid;gap:14px}
+.step{display:flex;flex-direction:column;overflow:hidden}
+.step-visual{position:relative;height:180px;padding:20px;background:var(--surface-2);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.step-body{padding:18px 20px 20px}
+.step-n{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:var(--brand-soft);color:var(--brand);font-weight:700;font-size:14px;margin-bottom:10px;flex:none}
+.step h3{font-size:20px;letter-spacing:-0.02em;margin-bottom:8px}
+.step p{font-size:15px;color:var(--ink-2)}
+.v-scan{position:relative;width:140px;height:140px;border-radius:18px;background:var(--surface);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center}
+.v-scan .qr{width:90px;height:90px;padding:0}
+.v-scan::before{content:'';position:absolute;inset:-12px;border-radius:24px;border:2px dashed var(--brand);opacity:0.5}
+.v-scan-pill{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--ink);color:var(--surface);font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px}
+.v-toast{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;box-shadow:var(--shadow-md)}
+.v-toast .okdot{width:30px;height:30px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:flex;align-items:center;justify-content:center}
+.v-toast b{display:block;font-size:15px}
+.v-toast span{font-size:13px;color:var(--ink-3)}
+.v-stack{display:grid;gap:8px;width:min(280px, 86%)}
+.v-stack .v-toast:nth-child(2){opacity:0.6;transform:scale(.96)}
+.v-notifs{width:min(290px, 88%)}
+.callout{display:flex;flex-direction:column;gap:12px;margin-top:14px;padding:18px 20px;border-radius:var(--r-md);background:var(--deep);color:var(--surface)}
+.callout p{font-size:16px}
+.callout b{font-weight:600}
+.callout-chips{display:flex;flex-wrap:wrap;gap:8px}
+.callout-chips span{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;padding:5px 11px;border-radius:999px;background:var(--deep-well);box-shadow:inset 0 0 0 1px var(--deep-line)}
+.callout-chips .ic{width:15px;height:15px}
+.callout-chips img{width:16px;height:16px;border-radius:4px}
 
-/* Deux écrans */
-.screens{display:grid;gap:44px;margin-top:64px}
-.screen-fig{display:flex;flex-direction:column;align-items:center;gap:20px}
-.screen-fig figcaption{text-align:center;max-width:22em}
-.screen-fig figcaption .kicker{justify-content:center}
-.screen-fig figcaption p{margin-top:8px;font-size:15px;color:var(--ink-2)}
-.phone.sm{width:min(260px, 72vw);border-radius:42px;padding:8px}
-.phone.sm .phone-screen{border-radius:34px;aspect-ratio:9/18.6}
-.wallet-screen{padding:52px 12px 0;background:#1C1C1E;height:100%}
-.wallet-screen .w-title{color:#fff;font-size:22px;font-weight:600;letter-spacing:-0.02em;margin:0 4px 12px}
-.wallet-screen img{border-radius:12px}
-.gerant-screen{padding-top:40px;height:100%;background:#F2F2F7}
-.gerant-screen img{width:100%}
+/* Deux écrans réels */
+.screens{display:grid;gap:14px;margin-top:14px}
+.screen-card{display:grid;grid-template-columns:110px 1fr;gap:18px;align-items:center;padding:18px}
+.mini-phone{width:110px;background:var(--device);border-radius:22px;padding:5px;box-shadow:inset 0 0 0 1.5px var(--device-edge), var(--shadow-md)}
+.mini-phone .scr{border-radius:18px;overflow:hidden;aspect-ratio:9/18;background:#1C1C1E}
+.mini-phone .scr.wallet{padding:22px 5px 0}
+.mini-phone .scr.wallet img{border-radius:6px}
+.mini-phone .scr.gerant{background:var(--screen);padding-top:14px}
+.screen-card h3{font-size:18px;letter-spacing:-0.02em;margin:6px 0 6px}
+.screen-card p{font-size:15px;color:var(--ink-2)}
 
-/* Fonctionnalités */
-.feat-layout{display:grid;gap:36px}
-.feats{border-top:1px solid var(--line)}
-.feat{display:grid;gap:18px;padding:28px 0;border-bottom:1px solid var(--line)}
-.feat-text{display:grid;grid-template-columns:36px 1fr;gap:4px 12px}
-.feat-text .n{font-family:var(--mono);font-size:12px;color:var(--ink-3);padding-top:6px}
-.feat h3{font-size:21px;letter-spacing:-0.025em;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
-.feat p{grid-column:2;font-size:16px;color:var(--ink-2)}
-.feat-visual{display:flex;justify-content:flex-start}
-.feat-visual .notif{width:min(360px, 100%)}
-.v-panel{width:min(360px, 100%);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.tier-top{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--ink-3)}
-.tier-top b{font-size:20px;font-weight:600;color:var(--ink);letter-spacing:-0.02em}
-.tier-track{position:relative;height:6px;border-radius:99px;background:var(--sunken);margin-top:10px}
-.tier-track i{position:absolute;inset:0;border-radius:99px;background:var(--accent);transform-origin:left;transform:scaleX(.68)}
-.tier-track em{position:absolute;top:-3px;width:2px;height:12px;background:var(--ink);border-radius:1px}
+/* Fonctionnalités : liste avec visuels */
+.feat-layout{display:grid;gap:24px}
+.feat-side .btn{margin-top:20px}
+.feats{overflow:hidden}
+.feat{display:grid;gap:16px;padding:20px;border-top:1px solid var(--line)}
+.feat:first-child{border-top:none}
+.feat-text{display:grid;grid-template-columns:28px 1fr;gap:4px 12px;align-items:start}
+.feat-text .step-n{margin:0}
+.feat h3{font-size:19px;letter-spacing:-0.02em;padding-top:2px}
+.feat p{grid-column:2;font-size:15px;color:var(--ink-2)}
+.feat-visual{display:flex;justify-content:center;align-items:center;padding:16px;border-radius:var(--r-md);background:var(--brand-softer)}
+.feat-visual .notif{width:100%;max-width:340px;box-shadow:var(--shadow-md)}
+.panel{width:100%;max-width:340px;background:var(--surface);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow-sm);border:1px solid var(--line)}
+.tiers-top{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--ink-3);margin-bottom:10px}
+.tiers-top b{font-family:var(--font-display);font-size:22px;color:var(--ink);letter-spacing:-0.02em}
+.tier-track{position:relative;height:8px;border-radius:99px;background:var(--line)}
+.tier-track i{position:absolute;inset:0;border-radius:99px;background:var(--brand);transform-origin:left;transform:scaleX(.68)}
 .tier-marks{display:flex;justify-content:space-between;margin-top:10px;font-size:12px;color:var(--ink-2)}
-.tier-marks b{display:block;font-family:var(--mono);font-weight:500;font-size:12px;color:var(--ink)}
+.tier-marks span{display:flex;flex-direction:column;gap:2px}
 .tier-marks span:last-child{text-align:right}
-.grades{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
-.grades span{font-size:12px;padding:3px 8px;border-radius:6px;background:var(--paper);color:var(--ink-2)}
-.grades span.on{background:var(--accent);color:var(--on-accent)}
-.share-link{display:flex;align-items:center;gap:10px;font-size:14px;font-family:var(--mono);color:var(--ink-2);padding-bottom:12px;border-bottom:1px dashed var(--line);overflow:hidden;white-space:nowrap}
-.share-link .ic{color:var(--accent)}
-.share-gain{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:12px}
-.share-gain b{display:block;font-size:20px;font-weight:600;letter-spacing:-0.02em}
-.share-gain span{font-size:13px;color:var(--ink-3)}
-.also{margin-top:28px}
-.also h3{font-family:var(--mono);font-size:12px;font-weight:400;text-transform:uppercase;letter-spacing:0.02em;color:var(--ink-3)}
-.also ul{list-style:none;display:grid;grid-template-columns:1fr;margin-top:12px;border-top:1px solid var(--line)}
-.also li{display:flex;align-items:center;gap:10px;min-height:52px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
-.also li .ic{color:var(--ink-3)}
+.tier-marks b{font-size:13px;color:var(--ink)}
+.grades{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.grades span{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--ink-2)}
+.grades span.on{background:var(--brand-soft);color:var(--brand)}
+.share-link{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:12px;padding:10px 12px;font-size:14px;font-weight:500}
+.share-link .ic{color:var(--brand)}
+.share-gain{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.share-gain div{background:var(--brand-softer);border-radius:12px;padding:10px 12px}
+.share-gain b{display:block;font-size:18px;color:var(--brand);letter-spacing:-0.02em}
+.share-gain span{font-size:12px;color:var(--ink-2)}
+.wallet-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.wallet-row span{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:14px;font-weight:600}
+.wallet-row img{width:20px;height:20px;border-radius:5px}
+.also{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
+.also > span:first-child{font-size:14px;font-weight:600;color:var(--ink-2);margin-right:4px}
 
-/* Statistiques (section sombre) */
-.night{background:var(--night);color:var(--night-ink);border-bottom:none}
-.night h2{color:var(--night-ink)}
-.night .sub{color:var(--night-ink-2)}
-.night.grid-bg{--grid:rgba(255,255,255,0.04)}
-.stats-layout{display:grid;gap:36px;align-items:start}
-.stats-points{list-style:none;margin-top:28px;border-top:1px solid var(--night-line)}
-.stats-points li{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--night-line);font-size:15px;color:var(--night-ink-2)}
-.stats-points li b{color:var(--night-ink);font-weight:500}
-.stats-points .n{font-family:var(--mono);font-size:12px;color:var(--night-ink-2);padding-top:3px;min-width:22px}
-.dash{background:var(--night-2);border:1px solid var(--night-line);border-radius:var(--r);overflow:hidden}
-.dash-example{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--night-ink);color:var(--night);font-family:var(--mono);font-size:13px;font-weight:500}
-.dash-example .ic{width:16px;height:16px}
-.dash-top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:13px;color:var(--night-ink-2);border-bottom:1px solid var(--night-line)}
+/* Statistiques (bleu nuit) */
+.dark{background:var(--deep);color:var(--on-brand)}
+.dark h2{color:var(--on-brand)}
+.dark .sub{color:var(--deep-2)}
+.stats-layout{display:grid;gap:24px;align-items:center}
+.stats-points{list-style:none;display:grid;gap:10px;margin-top:20px}
+.stats-points li{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--deep-2)}
+.stats-points li b{color:var(--on-brand);font-weight:600}
+.stats-points .ic{width:18px;height:18px;color:var(--gold);margin-top:2px}
+.dash{background:var(--surface);color:var(--ink);border-radius:var(--r-lg);overflow:hidden;box-shadow:0 24px 56px rgba(0,0,0,0.25)}
+.dash-example{display:flex;align-items:center;gap:8px;padding:11px 16px;background:var(--gold-soft);color:var(--gold-ink);font-size:14px;font-weight:700;border-bottom:1px solid rgba(138,97,0,0.15)}
+.dash-example .ic{width:18px;height:18px}
+.stats-top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:13px;font-weight:600;color:var(--ink-2);border-bottom:1px solid var(--line)}
 .kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
-.kpi{padding:16px;border-right:1px solid var(--night-line);border-bottom:1px solid var(--night-line)}
+.kpi{padding:14px 16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
 .kpi:nth-child(2n){border-right:none}
-.kpi b{display:block;font-size:30px;font-weight:500;letter-spacing:-0.03em;line-height:1.1}
-.kpi > span{display:block;margin-top:4px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.03em;color:var(--night-ink-2)}
-.kpi.hl b{color:var(--night-accent)}
-.chart{padding:16px}
-.chart-top{display:flex;justify-content:space-between;font-size:13px;color:var(--night-ink-2)}
-.bars{display:flex;align-items:flex-end;gap:6px;height:110px;margin-top:14px;border-bottom:1px solid var(--night-line)}
-.bars span{flex:1;border-radius:3px 3px 0 0;background:rgba(255,255,255,0.12);transform-origin:bottom}
-.bars span.peak{background:var(--night-accent)}
+.kpi b{font-family:var(--font-display);display:block;font-size:26px;font-weight:700;letter-spacing:-0.03em;line-height:1.1}
+.kpi .label{display:block;margin-top:4px}
+.kpi.ok b{color:var(--ok)}
+.kpi.warn b{color:var(--warn)}
+.kpi.violet b{color:var(--brand)}
+.chart{padding:14px 16px 16px}
+.chart-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink-2);font-weight:500}
+.bars{display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:12px}
+.bars span{flex:1;border-radius:6px 6px 2px 2px;background:var(--line);transform-origin:bottom}
+.bars span.on{background:var(--brand-soft)}
+.bars span.peak{background:var(--brand)}
 .bars span:nth-child(1){height:30%}
 .bars span:nth-child(2){height:45%}
 .bars span:nth-child(3){height:38%}
@@ -374,10 +363,10 @@ p{text-wrap:pretty}
 .bars span:nth-child(6){height:84%}
 .bars span:nth-child(7){height:52%}
 .bars-x{display:flex;gap:6px;margin-top:6px}
-.bars-x span{flex:1;text-align:center;font-family:var(--mono);font-size:11px;color:var(--night-ink-2)}
-.dash-note{margin-top:14px;font-size:13px;color:var(--night-ink-2)}
+.bars-x span{flex:1;text-align:center;font-size:12px;color:var(--ink-3)}
+.stats-note{font-size:13px;color:var(--deep-2);margin-top:16px}
 .js .dash.reveal .bars span{transform:scaleY(0)}
-.js .dash.reveal.in .bars span{transform:none;transition:transform .9s var(--ease)}
+.js .dash.reveal.in .bars span{transform:none;transition:transform .8s var(--ease)}
 .js .dash.reveal.in .bars span:nth-child(2){transition-delay:.05s}
 .js .dash.reveal.in .bars span:nth-child(3){transition-delay:.1s}
 .js .dash.reveal.in .bars span:nth-child(4){transition-delay:.15s}
@@ -386,182 +375,169 @@ p{text-wrap:pretty}
 .js .dash.reveal.in .bars span:nth-child(7){transition-delay:.3s}
 
 /* Installation */
-.install{display:grid;gap:36px}
-.timeline{list-style:none;position:relative;display:grid;gap:0}
-.tl{display:grid;grid-template-columns:92px 1fr;gap:0 16px;padding:18px 0;border-top:1px solid var(--line)}
-.tl:last-child{border-bottom:1px solid var(--line)}
-.tl .when{font-family:var(--mono);font-size:13px;color:var(--ink-3);padding-top:2px}
-.tl.end .when{color:var(--accent);font-weight:500}
-.tl b{display:block;font-weight:500;font-size:17px;letter-spacing:-0.01em}
-.tl p{font-size:15px;color:var(--ink-2);margin-top:4px}
-.fee{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-top:22px;padding:16px 18px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface)}
-.fee span{font-size:15px;color:var(--ink-2)}
-.fee b{font-size:22px;font-weight:600;letter-spacing:-0.02em;white-space:nowrap}
+.install{display:grid;gap:20px;padding:24px 20px;border-radius:var(--r-lg);background:var(--brand);color:var(--on-brand);overflow:hidden}
+.install h2{font-size:clamp(1.8rem, 6vw, 2.5rem);letter-spacing:-0.04em}
+.install .sub{color:var(--on-brand-2);font-size:17px}
+.install-steps{list-style:none;display:grid;gap:8px}
+.install-steps li{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:14px;background:var(--deep-well);box-shadow:inset 0 0 0 1px var(--deep-line);font-size:15px;color:var(--on-brand-2)}
+.install-steps b{display:block;color:var(--on-brand);font-weight:600}
+.install-steps .when{flex:none;min-width:64px;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--on-brand);padding-top:2px}
+.install-steps li.end{background:var(--surface);box-shadow:none;color:var(--ink-2)}
+.install-steps li.end b,.install-steps li.end .when{color:var(--brand)}
+.install-fee{display:inline-flex;align-items:center;gap:8px;margin-top:18px;font-size:15px;font-weight:600;background:var(--surface);color:var(--ink);padding:9px 14px;border-radius:999px}
+.install-fee .ic{width:16px;height:16px;color:var(--brand)}
 
 /* Tarifs */
-.offer{position:relative;display:grid;gap:22px;padding:24px 20px;border-radius:var(--r);background:var(--surface);border:1px solid var(--accent);overflow:hidden;margin-bottom:20px}
-.offer h3{font-size:clamp(1.5rem, 5vw, 2rem);letter-spacing:-0.035em}
-.offer p{font-size:16px;color:var(--ink-2);margin-top:10px;max-width:32em}
-.months{display:grid;grid-template-columns:repeat(12, minmax(0,1fr));gap:4px;align-self:center}
-.months span{display:flex;flex-direction:column;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
-.months span i{display:block;width:100%;height:30px;border-radius:4px;background:var(--ink)}
-.months span.free i{background:var(--accent)}
-.months span:not(.free) i{background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line-2)}
-.months span.free{color:var(--accent);font-weight:500}
-.months-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:12px;font-size:13px;color:var(--ink-2)}
-.months-legend span{display:inline-flex;align-items:center;gap:8px}
-.months-legend i{width:12px;height:12px;border-radius:3px;background:var(--ink)}
-.months-legend .free i{background:var(--accent)}
-.months-legend span:not(.free) i{background:var(--sunken);box-shadow:inset 0 0 0 1px var(--line-2)}
-
-.plans{display:grid;gap:20px}
-.plan{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px 20px;display:flex;flex-direction:column}
-.plan-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
-.plan h3{font-size:18px;letter-spacing:-0.02em}
-.plan-head span{font-size:14px;color:var(--ink-3)}
-.plan-price{display:flex;align-items:baseline;gap:8px;margin-top:16px}
-.plan-price b{font-size:52px;font-weight:600;letter-spacing:-0.05em;line-height:1}
-.plan-price span{font-size:15px;color:var(--ink-2)}
-.ledger{margin-top:22px;border-top:1px solid var(--line);font-family:var(--mono);font-size:13px}
-.ledger div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line);color:var(--ink-2)}
-.ledger div b{font-weight:500;color:var(--ink);white-space:nowrap}
-.ledger .minus b{color:var(--accent)}
-.ledger .total{border-bottom:1px solid var(--line);color:var(--ink)}
-.ledger .total b{font-size:15px}
-.ledger .setup{border-bottom:none;padding-top:14px}
-.plan ul{list-style:none;display:grid;gap:10px;margin:20px 0 24px;flex:1;align-content:start}
-.plan li{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--ink-2)}
-.plan li .ic{width:16px;height:16px;color:var(--accent);margin-top:3px}
-.plan .btn{width:100%}
-.network{display:flex;flex-direction:column;gap:14px;margin-top:20px;padding:20px;border:1px dashed var(--line-2);border-radius:var(--r)}
-.network b{font-weight:500;font-size:17px;letter-spacing:-0.01em}
+.offer{display:grid;gap:18px;padding:22px 20px;border-radius:var(--r-lg);background:var(--brand-softer);border:1px solid var(--brand-soft);margin-bottom:14px}
+.offer-badge{display:inline-flex;align-items:center;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--brand);background:var(--surface);padding:5px 11px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--brand-soft)}
+.offer h3{font-size:clamp(1.4rem, 4.6vw, 1.9rem);letter-spacing:-0.03em;margin-top:12px}
+.offer p{font-size:16px;color:var(--ink-2);margin-top:8px}
+.months{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px}
+.months span{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--ink-3)}
+.months i{display:block;width:100%;height:28px;border-radius:6px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.months .free{color:var(--brand)}
+.months .free i{background:var(--brand);box-shadow:none}
+.months-legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:13px;color:var(--ink-2)}
+.months-legend span{display:inline-flex;align-items:center;gap:7px}
+.months-legend i{width:12px;height:12px;border-radius:3px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.months-legend .free i{background:var(--brand);box-shadow:none}
+.prices{display:grid;gap:14px}
+.price{padding:22px 20px;display:flex;flex-direction:column}
+.price h3{font-size:17px;letter-spacing:-0.01em}
+.price-sub{font-size:14px;color:var(--ink-3);margin-top:2px}
+.price-amount{display:flex;align-items:baseline;gap:6px;margin-top:14px}
+.price-amount b{font-family:var(--font-display);font-size:50px;font-weight:700;letter-spacing:-0.04em;line-height:1}
+.price-amount span{font-size:15px;color:var(--ink-2);font-weight:500}
+.ledger{margin-top:16px;border-radius:var(--r-sm);background:var(--surface-2);padding:4px 14px;font-size:14px}
+.ledger div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;color:var(--ink-2)}
+.ledger div + div{border-top:1px solid var(--line)}
+.ledger b{color:var(--ink);font-weight:600;white-space:nowrap}
+.ledger .minus b{color:var(--brand)}
+.ledger .total{color:var(--ink);font-weight:600}
+.ledger .total b{font-size:16px}
+.price ul{list-style:none;display:grid;gap:9px;margin:18px 0 20px;flex:1;align-content:start}
+.price li{display:flex;gap:8px;align-items:flex-start;font-size:15px;color:var(--ink-2)}
+.price li .ic{width:17px;height:17px;color:var(--brand);margin-top:2px}
+.price .btn{width:100%}
+.network{display:flex;flex-direction:column;gap:12px;margin-top:14px;padding:18px 20px}
+.network b{font-size:17px;font-family:var(--font-display);letter-spacing:-0.01em}
 .network p{font-size:15px;color:var(--ink-2);margin-top:2px}
-.price-note{margin-top:20px;font-size:14px;color:var(--ink-3)}
+.price-note{text-align:center;font-size:14px;color:var(--ink-3);margin-top:16px}
 
 /* FAQ */
-.faq-layout{display:grid;gap:28px}
-.faq{border-top:1px solid var(--line)}
-.faq details{border-bottom:1px solid var(--line)}
-.faq summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:64px;padding:16px 0;font-weight:500;font-size:17px;letter-spacing:-0.01em;cursor:pointer}
+.faq{display:grid;gap:10px}
+.faq details{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md)}
+.faq summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:58px;padding:14px 18px;font-weight:600;font-size:16px;cursor:pointer;border-radius:var(--r-md)}
 .faq summary::-webkit-details-marker{display:none}
-.faq summary .ic{color:var(--ink-3);transition:transform .25s var(--ease)}
-.faq details[open] summary .ic{transform:rotate(45deg);color:var(--accent)}
-.faq .answer{padding:0 40px 20px 0;font-size:16px;color:var(--ink-2)}
-.faq .answer b{color:var(--ink);font-weight:500}
-.faq details[open] .answer{animation:fade .3s ease}
+.faq summary .ic{color:var(--ink-3);transition:transform .25s ease}
+.faq details[open] summary .ic{transform:rotate(45deg);color:var(--brand)}
+.faq .answer{padding:0 18px 18px;font-size:15px;color:var(--ink-2)}
+.faq .answer b{color:var(--ink);font-weight:600}
+.faq details[open] .answer{animation:fade .25s ease}
 @keyframes fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 
 /* Contact */
-.contact{padding:72px 0}
-.contact-grid{display:grid;gap:32px;align-items:start}
-.direct{display:grid;gap:10px;margin-top:26px}
-.direct a{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;padding:0 16px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface);text-decoration:none;font-size:15px}
-.direct a span{display:inline-flex;align-items:center;gap:10px}
-.direct a .mono{font-size:14px;color:var(--ink-2)}
-.direct a:hover{border-color:var(--ink)}
-.lead-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px 20px;box-shadow:var(--shadow-md)}
-.lead-card h3{font-size:22px;letter-spacing:-0.025em}
-.lead-card > p{font-size:15px;color:var(--ink-2);margin:6px 0 20px}
-.lead-form{display:grid;gap:16px}
-.field label{display:block;font-size:14px;font-weight:500;margin-bottom:6px}
-.field input{width:100%;min-height:50px;padding:0 14px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:400 16px var(--sans);caret-color:var(--accent);transition:border-color .2s ease, box-shadow .2s ease}
-.field input::placeholder{color:#696D75}
-.field input:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
-.field input[aria-invalid="true"]{border-color:var(--err)}
+.final{padding:8px 0 48px}
+.deep{background:var(--deep);color:var(--on-brand);border-radius:28px;padding:28px 20px;display:grid;gap:24px}
+.deep h2{font-size:clamp(1.9rem, 6.6vw, 3rem);letter-spacing:-0.04em}
+.deep .sub{color:var(--deep-2)}
+.contact-alt{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:20px;font-size:14px;color:var(--deep-2)}
+.lead-card{background:var(--surface);color:var(--ink);border-radius:var(--r-lg);padding:22px 20px;box-shadow:var(--shadow-lg)}
+.lead-card h3{font-size:19px;letter-spacing:-0.02em;margin-bottom:16px}
+.lead-form{display:grid;gap:14px}
+.field label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+.field input{width:100%;min-height:50px;padding:0 14px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font:400 16px var(--font);caret-color:var(--brand);transition:border-color .2s ease, box-shadow .2s ease}
+.field input::placeholder{color:var(--ink-3)}
+.field input:focus-visible{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+.field input[aria-invalid="true"]{border-color:var(--no)}
 .lead-form .btn{width:100%}
-.lead-error{color:var(--err);background:var(--err-soft);border-radius:10px;padding:12px 14px;font-size:14px;font-weight:500;margin-top:14px}
+.lead-error{color:var(--warn);background:var(--warn-soft);border-radius:12px;padding:12px 14px;font-size:14px;font-weight:600;margin-top:12px}
 .lead-error:empty{display:none}
-.lead-success{background:var(--ok-soft);color:var(--ok);border-radius:10px;padding:16px;font-weight:500}
-.lead-note{font-size:13px;color:var(--ink-3);margin-top:14px;text-align:center}
+.lead-success{background:var(--ok-soft);color:var(--ok);border-radius:12px;padding:14px;font-weight:600}
+.lead-note{font-size:13px;color:var(--ink-3);text-align:center;margin-top:12px}
 
-/* Pied de page */
-footer{padding:28px 0 104px;font-size:14px;color:var(--ink-3)}
-.foot{display:flex;flex-direction:column;gap:10px}
-.foot-brand{display:flex;align-items:center;gap:8px;color:var(--ink);font-weight:500}
-.foot-brand .logo{width:20px;height:20px}
+footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0 96px}
+.foot{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink-3)}
+.foot-brand{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)}
+.foot-brand .logo{width:22px;height:22px;border-radius:6px}
 .foot nav{display:flex;flex-wrap:wrap;column-gap:18px}
 .foot a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;text-underline-offset:3px}
 
 /* Barre d'action mobile */
-.mbar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;grid-template-columns:48px 48px 1fr;gap:8px;padding:8px var(--gutter) calc(8px + env(safe-area-inset-bottom));background:rgba(244,244,241,0.94);border-top:1px solid var(--line);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transform:translateY(110%);transition:transform .35s var(--ease)}
+.mbar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;grid-template-columns:48px 48px 1fr;gap:8px;padding:8px var(--gutter) calc(8px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(11,13,18,0.06);transform:translateY(110%);transition:transform .35s var(--ease)}
 .mbar.show{transform:none}
 .mbar .btn{min-height:48px;padding:0}
 .mbar .btn-line{width:48px}
 
+@media (max-width:719px){
+  .snap{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;margin:0 calc(-1 * var(--gutter));padding:4px var(--gutter) 10px;scroll-padding:0 var(--gutter);scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:stretch}
+  .snap::-webkit-scrollbar{display:none}
+  .snap > *{flex:0 0 86%;scroll-snap-align:start}
+  .snap:focus-visible{outline-offset:-3px}
+}
 /* Apparition au défilement : visible par défaut, masqué seulement si le JS tourne */
-.js .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease, transform .8s var(--ease)}
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .55s ease, transform .7s var(--ease)}
 .js .reveal.in{opacity:1;transform:none}
+@media (hover:hover){
+  .step{transition:transform .3s var(--ease), box-shadow .3s var(--ease)}
+  .step:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+}
 
 /* ---------- Grands écrans ---------- */
 @media (min-width:480px){
   .hero-ctas{flex-direction:row;flex-wrap:wrap}
 }
 @media (min-width:720px){
-  :root{--gutter:28px}
-  .section{padding:96px 0}
-  .contact{padding:96px 0}
-  .quotes{grid-template-columns:1fr 1fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-  .quote{padding:32px 32px 32px 0;border-bottom:none}
-  .quote + .quote{padding:32px 0 32px 32px;border-left:1px solid var(--line)}
-  .cmp-head{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:0.02em}
-  .cmp-head div{padding:14px 22px;color:var(--ink-3)}
-  .cmp-head div:first-child{background:var(--paper)}
-  .cmp-head div + div{color:var(--accent);border-left:1px solid var(--line)}
-  .cmp-row{grid-template-columns:1fr 1fr}
-  .cmp-row:first-of-type{border-top:none}
-  .cmp-cell{padding:20px 22px}
-  .cmp-cell + .cmp-cell{border-left:1px solid var(--line)}
-  .cmp-cell .lbl{display:none !important}
-  .screens{grid-template-columns:1fr 1fr;gap:28px}
-  .feat{grid-template-columns:minmax(0,1fr) minmax(0,300px);align-items:center;gap:32px}
-  .feat-visual{justify-content:flex-end}
-  .also ul{grid-template-columns:1fr 1fr;column-gap:28px}
+  :root{--gutter:24px}
+  .section{padding:64px 0}
+  .versus{grid-template-columns:1fr 1fr}
+  .vs-col{padding:26px}
+  .vs-col + .vs-col{border-top:none;border-left:1px solid var(--line)}
+  .steps{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .callout{flex-direction:row;align-items:center;justify-content:space-between;gap:20px}
+  .screens{grid-template-columns:1fr 1fr}
+  .reviews{grid-template-columns:1fr 1fr}
+  .feat{grid-template-columns:minmax(0,1fr) minmax(0,320px);align-items:center;gap:24px;padding:20px 24px}
+  .faq{grid-template-columns:1fr 1fr;align-items:start}
+  .install{padding:32px}
+  .deep{padding:40px}
+  .lead-card{padding:28px}
   .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .kpi:nth-child(2n){border-right:1px solid var(--night-line)}
+  .kpi:nth-child(2n){border-right:1px solid var(--line)}
   .kpi:nth-child(4n){border-right:none}
-  .offer{grid-template-columns:1fr 1fr;align-items:center;padding:32px;gap:40px}
-  .plans{grid-template-columns:1fr 1fr}
-  .plan{padding:28px}
-  .network{flex-direction:row;align-items:center;justify-content:space-between;padding:20px 28px}
-  .lead-card{padding:32px}
+  .offer{grid-template-columns:1fr 1fr;align-items:center;gap:32px;padding:28px}
+  .prices{grid-template-columns:1fr 1fr}
+  .price{padding:26px}
+  .network{flex-direction:row;align-items:center;justify-content:space-between;padding:20px 26px}
   .foot{flex-direction:row;justify-content:space-between;align-items:center}
   .mbar{display:none}
-  footer{padding-bottom:32px}
+  footer{padding-bottom:28px}
 }
 @media (min-width:1000px){
-  .top-links{display:flex;margin-right:4px}
+  .section{padding:72px 0}
+  .top-links{display:flex;margin-right:6px}
   .top-phone{display:inline-flex}
-  .hero{padding:72px 0 88px}
-  .hero-grid{grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);gap:48px}
-  .steps{grid-template-columns:repeat(3,minmax(0,1fr));gap:32px}
-  .step{grid-template-columns:1fr;padding-bottom:0}
-  .step::before{left:56px;right:-24px;top:22px;bottom:auto;width:auto;height:1px}
-  .step h3{padding-top:20px}
-  .feat-layout{grid-template-columns:minmax(0,0.75fr) minmax(0,1.25fr);gap:64px}
-  .feat-side{position:sticky;top:100px;align-self:start}
-  .stats-layout{grid-template-columns:minmax(0,0.85fr) minmax(0,1.15fr);gap:64px}
-  .install{grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr);gap:64px;align-items:start}
-  .faq-layout{grid-template-columns:minmax(0,0.7fr) minmax(0,1.3fr);gap:64px}
-  .contact-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px}
-  .screens{gap:48px;max-width:900px;margin-left:auto;margin-right:auto}
+  .hero{padding:48px 0 44px}
+  .hero-grid{grid-template-columns:1.02fr 0.98fr;gap:52px}
+  .scene{padding:124px 24px 24px}
+  .float{display:flex}
+  .float.f1{left:22px;top:24px;width:240px;transform:rotate(-3deg)}
+  .float.f2{right:16px;bottom:116px;width:200px;transform:rotate(3deg)}
+  .feat-layout{grid-template-columns:minmax(0,0.72fr) minmax(0,1.28fr);gap:48px;align-items:start}
+  .feat-side{position:sticky;top:96px}
+  .stats-layout{grid-template-columns:0.85fr 1.15fr;gap:52px}
+  .install{grid-template-columns:1fr 1fr;align-items:center;gap:40px;padding:40px 44px}
+  .deep{grid-template-columns:1.05fr 0.95fr;align-items:center;gap:48px;padding:52px}
 }
-@media (min-width:1000px){
-  .pin{position:absolute;right:-30px;display:flex;align-items:center;gap:0;font-family:var(--mono);font-size:11px;color:var(--accent);pointer-events:none}
-  .pin::before{content:'';width:12px;height:1px;background:var(--line-2);margin-right:4px}
-  .pin b{display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--accent);background:var(--paper);font-weight:500}
-  .pin.p1{top:76px}.pin.p2{top:150px}.pin.p3{top:330px}
-  .legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;margin-top:14px;list-style:none;font-size:13px;color:var(--ink-2)}
-  .legend li{display:inline-flex;align-items:center;gap:6px}
-  .legend b{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--accent);display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--accent)}
-}
+
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .js .reveal,.js .rise{opacity:1 !important;transform:none !important;transition:none !important}
   .js .dash.reveal .bars span{transform:none !important;transition:none !important}
-  .pop,.scanline.run,.faq details[open] .answer{animation:none}
+  .pop,.faq details[open] .answer{animation:none}
   .demo-notif{transition:opacity .2s ease;transform:none}
-  .segs i,.btn,.faq summary .ic,.field input,.tilt,.mbar{transition:none}
-  .tilt{transform:none !important}
+  .bar i{transition:none}
+  .btn,.step,.faq summary .ic,.field input,.mbar{transition:none}
 }
 </style>
 </head>
@@ -570,7 +546,7 @@ footer{padding:28px 0 104px;font-size:14px;color:var(--ink-3)}
 <a class="skip-link" href="#main">Aller au contenu</a>
 
 <svg width="0" height="0" class="sr-only" aria-hidden="true" focusable="false">
-  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
   <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
   <symbol id="i-chat" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></symbol>
   <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></symbol>
@@ -579,19 +555,21 @@ footer{padding:28px 0 104px;font-size:14px;color:var(--ink-3)}
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-euro" viewBox="0 0 24 24"><path d="M4 10h12M4 14h9M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.770l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></symbol>
   <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
   <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></symbol>
   <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
   <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
-  <symbol id="i-review" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
   <symbol id="i-qr" viewBox="0 0 21 21"><path d="M0 0h7v1h-7zM8 0h2v1h-2zM11 0h1v1h-1zM14 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM8 1h2v1h-2zM11 1h2v1h-2zM14 1h1v1h-1zM20 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM8 2h3v1h-3zM12 2h1v1h-1zM14 2h1v1h-1zM16 2h3v1h-3zM20 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM16 3h3v1h-3zM20 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM9 4h1v1h-1zM11 4h2v1h-2zM14 4h1v1h-1zM16 4h3v1h-3zM20 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h2v1h-2zM11 5h1v1h-1zM14 5h1v1h-1zM20 5h1v1h-1zM0 6h7v1h-7zM9 6h1v1h-1zM11 6h2v1h-2zM14 6h7v1h-7zM8 7h1v1h-1zM10 7h2v1h-2zM0 8h2v1h-2zM4 8h1v1h-1zM9 8h1v1h-1zM11 8h2v1h-2zM14 8h3v1h-3zM0 9h1v1h-1zM4 9h1v1h-1zM7 9h1v1h-1zM9 9h1v1h-1zM14 9h2v1h-2zM17 9h4v1h-4zM0 10h1v1h-1zM2 10h3v1h-3zM6 10h2v1h-2zM12 10h3v1h-3zM17 10h4v1h-4zM0 11h1v1h-1zM2 11h4v1h-4zM12 11h1v1h-1zM17 11h3v1h-3zM0 12h11v1h-11zM13 12h5v1h-5zM20 12h1v1h-1zM8 13h5v1h-5zM14 13h2v1h-2zM18 13h1v1h-1zM20 13h1v1h-1zM0 14h7v1h-7zM12 14h3v1h-3zM18 14h2v1h-2zM0 15h1v1h-1zM6 15h1v1h-1zM13 15h1v1h-1zM15 15h5v1h-5zM0 16h1v1h-1zM2 16h3v1h-3zM6 16h1v1h-1zM9 16h1v1h-1zM13 16h5v1h-5zM0 17h1v1h-1zM2 17h3v1h-3zM6 17h1v1h-1zM8 17h1v1h-1zM11 17h1v1h-1zM16 17h2v1h-2zM19 17h1v1h-1zM0 18h1v1h-1zM2 18h3v1h-3zM6 18h1v1h-1zM9 18h2v1h-2zM13 18h3v1h-3zM18 18h1v1h-1zM0 19h1v1h-1zM6 19h1v1h-1zM9 19h1v1h-1zM11 19h2v1h-2zM17 19h1v1h-1zM20 19h1v1h-1zM0 20h7v1h-7zM8 20h3v1h-3zM12 20h3v1h-3zM16 20h2v1h-2zM20 20h1v1h-1z"/></symbol>
-  <symbol id="i-logo" viewBox="0 0 26 26"><rect x="0.75" y="3.75" width="24.5" height="18.5" rx="5" fill="#4B3BF5" stroke="none"/><path d="M6 10h9" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="18.5" cy="16" r="2.5" fill="#FFFFFF" stroke="none"/></symbol>
 </svg>
 
 <header class="top">
   <div class="wrap top-inner">
-    <a class="brand" href="#main"><svg class="logo" aria-hidden="true"><use href="#i-logo"/></svg>FidélyPass</a>
+    <a class="brand" href="#main"><span class="logo" aria-hidden="true"></span>FidélyPass</a>
     <nav class="top-links" aria-label="Navigation principale">
       <a href="#comment">Comment ça marche</a>
       <a href="#fonctionnalites">Fonctionnalités</a>
@@ -599,7 +577,7 @@ footer{padding:28px 0 104px;font-size:14px;color:var(--ink-3)}
       <a href="#faq">FAQ</a>
     </nav>
     <a href="tel:+33645421187" class="top-phone" aria-label="Appeler le 06 45 42 11 87"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>06&nbsp;45&nbsp;42&nbsp;11&nbsp;87</a>
-    <a class="btn btn-accent btn-sm" href="#contact">Créer ma carte</a>
+    <a class="btn btn-brand btn-sm" href="#contact">Créer ma carte</a>
   </div>
 </header>
 
@@ -607,183 +585,175 @@ footer{padding:28px 0 104px;font-size:14px;color:var(--ink-3)}
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-bg grid-bg" aria-hidden="true"></div>
   <div class="wrap hero-grid">
     <div>
-      <span class="kicker"><span class="dot"></span>Carte de fidélité · iPhone et Android</span>
-      <h1>Vos clients gardent leur carte de fidélité <span class="hl">dans leur téléphone.</span></h1>
-      <p class="lede">Pour les boulangeries, snacks, coiffeurs et restaurants. La carte papier s’oublie et se perd. La vôtre sera dans Apple Wallet ou Google Wallet, à vos couleurs. <strong>Les points s’ajoutent à chaque passage, et vous voyez enfin qui revient.</strong></p>
+      <h1>La carte de fidélité qui remplace <em>le papier.</em></h1>
+      <p class="lede">Pour les boulangeries, snacks, coiffeurs et restaurants. Votre carte à vos couleurs, dans le téléphone de vos clients. <b>Les points s’ajoutent à chaque passage, et vous voyez enfin qui revient.</b></p>
       <div class="hero-ctas" id="hero-cta">
-        <a class="btn btn-accent btn-lg" href="#contact">Créer ma carte <svg class="ic ic-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-brand btn-lg" href="#contact">Créer ma carte <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
         <a class="btn btn-line btn-lg" href="#comment">Voir comment ça marche</a>
       </div>
-      <div class="hero-meta">
-        <span><img class="wallet-ico" src="/wallet-icons/apple-wallet-icon-96.png" alt="" width="20" height="20"><img class="wallet-ico" src="/wallet-icons/google-wallet-icon-96.png" alt="" width="20" height="20">Apple Wallet et Google Wallet</span>
-        <span>Aucune appli à installer</span>
-        <span>Prête en 7 jours maximum</span>
+      <div class="hero-chips">
+        <span class="chip"><img src="/wallet-icons/apple-wallet-icon-96.png" alt="" width="16" height="16"><img src="/wallet-icons/google-wallet-icon-96.png" alt="" width="16" height="16">iPhone et Android</span>
+        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Aucune appli à installer</span>
+        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Prête en 7 jours maximum</span>
       </div>
     </div>
 
-    <div class="stage">
-      <div class="stage-frame">
-        <div class="stage-meta" aria-hidden="true"><span>Aperçu · Carte client</span><span class="num">Wallet</span></div>
-        <div class="tilt rise" id="hero-phone">
-          <div class="phone">
-            <div class="phone-screen">
-              <span class="island" aria-hidden="true"></span>
-              <div class="statusbar" aria-hidden="true"><span>9:41</span><span class="batt"></span></div>
-              <div class="notif demo-notif" id="demo-notif" aria-hidden="true">
-                <span class="shop-logo"><svg class="ic"><use href="#i-gift"/></svg></span>
-                <div><div class="notif-top"><span>Votre commerce</span><span>maintenant</span></div><strong>Récompense débloquée</strong><p>Montrez votre carte au comptoir pour en profiter.</p></div>
-              </div>
-              <article class="pass" aria-label="Démonstration : carte de fidélité d'exemple">
-                <div class="pass-head">
-                  <div class="shop"><span class="shop-logo"><svg class="ic" aria-hidden="true"><use href="#i-gift"/></svg></span>Votre commerce</div>
-                  <div class="pf r"><span class="k">Objectif</span><b class="num">50 pts</b></div>
-                </div>
-                <div class="pass-main">
-                  <span class="pts num" id="demo-pts-wrap"><span id="demo-pts">30</span> / 50</span>
-                  <span class="pts-u">POINTS</span>
-                </div>
-                <div class="pass-row">
-                  <div class="pf"><span class="k">Client</span><b>Karim</b></div>
-                  <div class="pf"><span class="k">Restant</span><b class="num" id="demo-left">20 pts</b></div>
-                  <div class="pf"><span class="k">Progression</span><div class="segs" id="demo-segs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-                </div>
-                <div class="pass-qr"><div class="qr"><svg viewBox="0 0 21 21" aria-hidden="true" shape-rendering="crispEdges"><use href="#i-qr"/></svg><span class="scanline" id="demo-scanline" aria-hidden="true"></span></div></div>
-              </article>
-            </div>
-          </div>
-          <span class="pin p1" aria-hidden="true"><b>1</b></span>
-          <span class="pin p2" aria-hidden="true"><b>2</b></span>
-          <span class="pin p3" aria-hidden="true"><b>3</b></span>
-        </div>
-        <ol class="legend" aria-hidden="true"><li><b>1</b>Votre logo, vos couleurs</li><li><b>2</b>Points à jour à chaque passage</li><li><b>3</b>QR code scanné au comptoir</li></ol>
-        <div class="demo-controls">
-          <button type="button" class="btn btn-ink" id="demo-scan-btn"><svg class="ic" aria-hidden="true"><use href="#i-scan"/></svg><span>Scanner un achat (+10 pts)</span></button>
-          <button type="button" class="btn btn-line btn-round" id="demo-pause-btn" aria-pressed="false" aria-label="Mettre la démo en pause"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg></button>
-        </div>
-        <p class="demo-caption">Démo interactive · données fictives</p>
-        <p class="sr-only" id="demo-live" aria-live="polite"></p>
+    <div class="scene">
+      <div class="scene-dots" aria-hidden="true"></div>
+      <div class="notif float f1" aria-hidden="true">
+        <span class="shop-logo"><svg class="ic"><use href="#i-check"/></svg></span>
+        <div><div class="notif-top"><span>Votre commerce</span><span>il y a 2 min</span></div><strong>+10 points crédités</strong><p>Plus que 20 points avant votre récompense.</p></div>
       </div>
+      <div class="notif float f2" aria-hidden="true">
+        <span class="shop-logo"><svg class="ic"><use href="#i-gift"/></svg></span>
+        <div><div class="notif-top"><span>Votre commerce</span><span>hier</span></div><strong>Vous nous manquez !</strong><p>Votre menu vous attend.</p></div>
+      </div>
+      <div class="phone rise" id="hero-phone">
+        <div class="phone-screen">
+          <span class="island" aria-hidden="true"></span>
+          <div class="statusbar" aria-hidden="true"><span>9:41</span><span class="batt"></span></div>
+          <div class="notif demo-notif" id="demo-notif" aria-hidden="true">
+            <span class="shop-logo"><svg class="ic"><use href="#i-gift"/></svg></span>
+            <div><div class="notif-top"><span>Votre commerce</span><span>maintenant</span></div><strong>Récompense débloquée !</strong><p>Montrez votre carte au comptoir pour en profiter.</p></div>
+          </div>
+          <article class="pass" aria-label="Démonstration : carte de fidélité d'exemple">
+            <div class="pass-head">
+              <div class="shop"><span class="shop-logo"><svg class="ic" aria-hidden="true"><use href="#i-gift"/></svg></span>Votre commerce</div>
+              <div class="pass-f r"><span class="label">Objectif</span><b class="num">50 pts</b></div>
+            </div>
+            <div class="pass-main">
+              <div class="pts num"><span id="demo-pts">30</span> <small>/ 50 pts</small></div>
+              <div class="bar" aria-hidden="true"><i id="demo-bar"></i></div>
+            </div>
+            <div class="pass-row">
+              <div class="pass-f"><span class="label">Client</span><b>Karim</b></div>
+              <div class="pass-f"><span class="label">Restant</span><b class="num" id="demo-left">20 pts</b></div>
+              <div class="pass-f"><span class="label">Récompense</span><b>Menu</b></div>
+            </div>
+            <div class="pass-qr"><div class="qr"><svg viewBox="0 0 21 21" aria-hidden="true" shape-rendering="crispEdges"><use href="#i-qr"/></svg></div></div>
+          </article>
+        </div>
+      </div>
+      <div class="demo-controls">
+        <button type="button" class="btn btn-ink" id="demo-scan-btn"><svg class="ic" aria-hidden="true"><use href="#i-scan"/></svg><span>Scanner un achat (+10 pts)</span></button>
+        <button type="button" class="btn btn-line btn-round" id="demo-pause-btn" aria-pressed="false" aria-label="Mettre la démo en pause"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg></button>
+      </div>
+      <p class="demo-caption">Démo interactive · données fictives</p>
+      <p class="sr-only" id="demo-live" aria-live="polite"></p>
     </div>
   </div>
 </section>
 
-<!-- AVIS : la preuve arrive tôt -->
-<section class="section" id="avis" aria-labelledby="avis-title">
+<!-- AVIS (tôt dans la page) -->
+<section class="section white" id="avis" aria-labelledby="avis-title">
   <div class="wrap">
-    <div class="sec-label"><b>01</b><span>Ils l’utilisent déjà</span></div>
-    <div class="proof-intro reveal">
-      <h2 id="avis-title">Ce qu’en disent les clients de nos commerçants.</h2>
+    <div class="head center reveal">
+      <h2 id="avis-title">Ce qu’en disent les clients de nos commerçants</h2>
+      <div class="trust-line"><span>Déjà au comptoir de snacks, de barbers et de commerces de quartier, dont</span><span class="wordmark">ZI FOOD</span><span class="wordmark">MS BARBER</span></div>
     </div>
-    <div class="quotes">
-      <figure class="quote reveal">
+    <div class="reviews snap" tabindex="0" role="region" aria-label="Avis clients">
+      <figure class="card review reveal">
         <blockquote><p>« Un vrai snack à l'ancienne, j'ai eu l'impression de faire un bond dans les années 2000. Et avec le système de fidélité en plus, les récompenses donnent encore plus envie d'y retourner. Je recommande ZI FOOD à fond ! »</p></blockquote>
-        <figcaption><b>Client de ZI FOOD</b><span class="tag">Snack</span></figcaption>
+        <figcaption><span class="avatar" aria-hidden="true">ZF</span><div><b>Client de ZI FOOD</b><span>Snack</span></div></figcaption>
       </figure>
-      <figure class="quote reveal">
+      <figure class="card review reveal">
         <blockquote><p>« J'ai pris rendez-vous directement depuis la plateforme, qui sert aussi de carte de fidélité : super pratique, sans prise de tête, et plus besoin d'attendre sur place. Coupe au top, et en plus je suis reparti avec ma récompense. Ça donne vraiment envie de revenir chez le coiffeur ! »</p></blockquote>
-        <figcaption><b>Client de MS Barber</b><span class="tag">Barber</span></figcaption>
+        <figcaption><span class="avatar" aria-hidden="true">MS</span><div><b>Client de MS Barber</b><span>Barber</span></div></figcaption>
       </figure>
     </div>
-    <p class="proof-note reveal">ZI FOOD et MS Barber font partie des commerces qui utilisent FidélyPass au quotidien.</p>
   </div>
 </section>
 
 <!-- POURQUOI -->
 <section class="section" id="pourquoi" aria-labelledby="pourquoi-title">
   <div class="wrap">
-    <div class="sec-label"><b>02</b><span>Pourquoi changer</span></div>
     <div class="head reveal">
-      <h2 id="pourquoi-title">Le problème n’est pas la fidélité. C’est le carton.</h2>
-      <p class="sub">Une carte papier dépend de la mémoire de votre client. Et elle ne vous dit rien sur lui.</p>
+      <h2 id="pourquoi-title">Le problème n’est pas la fidélité. C’est l’outil.</h2>
+      <p class="sub">Une carte papier dépend de votre client : il l’oublie, la perd, et vous ne savez jamais qui revient vraiment.</p>
     </div>
-    <div class="compare reveal" role="table" aria-label="Carte papier comparée à FidélyPass">
-      <div class="cmp-head" role="row"><div role="columnheader">Carte papier</div><div role="columnheader">FidélyPass</div></div>
-      <div class="cmp-row" role="row">
-        <div class="cmp-cell paper" role="cell"><span class="n">01</span><span><span class="lbl">Carte papier</span>Oubliée à la maison ou perdue, avec tous ses points.</span></div>
-        <div class="cmp-cell fp" role="cell"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><span class="lbl">FidélyPass</span>Toujours dans son téléphone, même sans connexion.</span></div>
+    <div class="card versus reveal">
+      <div class="vs-col paper">
+        <h3>Avec une carte papier</h3>
+        <ul class="vs-list">
+          <li><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Oubliée à la maison ou perdue, avec ses points</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Aucune idée de qui sont vos meilleurs clients</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Un client qui ne revient plus, vous le perdez de vue</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Des comptes faits à la main, au jugé</li>
+        </ul>
       </div>
-      <div class="cmp-row" role="row">
-        <div class="cmp-cell paper" role="cell"><span class="n">02</span><span><span class="lbl">Carte papier</span>Vous ne savez pas qui sont vos clients fidèles.</span></div>
-        <div class="cmp-cell fp" role="cell"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><span class="lbl">FidélyPass</span>Vous voyez qui revient, et à quelle fréquence.</span></div>
-      </div>
-      <div class="cmp-row" role="row">
-        <div class="cmp-cell paper" role="cell"><span class="n">03</span><span><span class="lbl">Carte papier</span>Un client qui ne vient plus, vous le perdez de vue.</span></div>
-        <div class="cmp-cell fp" role="cell"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><span class="lbl">FidélyPass</span>Après 30 jours sans visite, il reçoit une relance automatique.</span></div>
-      </div>
-      <div class="cmp-row" role="row">
-        <div class="cmp-cell paper" role="cell"><span class="n">04</span><span><span class="lbl">Carte papier</span>Les comptes se font à la main, au jugé.</span></div>
-        <div class="cmp-cell fp" role="cell"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><span class="lbl">FidélyPass</span>Les points s’ajoutent à chaque scan, selon vos règles.</span></div>
+      <div class="vs-col fp">
+        <h3><span class="logo" aria-hidden="true"></span>Avec FidélyPass</h3>
+        <ul class="vs-list">
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Toujours dans son téléphone</b>, même sans connexion</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Vous savez qui revient</b>, et à quelle fréquence</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Relance automatique</b> après 30 jours sans visite</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Points et récompenses automatiques</b>, selon vos règles</span></li>
+        </ul>
       </div>
     </div>
   </div>
 </section>
 
 <!-- COMMENT ÇA MARCHE -->
-<section class="section" id="comment" aria-labelledby="comment-title">
+<section class="section white" id="comment" aria-labelledby="comment-title">
   <div class="wrap">
-    <div class="sec-label"><b>03</b><span>Comment ça marche</span></div>
     <div class="head reveal">
-      <h2 id="comment-title">Au comptoir, ça prend quelques secondes.</h2>
-      <p class="sub">Votre client n’installe rien. Vous n’achetez aucun matériel. Votre téléphone suffit.</p>
+      <h2 id="comment-title">3 gestes. Aucune usine à gaz.</h2>
+      <p class="sub">Votre client n’installe rien. Vous n’achetez aucun matériel. Tout passe par le téléphone.</p>
     </div>
-    <ol class="steps">
-      <li class="step reveal">
-        <span class="step-n" aria-hidden="true">01</span>
-        <div>
-          <h3>Votre client scanne le QR code du comptoir</h3>
-          <p>Avec l’appareil photo de son téléphone. Il tape son prénom, et sa carte s’ajoute à son Wallet en 10 secondes environ.</p>
-          <p class="aside"><span><span class="wallets"><img class="wallet-ico" src="/wallet-icons/apple-wallet-icon-96.png" alt="Apple Wallet" width="20" height="20"><img class="wallet-ico" src="/wallet-icons/google-wallet-icon-96.png" alt="Google Wallet" width="20" height="20"></span><b>iPhone et Android.</b> Wallet est déjà sur son téléphone, il n’y a pas d’appli à télécharger.</span></p>
+    <ol class="steps snap reveal" tabindex="0" aria-label="Les 3 étapes">
+      <li class="card step">
+        <div class="step-visual" aria-hidden="true">
+          <div class="v-scan"><div class="qr"><svg viewBox="0 0 21 21" shape-rendering="crispEdges"><use href="#i-qr"/></svg></div><span class="v-scan-pill">QR code au comptoir</span></div>
+        </div>
+        <div class="step-body">
+          <span class="step-n">1</span>
+          <h3>Votre client scanne le QR code</h3>
+          <p>Avec l’appareil photo de son téléphone. Il tape son prénom, et sa carte s’ajoute à Apple Wallet ou Google Wallet en 10 secondes environ.</p>
         </div>
       </li>
-      <li class="step reveal">
-        <span class="step-n" aria-hidden="true">02</span>
-        <div>
+      <li class="card step">
+        <div class="step-visual" aria-hidden="true">
+          <div class="v-stack">
+            <div class="v-toast"><span class="okdot"><svg class="ic"><use href="#i-check"/></svg></span><div><b>+12 points</b><span>Karim · achat de 12 €</span></div></div>
+            <div class="v-toast"><span class="okdot"><svg class="ic"><use href="#i-check"/></svg></span><div><b>+8 points</b><span>Sarah · achat de 8 €</span></div></div>
+          </div>
+        </div>
+        <div class="step-body">
+          <span class="step-n">2</span>
           <h3>Vous scannez sa carte à chaque passage</h3>
-          <p>Depuis votre téléphone ou une tablette. Les points s’ajoutent selon votre règle, par exemple 1 € dépensé = 1 point.</p>
-          <p class="aside"><span><b>Pas de terminal à acheter.</b> Pas de lecteur QR non plus.</span></p>
+          <p>Depuis votre téléphone ou une tablette. Les points s’ajoutent selon votre règle, par exemple 1 € = 1 point.</p>
         </div>
       </li>
-      <li class="step reveal">
-        <span class="step-n" aria-hidden="true">03</span>
-        <div>
+      <li class="card step">
+        <div class="step-visual" aria-hidden="true">
+          <div class="v-notifs"><div class="notif"><span class="shop-logo"><svg class="ic"><use href="#i-gift"/></svg></span><div><div class="notif-top"><span>Votre commerce</span><span>maintenant</span></div><strong>Récompense débloquée !</strong><p>Votre menu est offert à votre prochaine visite.</p></div></div></div>
+        </div>
+        <div class="step-body">
+          <span class="step-n">3</span>
           <h3>La récompense se débloque toute seule</h3>
-          <p>Objectif atteint : votre client reçoit une notification. Il montre sa carte, vous validez, et le compteur repart.</p>
+          <p>Votre client reçoit une notification dès l’objectif atteint. Il montre sa carte, vous validez, le compteur repart.</p>
         </div>
       </li>
     </ol>
-
+    <div class="callout reveal">
+      <p><b>Ce que vous avez à faire : scanner la carte.</b> C’est tout.</p>
+      <div class="callout-chips">
+        <span><img src="/wallet-icons/apple-wallet-icon-96.png" alt="" width="16" height="16"><img src="/wallet-icons/google-wallet-icon-96.png" alt="" width="16" height="16">iPhone et Android</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Pas de terminal</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Pas d’appli pour le client</span>
+      </div>
+    </div>
     <div class="screens">
-      <figure class="screen-fig reveal">
-        <div class="phone sm marks">
-          <div class="phone-screen">
-            <span class="island" aria-hidden="true"></span>
-            <div class="wallet-screen">
-              <p class="w-title" aria-hidden="true">Wallet</p>
-              <img src="/screenshot-card.webp" alt="Une vraie carte de fidélité FidélyPass dans le Wallet d'un iPhone : 10 points sur 50, avec le QR code à scanner" width="560" height="778" loading="lazy" decoding="async">
-            </div>
-          </div>
-        </div>
-        <figcaption>
-          <span class="kicker"><span class="dot"></span>Ce que voit votre client</span>
-          <p>Sa carte, avec ses points et le QR code à présenter. Capture d’une vraie carte.</p>
-        </figcaption>
+      <figure class="card screen-card reveal">
+        <div class="mini-phone"><div class="scr wallet"><img src="/screenshot-card.webp" alt="Une vraie carte de fidélité FidélyPass dans le Wallet d'un iPhone : 10 points sur 50, avec le QR code à scanner" width="560" height="778" loading="lazy" decoding="async"></div></div>
+        <figcaption><span class="label">Côté client</span><h3>Sa carte, dans son Wallet</h3><p>Ses points, sa progression et le QR code à présenter. Capture d’une vraie carte.</p></figcaption>
       </figure>
-      <figure class="screen-fig reveal">
-        <div class="phone sm marks">
-          <div class="phone-screen">
-            <span class="island" aria-hidden="true"></span>
-            <div class="gerant-screen">
-              <img src="/screenshot-gerant.webp" alt="L'espace gérant FidélyPass sur téléphone : bouton pour scanner une carte, liste des clients, statistiques, paliers de récompense et envoi de notification" width="560" height="1070" loading="lazy" decoding="async">
-            </div>
-          </div>
-        </div>
-        <figcaption>
-          <span class="kicker"><span class="dot"></span>Ce que vous voyez au comptoir</span>
-          <p>Votre espace gérant : scanner, voir vos clients, envoyer une notification. Capture du vrai outil.</p>
-        </figcaption>
+      <figure class="card screen-card reveal">
+        <div class="mini-phone"><div class="scr gerant"><img src="/screenshot-gerant.webp" alt="L'espace gérant FidélyPass : bouton pour scanner une carte, liste des clients, statistiques, paliers de récompense et envoi de notification" width="560" height="1070" loading="lazy" decoding="async"></div></div>
+        <figcaption><span class="label">Côté commerçant</span><h3>Votre espace au comptoir</h3><p>Scanner une carte, voir vos clients, envoyer une notification. Capture du vrai outil.</p></figcaption>
       </figure>
     </div>
   </div>
@@ -791,160 +761,150 @@ footer{padding:28px 0 104px;font-size:14px;color:var(--ink-3)}
 
 <!-- FONCTIONNALITÉS -->
 <section class="section" id="fonctionnalites" aria-labelledby="feat-title">
-  <div class="wrap">
-    <div class="sec-label"><b>04</b><span>Fonctionnalités</span></div>
-    <div class="feat-layout">
-      <div class="feat-side reveal">
-        <h2 id="feat-title">Ce que FidélyPass fait à votre place.</h2>
-        <p class="sub">Faire revenir un client demande du suivi. Personne n’a le temps de le faire à la main pendant le service.</p>
-        <div class="hero-ctas"><a class="btn btn-accent" href="#contact">Créer ma carte <svg class="ic ic-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+  <div class="wrap feat-layout">
+    <div class="feat-side reveal">
+      <h2 id="feat-title">Tout ce qu’il faut pour faire revenir vos clients.</h2>
+      <p class="sub">Chaque fonctionnalité fait à votre place une tâche que personne n’a le temps de faire pendant le service.</p>
+      <a class="btn btn-brand" href="#contact">Créer ma carte <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    </div>
+    <div>
+      <div class="card feats">
+        <article class="feat reveal">
+          <div class="feat-text">
+            <span class="step-n">1</span>
+            <h3>Relance automatique des clients absents</h3>
+            <p>Un client n’est pas revenu depuis 30 jours ? La notification part toute seule, avec ses points restants.</p>
+          </div>
+          <div class="feat-visual" aria-hidden="true">
+            <div class="notif"><span class="shop-logo"><svg class="ic"><use href="#i-gift"/></svg></span><div><div class="notif-top"><span>Votre commerce</span><span>automatique</span></div><strong>On ne vous a pas vu depuis 30 jours</strong><p>Il vous reste 34/50 points pour : un menu offert.</p></div></div>
+          </div>
+        </article>
+        <article class="feat reveal">
+          <div class="feat-text">
+            <span class="step-n">2</span>
+            <h3>Notifications gratuites et illimitées</h3>
+            <p>Offre du midi, nouveau produit : vous l’écrivez, tous vos clients abonnés la reçoivent. Sans payer de SMS.</p>
+          </div>
+          <div class="feat-visual" aria-hidden="true">
+            <div class="notif"><span class="shop-logo"><svg class="ic"><use href="#i-gift"/></svg></span><div><div class="notif-top"><span>Votre commerce</span><span>11:30</span></div><strong>Ce midi seulement</strong><p>Votre boisson est offerte avec le menu, jusqu’à 14 h.</p></div></div>
+          </div>
+        </article>
+        <article class="feat reveal">
+          <div class="feat-text">
+            <span class="step-n">3</span>
+            <h3>Récompenses, paliers et grades</h3>
+            <p>Vos règles de points, plusieurs paliers pour des victoires régulières, et un statut pour vos meilleurs clients.</p>
+          </div>
+          <div class="feat-visual" aria-hidden="true">
+            <div class="panel">
+              <div class="tiers-top"><span>Karim</span><b class="num">34 pts</b></div>
+              <div class="tier-track"><i></i></div>
+              <div class="tier-marks"><span><b>10 pts</b>Café</span><span><b>50 pts</b>Menu</span></div>
+              <div class="grades"><span>Bronze</span><span>Argent</span><span class="on">Or</span><span>Platine</span><span>Diamant</span></div>
+            </div>
+          </div>
+        </article>
+        <article class="feat reveal">
+          <div class="feat-text">
+            <span class="step-n">4</span>
+            <h3>Parrainage automatique</h3>
+            <p>Chaque client a son lien à partager. Parrain et filleul gagnent des points : vos clients recrutent pour vous.</p>
+          </div>
+          <div class="feat-visual" aria-hidden="true">
+            <div class="panel">
+              <div class="share-link"><svg class="ic"><use href="#i-link"/></svg>Lien de parrainage de Karim</div>
+              <div class="share-gain"><div><b>+ points</b><span>pour le parrain</span></div><div><b>+ points</b><span>pour le filleul</span></div></div>
+            </div>
+          </div>
+        </article>
+        <article class="feat reveal">
+          <div class="feat-text">
+            <span class="step-n">5</span>
+            <h3>Votre carte, à vos couleurs</h3>
+            <p>Votre logo, votre nom, vos couleurs. Sur iPhone, elle s’affiche sur l’écran verrouillé quand votre client passe près de chez vous.</p>
+          </div>
+          <div class="feat-visual" aria-hidden="true">
+            <div class="wallet-row">
+              <span><img src="/wallet-icons/apple-wallet-icon-96.png" alt="" width="20" height="20">Apple Wallet</span>
+              <span><img src="/wallet-icons/google-wallet-icon-96.png" alt="" width="20" height="20">Google Wallet</span>
+            </div>
+          </div>
+        </article>
       </div>
-      <div>
-        <div class="feats">
-          <article class="feat reveal">
-            <div class="feat-text">
-              <span class="n">A</span>
-              <h3>Relance automatique des clients absents</h3>
-              <p>Un client n’est pas revenu depuis 30 jours ? La notification part toute seule, avec ses points restants. Vous n’avez rien à faire.</p>
-            </div>
-            <div class="feat-visual" aria-hidden="true">
-              <div class="notif"><span class="shop-logo"><svg class="ic"><use href="#i-gift"/></svg></span><div><div class="notif-top"><span>Votre commerce</span><span>automatique</span></div><strong>On ne vous a pas vu depuis 30 jours</strong><p>Il vous reste 34/50 points pour : un menu offert.</p></div></div>
-            </div>
-          </article>
-          <article class="feat reveal">
-            <div class="feat-text">
-              <span class="n">B</span>
-              <h3>Notifications gratuites et illimitées</h3>
-              <p>Une offre du midi, un nouveau produit : vous l’écrivez, tous vos clients abonnés la reçoivent. Aucun frais par envoi, contrairement aux SMS.</p>
-            </div>
-            <div class="feat-visual" aria-hidden="true">
-              <div class="notif"><span class="shop-logo"><svg class="ic"><use href="#i-gift"/></svg></span><div><div class="notif-top"><span>Votre commerce</span><span>11:30</span></div><strong>Ce midi seulement</strong><p>La boisson est offerte avec le menu, jusqu’à 14 h.</p></div></div>
-            </div>
-          </article>
-          <article class="feat reveal">
-            <div class="feat-text">
-              <span class="n">C</span>
-              <h3>Récompenses, paliers et statuts</h3>
-              <p>Vous fixez vos règles de points et vos récompenses. Plusieurs paliers donnent des petites victoires régulières, et vos meilleurs clients montent en statut.</p>
-            </div>
-            <div class="feat-visual" aria-hidden="true">
-              <div class="v-panel">
-                <div class="tier-top"><span>Karim</span><b class="num">34 pts</b></div>
-                <div class="tier-track"><i></i></div>
-                <div class="tier-marks"><span><b>10 pts</b>Café</span><span><b>50 pts</b>Menu</span></div>
-                <div class="grades"><span>Bronze</span><span>Argent</span><span class="on">Or</span><span>Platine</span><span>Diamant</span></div>
-              </div>
-            </div>
-          </article>
-          <article class="feat reveal">
-            <div class="feat-text">
-              <span class="n">D</span>
-              <h3>Parrainage</h3>
-              <p>Chaque client a son lien à partager. Quand un ami s’inscrit, les deux gagnent des points. Vos clients recrutent pour vous.</p>
-            </div>
-            <div class="feat-visual" aria-hidden="true">
-              <div class="v-panel">
-                <div class="share-link"><svg class="ic"><use href="#i-link"/></svg>Lien de parrainage de Karim</div>
-                <div class="share-gain"><div><b>+ points</b><span>pour le parrain</span></div><div><b>+ points</b><span>pour le filleul</span></div></div>
-              </div>
-            </div>
-          </article>
-          <article class="feat reveal">
-            <div class="feat-text">
-              <span class="n">E</span>
-              <h3>Une carte à votre image</h3>
-              <p>Votre logo, votre nom, vos couleurs. Sur iPhone, la carte peut s’afficher sur l’écran verrouillé quand votre client passe près de chez vous.</p>
-            </div>
-            <div class="feat-visual" aria-hidden="true">
-              <div class="v-panel" style="display:flex;align-items:center;gap:12px">
-                <img class="wallet-ico" src="/wallet-icons/apple-wallet-icon-96.png" alt="" width="28" height="28" style="width:28px;height:28px;border-radius:7px">
-                <img class="wallet-ico" src="/wallet-icons/google-wallet-icon-96.png" alt="" width="28" height="28" style="width:28px;height:28px;border-radius:7px">
-                <span style="font-size:14px;color:var(--ink-2)">Apple Wallet et Google Wallet</span>
-              </div>
-            </div>
-          </article>
-        </div>
-        <div class="also reveal">
-          <h3>Également inclus</h3>
-          <ul>
-            <li><svg class="ic" aria-hidden="true"><use href="#i-bag"/></svg>Commande en ligne <span class="tag tag-new">Nouveau</span></li>
-            <li><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Prise de rendez-vous</li>
-            <li><svg class="ic" aria-hidden="true"><use href="#i-review"/></svg>Demande d’avis Google au bon moment</li>
-            <li><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Export de vos clients (fichier CSV)</li>
-          </ul>
-        </div>
+      <div class="also reveal">
+        <span>Et aussi :</span>
+        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-bag"/></svg>Commande en ligne <span class="new">Nouveau</span></span>
+        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Prise de rendez-vous</span>
+        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-star"/></svg>Avis Google au bon moment</span>
+        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Export CSV</span>
       </div>
     </div>
   </div>
 </section>
 
 <!-- STATISTIQUES -->
-<section class="section night grid-bg" id="statistiques" aria-labelledby="stats-title">
+<section class="section dark" id="statistiques" aria-labelledby="stats-title">
   <div class="wrap">
-    <div class="sec-label"><b>05</b><span>Statistiques</span></div>
     <div class="stats-layout">
       <div class="reveal">
-        <h2 id="stats-title">Vous savez enfin qui revient, et qui décroche.</h2>
+        <h2 id="stats-title">Vous savez enfin ce qui se passe dans votre clientèle.</h2>
         <p class="sub">Des chiffres simples, sur votre téléphone, pour savoir où agir.</p>
         <ul class="stats-points">
-          <li><span class="n">01</span><span><b>Clients actifs et à risque.</b> Ceux qui viennent, et ceux qui commencent à espacer leurs visites.</span></li>
-          <li><span class="n">02</span><span><b>Rétention, panier moyen, valeur client.</b> Pour voir si la fidélité rapporte.</span></li>
-          <li><span class="n">03</span><span><b>Heures et jours de pointe.</b> Pour choisir le bon moment d’une offre.</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Clients actifs et à risque :</b> ceux qui viennent, et ceux qui espacent leurs visites.</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Rétention, panier moyen, valeur client :</b> pour voir si la fidélité rapporte.</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Heures de pointe et alertes :</b> pour choisir le bon moment d’une offre.</span></li>
         </ul>
+        <p class="stats-note">Comparaison anonyme avec les autres boutiques FidélyPass, dès que 3 boutiques comparables sont disponibles.</p>
       </div>
       <div class="dash reveal" role="img" aria-label="Exemple illustratif de tableau de bord, pas de vraies données : 62 clients actifs, 14 à risque, 78 % de rétention, panier moyen de 12,50 €, pic de fréquentation le vendredi">
         <div class="dash-example"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>Exemple illustratif, pas vos vraies données</div>
-        <div class="dash-top"><span>Tableau de bord</span><span class="mono">7 derniers jours</span></div>
+        <div class="stats-top"><span>Tableau de bord</span><span>Cette semaine</span></div>
         <div class="kpis">
-          <div class="kpi"><b class="num" data-count="62">62</b><span>Actifs</span></div>
-          <div class="kpi"><b class="num" data-count="14">14</b><span>À risque</span></div>
-          <div class="kpi hl"><b class="num"><span data-count="78">78</span> %</b><span>Rétention</span></div>
-          <div class="kpi"><b class="num">12,50 €</b><span>Panier moyen</span></div>
+          <div class="kpi ok"><b class="num" data-count="62">62</b><span class="label">Actifs</span></div>
+          <div class="kpi warn"><b class="num" data-count="14">14</b><span class="label">À risque</span></div>
+          <div class="kpi violet"><b class="num"><span data-count="78">78</span> %</b><span class="label">Rétention</span></div>
+          <div class="kpi"><b class="num">12,50 €</b><span class="label">Panier moyen</span></div>
         </div>
         <div class="chart">
-          <div class="chart-top"><span>Fréquentation de la semaine</span><span class="mono">pic : ven.</span></div>
-          <div class="bars"><span></span><span></span><span></span><span></span><span class="peak"></span><span></span><span></span></div>
+          <div class="chart-top"><span>Fréquentation de la semaine</span></div>
+          <div class="bars"><span></span><span class="on"></span><span></span><span class="on"></span><span class="peak"></span><span class="on"></span><span></span></div>
           <div class="bars-x"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
         </div>
       </div>
     </div>
-    <p class="dash-note reveal">Comparaison anonyme avec les autres boutiques FidélyPass, disponible dès que 3 boutiques comparables existent.</p>
   </div>
 </section>
 
 <!-- INSTALLATION -->
 <section class="section" id="installation" aria-labelledby="install-title">
   <div class="wrap">
-    <div class="sec-label"><b>06</b><span>Installation</span></div>
-    <div class="install">
-      <div class="reveal">
+    <div class="install reveal">
+      <div>
         <h2 id="install-title">On installe tout pour vous, en 7 jours maximum.</h2>
-        <p class="sub">Vous n’avez rien à configurer. Donnez-nous votre logo, vos couleurs et vos récompenses : on s’occupe du reste.</p>
-        <div class="fee"><span>Frais d’installation, payés une seule fois</span><b class="num">80 €</b></div>
+        <p class="sub">Vous nous donnez votre logo, vos couleurs et vos récompenses. Nous configurons la carte, le QR code du comptoir et les règles de points.</p>
+        <span class="install-fee"><svg class="ic" aria-hidden="true"><use href="#i-euro"/></svg>Frais d’installation : 80 €, payés une seule fois</span>
       </div>
-      <ol class="timeline reveal">
-        <li class="tl"><span class="when">Jour 0</span><div><b>Signature</b><p>On fait le point ensemble sur votre commerce et vos récompenses.</p></div></li>
-        <li class="tl"><span class="when">Ensuite</span><div><b>On crée votre carte</b><p>Votre logo, vos couleurs, vos règles de points et vos paliers.</p></div></li>
-        <li class="tl"><span class="when">Ensuite</span><div><b>On prépare le comptoir</b><p>Votre QR code à afficher, et l’accès à votre espace gérant.</p></div></li>
-        <li class="tl end"><span class="when">Jour 7 max</span><div><b>Vos clients peuvent s’inscrire</b><p>On vous montre comment scanner une carte et valider une récompense.</p></div></li>
+      <ol class="install-steps">
+        <li><span class="when">Jour 0</span><span><b>Signature</b>On fait le point sur votre commerce et vos récompenses.</span></li>
+        <li><span class="when">Ensuite</span><span><b>On crée votre carte</b>Logo, couleurs, règles de points, paliers et QR code.</span></li>
+        <li class="end"><span class="when">Jour 7 max</span><span><b>Vos clients peuvent s’inscrire</b>On vous montre comment scanner et valider une récompense.</span></li>
       </ol>
     </div>
   </div>
 </section>
 
 <!-- TARIFS -->
-<section class="section" id="tarifs" aria-labelledby="tarifs-title">
+<section class="section white" id="tarifs" aria-labelledby="tarifs-title">
   <div class="wrap">
-    <div class="sec-label"><b>07</b><span>Tarifs</span></div>
-    <div class="head reveal">
-      <h2 id="tarifs-title">Un prix clair, pour une année complète.</h2>
-      <p class="sub">L’abonnement se prend pour 12 mois. Tous les montants sont affichés, frais d’installation compris.</p>
+    <div class="head center reveal">
+      <h2 id="tarifs-title">Simple. Clair. Sans surprise.</h2>
+      <p class="sub">Un abonnement sur 12 mois, et 80 € d’installation payés une seule fois. Tout est affiché.</p>
     </div>
 
-    <div class="offer reveal" aria-labelledby="offer-title">
+    <div class="offer reveal">
       <div>
-        <span class="kicker"><span class="dot"></span>Offre en cours</span>
-        <h3 id="offer-title" style="margin-top:12px">1 mois offert sur votre première année.</h3>
+        <span class="offer-badge">Offre en cours</span>
+        <h3>1 mois offert sur votre année</h3>
         <p>11 mois payés, 12 mois d’utilisation. La réduction est déjà comptée dans les totaux ci-dessous.</p>
       </div>
       <div>
@@ -955,89 +915,86 @@ footer{padding:28px 0 104px;font-size:14px;color:var(--ink-3)}
       </div>
     </div>
 
-    <div class="plans">
-      <article class="plan reveal">
-        <div class="plan-head"><h3>1 boutique</h3><span>Pour un commerce</span></div>
-        <div class="plan-price"><b class="num">29 €</b><span>/ mois</span></div>
+    <div class="prices">
+      <article class="card price reveal">
+        <h3>1 boutique</h3>
+        <p class="price-sub">Pour un commerce</p>
+        <div class="price-amount"><b class="num">29 €</b><span>/ mois</span></div>
         <div class="ledger num">
           <div><span>12 mois × 29 €</span><b>348 €</b></div>
           <div class="minus"><span>1 mois offert</span><b>− 29 €</b></div>
-          <div class="total"><span>Abonnement, 12 mois</span><b>319 €</b></div>
-          <div class="setup"><span>+ Installation, une seule fois</span><b>80 €</b></div>
+          <div class="total"><span>Abonnement sur 12 mois</span><b>319 €</b></div>
+          <div><span>Installation, une seule fois</span><b>80 €</b></div>
         </div>
         <ul>
           <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Carte digitale, clients illimités</li>
-          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Apple Wallet et Google Wallet</li>
-          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Notifications et relance automatique</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Apple et Google Wallet</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Notifications push et relance automatique</li>
           <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Prise de rendez-vous</li>
-          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Statistiques détaillées</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Statistiques avancées</li>
         </ul>
-        <a class="btn btn-accent btn-lg" href="#contact">Créer ma carte</a>
+        <a class="btn btn-brand" href="#contact">Créer ma carte</a>
       </article>
-      <article class="plan reveal">
-        <div class="plan-head"><h3>Plusieurs boutiques</h3><span>Prix par boutique</span></div>
-        <div class="plan-price"><b class="num">24 €</b><span>/ mois / boutique</span></div>
+      <article class="card price reveal">
+        <h3>Plusieurs boutiques</h3>
+        <p class="price-sub">Tarif par boutique</p>
+        <div class="price-amount"><b class="num">24 €</b><span>/ mois / boutique</span></div>
         <div class="ledger num">
           <div><span>12 mois × 24 €</span><b>288 €</b></div>
           <div class="minus"><span>1 mois offert</span><b>− 24 €</b></div>
-          <div class="total"><span>Abonnement, 12 mois, par boutique</span><b>264 €</b></div>
-          <div class="setup"><span>+ Installation (1re boutique), une seule fois</span><b>80 €</b></div>
+          <div class="total"><span>Abonnement sur 12 mois, par boutique</span><b>264 €</b></div>
+          <div><span>Installation (1re boutique), une seule fois</span><b>80 €</b></div>
         </div>
         <ul>
-          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Tout ce qui est inclus pour 1 boutique</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Tout ce qui est inclus à 1 boutique</li>
           <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Un tableau de bord par boutique</li>
-          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Prix réduit dès la deuxième boutique</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Tarif dégressif automatique</li>
         </ul>
-        <a class="btn btn-accent btn-lg" href="#contact">Créer mes cartes</a>
+        <a class="btn btn-brand" href="#contact">Créer mes cartes</a>
       </article>
     </div>
-    <div class="network reveal">
-      <div><b>Réseau ou franchise</b><p>Un prix sur mesure, selon votre nombre de boutiques, avec un accompagnement dédié.</p></div>
+    <div class="card network reveal">
+      <div><b>Réseau ou franchise</b><p>Un tarif sur mesure selon votre nombre de boutiques, avec un accompagnement dédié.</p></div>
       <a class="btn btn-line" href="#contact">Nous contacter</a>
     </div>
-    <p class="price-note reveal">Engagement de 12 mois. Aucun frais caché : vous voyez ici tout ce que vous payez.</p>
+    <p class="price-note">Engagement de 12 mois · Aucun frais caché</p>
   </div>
 </section>
 
 <!-- FAQ -->
 <section class="section" id="faq" aria-labelledby="faq-title">
   <div class="wrap">
-    <div class="sec-label"><b>08</b><span>Questions fréquentes</span></div>
-    <div class="faq-layout">
-      <div class="reveal">
-        <h2 id="faq-title">Les questions qu’on nous pose avant de signer.</h2>
-        <p class="sub">Une autre question ? Appelez-nous au <a href="tel:+33645421187" class="mono" style="white-space:nowrap">06&nbsp;45&nbsp;42&nbsp;11&nbsp;87</a>.</p>
-      </div>
-      <div class="faq reveal">
-        <details name="faq"><summary>Combien de temps dure l’engagement ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">L’abonnement se prend pour <b>12 mois</b>. Avec l’offre en cours, vous en payez 11 et vous profitez des 12 : par exemple 319 € pour une boutique, au lieu de 348 €. Les frais d’installation de 80 € s’ajoutent une seule fois.</p></details>
-        <details name="faq"><summary>L’installation est-elle payante ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Oui, <b>80 €, payés une seule fois</b>. Pour ce prix, on crée votre carte, on configure vos règles de points et on prépare votre QR code. Tout est prêt en 7 jours maximum après la signature.</p></details>
-        <details name="faq"><summary>Mes clients doivent-ils télécharger une application ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Non. La carte s’ajoute à Apple Wallet ou Google Wallet, déjà présents sur leur téléphone. Ils scannent le QR code, tapent leur prénom, et c’est fait.</p></details>
-        <details name="faq"><summary>Ça marche sur iPhone et sur Android ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Oui. Sur iPhone, la carte va dans Apple Wallet. Sur Android, dans Google Wallet.</p></details>
-        <details name="faq"><summary>Dois-je acheter du matériel ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Non. Votre téléphone ou une tablette suffit pour scanner les cartes. Pas de terminal, pas de lecteur QR.</p></details>
-        <details name="faq"><summary>Puis-je choisir mes propres récompenses ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Oui. Vous fixez vos règles de points et vos récompenses, avec plusieurs paliers si vous le souhaitez.</p></details>
-        <details name="faq"><summary>Les notifications sont-elles payantes ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Non. Elles sont incluses et illimitées, sans frais par envoi.</p></details>
-        <details name="faq"><summary>J’ai plusieurs boutiques, comment ça se passe ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Chaque boutique est à 24 € par mois au lieu de 29 €, avec son propre tableau de bord. Pour un réseau ou une franchise, on fait un prix sur mesure.</p></details>
-      </div>
+    <div class="head center reveal">
+      <h2 id="faq-title">Les questions qu’on nous pose</h2>
+    </div>
+    <div class="faq reveal">
+      <details name="faq"><summary>Combien de temps dure l’engagement ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">L’abonnement se prend pour <b>12 mois</b>. Avec l’offre en cours, vous payez 11 mois et vous profitez des 12 : par exemple 319 € au lieu de 348 € pour une boutique. Les 80 € d’installation s’ajoutent une seule fois.</p></details>
+      <details name="faq"><summary>L’installation est-elle payante ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Oui, <b>80 €, payés une seule fois</b>. On crée votre carte, on configure vos règles de points et votre QR code. Tout est prêt en 7 jours maximum après la signature.</p></details>
+      <details name="faq"><summary>Mes clients doivent-ils télécharger une application ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Non. La carte s’ajoute à Apple Wallet ou Google Wallet, déjà présents sur leur téléphone.</p></details>
+      <details name="faq"><summary>Ça marche sur iPhone et sur Android ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Oui. Sur iPhone, la carte va dans Apple Wallet. Sur Android, dans Google Wallet.</p></details>
+      <details name="faq"><summary>Dois-je acheter un lecteur QR ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Non. Votre téléphone ou votre tablette suffit pour scanner les cartes de vos clients.</p></details>
+      <details name="faq"><summary>Puis-je choisir mes propres récompenses ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Oui. Vous définissez vos règles de points et vos récompenses, y compris plusieurs paliers.</p></details>
+      <details name="faq"><summary>Les notifications sont-elles payantes ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Non. Elles sont incluses et illimitées, sans surcoût par envoi.</p></details>
+      <details name="faq"><summary>Puis-je avoir plusieurs boutiques ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Oui. Chaque boutique est à 24 € par mois au lieu de 29 €, avec son propre tableau de bord.</p></details>
     </div>
   </div>
 </section>
 
 <!-- CONTACT -->
-<section class="contact grid-bg" id="contact" aria-labelledby="contact-title">
+<section class="final" id="contact">
   <div class="wrap">
-    <div class="sec-label"><b>09</b><span>Créer ma carte</span></div>
-    <div class="contact-grid">
-      <div class="reveal">
-        <h2 id="contact-title" style="font-size:clamp(1.95rem, 6.8vw, 3.2rem);letter-spacing:-0.04em">Votre prochaine carte de fidélité n’a pas besoin d’être en papier.</h2>
-        <p class="sub">Laissez le nom de votre commerce et votre numéro. On vous rappelle sous 24 h pour préparer votre carte et répondre à vos questions.</p>
-        <div class="direct">
-          <a href="https://wa.me/33645421187" target="_blank" rel="noopener"><span><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>Écrire sur WhatsApp</span><svg class="ic ic-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          <a href="tel:+33645421187"><span><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>Appeler</span><span class="mono">06&nbsp;45&nbsp;42&nbsp;11&nbsp;87</span></a>
+    <div class="deep reveal">
+      <div>
+        <h2>Votre prochaine carte de fidélité n’a pas besoin d’être en papier.</h2>
+        <p class="sub">Laissez-nous votre contact : on vous rappelle sous 24 h pour préparer votre carte et répondre à vos questions.</p>
+        <div class="contact-alt">
+          <span>ou directement par</span>
+          <a class="btn btn-ghost-deep btn-sm" href="https://wa.me/33645421187" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>WhatsApp</a>
+          <a class="btn btn-ghost-deep btn-sm" href="tel:+33645421187"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>06&nbsp;45&nbsp;42&nbsp;11&nbsp;87</a>
         </div>
       </div>
-      <div class="lead-card reveal">
+      <div class="lead-card">
         <h3>Être rappelé</h3>
-        <p>Deux informations suffisent.</p>
         <form id="lead-form" class="lead-form" novalidate>
           <div class="field">
             <label for="lead-name">Nom de votre commerce</label>
@@ -1047,7 +1004,7 @@ footer{padding:28px 0 104px;font-size:14px;color:var(--ink-3)}
             <label for="lead-phone">Votre numéro</label>
             <input type="tel" id="lead-phone" name="phone" placeholder="06 12 34 56 78" autocomplete="tel" inputmode="tel" required>
           </div>
-          <button type="submit" class="btn btn-accent btn-lg" id="lead-submit">Être rappelé <svg class="ic ic-arrow" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          <button type="submit" class="btn btn-brand btn-lg" id="lead-submit">Être contacté <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></button>
         </form>
         <div id="lead-error" class="lead-error" role="alert"></div>
         <div id="lead-success" class="lead-success" role="status" hidden>Merci ! On vous rappelle très vite.</div>
@@ -1061,7 +1018,7 @@ footer{padding:28px 0 104px;font-size:14px;color:var(--ink-3)}
 
 <footer>
   <div class="wrap foot">
-    <p class="foot-brand"><svg class="logo" aria-hidden="true"><use href="#i-logo"/></svg>FidélyPass <span style="color:var(--ink-3);font-weight:400">· © 2026</span></p>
+    <p class="foot-brand"><span class="logo" aria-hidden="true"></span>FidélyPass <span>· © 2026</span></p>
     <nav aria-label="Liens légaux et contact">
       <a href="mailto:walyd.benaissi@icloud.com">walyd.benaissi@icloud.com</a>
       <a href="tel:+33645421187">06&nbsp;45&nbsp;42&nbsp;11&nbsp;87</a>
@@ -1075,7 +1032,7 @@ footer{padding:28px 0 104px;font-size:14px;color:var(--ink-3)}
 <nav class="mbar" id="mbar" aria-label="Actions rapides">
   <a class="btn btn-line" href="tel:+33645421187" aria-label="Appeler le 06 45 42 11 87"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg></a>
   <a class="btn btn-line" href="https://wa.me/33645421187" target="_blank" rel="noopener" aria-label="Écrire sur WhatsApp"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg></a>
-  <a class="btn btn-accent" href="#contact">Créer ma carte</a>
+  <a class="btn btn-brand" href="#contact">Créer ma carte</a>
 </nav>
 
 <script>
@@ -1085,24 +1042,6 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
 (function () {
   const phone = document.getElementById('hero-phone');
   if (phone) requestAnimationFrame(() => requestAnimationFrame(() => phone.classList.add('in')));
-})();
-
-/* ---------- Légère profondeur sur le téléphone du hero (souris uniquement) ---------- */
-(function () {
-  const phone = document.getElementById('hero-phone');
-  const stage = document.querySelector('.stage');
-  if (!phone || !stage || prefersReducedMotion || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-  let raf = null;
-  stage.addEventListener('pointermove', (e) => {
-    const r = stage.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width - 0.5;
-    const y = (e.clientY - r.top) / r.height - 0.5;
-    if (raf) cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(() => {
-      phone.style.transform = 'perspective(1200px) rotateY(' + (x * 6).toFixed(2) + 'deg) rotateX(' + (-y * 5).toFixed(2) + 'deg)';
-    });
-  });
-  stage.addEventListener('pointerleave', () => { phone.style.transform = ''; });
 })();
 
 /* ---------- Compteurs ---------- */
@@ -1143,10 +1082,8 @@ function countUp(el) {
   const scanBtn = document.getElementById('demo-scan-btn');
   const pauseBtn = document.getElementById('demo-pause-btn');
   const ptsEl = document.getElementById('demo-pts');
-  const ptsWrap = document.getElementById('demo-pts-wrap');
   const leftEl = document.getElementById('demo-left');
-  const segs = document.querySelectorAll('#demo-segs i');
-  const scanline = document.getElementById('demo-scanline');
+  const bar = document.getElementById('demo-bar');
   const notif = document.getElementById('demo-notif');
   const live = document.getElementById('demo-live');
   const pass = document.querySelector('.pass');
@@ -1163,8 +1100,7 @@ function countUp(el) {
   function render() {
     ptsEl.textContent = pts;
     leftEl.textContent = (GOAL - pts) + ' pts';
-    const on = Math.round(pts / GOAL * segs.length);
-    segs.forEach((s, i) => s.classList.toggle('on', i < on));
+    bar.style.transform = 'scaleX(' + (pts / GOAL) + ')';
   }
 
   function reset() {
@@ -1179,11 +1115,7 @@ function countUp(el) {
     if (pts >= GOAL) { reset(); return; }
     pts = Math.min(GOAL, pts + STEP);
     render();
-    if (!prefersReducedMotion) {
-      ptsWrap.classList.remove('pop'); scanline.classList.remove('run');
-      void ptsWrap.offsetWidth;
-      ptsWrap.classList.add('pop'); scanline.classList.add('run');
-    }
+    if (!prefersReducedMotion) { ptsEl.classList.remove('pop'); void ptsEl.offsetWidth; ptsEl.classList.add('pop'); }
     if (pts >= GOAL) {
       notif.classList.add('show');
       live.textContent = 'Récompense débloquée ! 50 points sur 50.';
@@ -1199,7 +1131,7 @@ function countUp(el) {
       timer = setTimeout(() => { reset(); timer = setTimeout(tick, 800); }, 3200);
     } else {
       scan();
-      timer = setTimeout(tick, 1300);
+      timer = setTimeout(tick, 1100);
     }
   }
   function sync() {
