@@ -229,6 +229,8 @@ a.chip:hover{border-color:var(--brand)}
 .section{padding:48px 0}
 .section.dark-soft{background:#201A55;color:var(--on-brand)}
 .dark-soft h2{color:var(--on-brand)}
+.dark-soft .sub{color:var(--deep-2)}
+.dark-soft :focus-visible{outline-color:var(--on-brand)}
 .dark-soft .trust-line{color:var(--deep-2)}
 .dark-soft .wordmark{background:var(--deep-well);border-color:var(--deep-line);color:var(--on-brand)}
 .dark-soft .review{border-color:transparent;color:var(--ink)}
@@ -506,6 +508,14 @@ footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0
 .foot-brand .logo{width:22px;height:22px;border-radius:6px}
 .foot nav{display:flex;flex-wrap:wrap;column-gap:18px}
 .foot a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;text-underline-offset:3px}
+
+/* Curseur personnalisé (souris uniquement) */
+.cursor-dot,.cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;opacity:0;will-change:transform}
+.cursor-dot{width:8px;height:8px;margin:-4px 0 0 -4px;background:var(--brand);box-shadow:0 0 0 2px rgba(255,255,255,0.85);z-index:999}
+.cursor-ring{width:32px;height:32px;margin:-16px 0 0 -16px;border:1.5px solid var(--brand);z-index:998;transition:width .2s,height .2s,margin .2s,background-color .2s,opacity .2s}
+.cursor-ring.grow{width:56px;height:56px;margin:-28px 0 0 -28px;background:rgba(75,59,245,0.1)}
+html.has-custom-cursor .cursor-dot,html.has-custom-cursor .cursor-ring{opacity:1}
+html.has-custom-cursor,html.has-custom-cursor a,html.has-custom-cursor button,html.has-custom-cursor summary{cursor:none}
 
 /* Barre d'action mobile */
 .mbar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;grid-template-columns:48px 48px 1fr;gap:8px;padding:8px var(--gutter) calc(8px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(11,13,18,0.06);transform:translateY(110%);transition:transform .35s var(--ease)}
@@ -889,6 +899,49 @@ footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0
   </div>
 </section>
 
+<!-- OPTION COMMANDES ET RENDEZ-VOUS -->
+<section class="section dark-soft addon" id="option" aria-labelledby="option-title">
+  <div class="wrap">
+    <div class="head reveal">
+      <span class="opt-badge">Option · +10 € / mois</span>
+      <h2 id="option-title">Commandes et rendez-vous, depuis la même carte.</h2>
+      <p class="sub">Vous prenez des commandes ou des rendez-vous ? Ajoutez l’option. Vos clients passent par la carte qu’ils ont déjà, et tout arrive dans votre espace gérant.</p>
+    </div>
+    <div class="addon-grid">
+      <article class="addon-card reveal">
+        <div>
+          <h3><svg class="ic" aria-hidden="true"><use href="#i-bag"/></svg>Commande en ligne <span class="new">Nouveau</span></h3>
+          <p>Votre menu en ligne, avec les options de chaque produit. Vos clients commandent sur place ou à emporter, tout de suite ou pour plus tard. Vous suivez chaque commande depuis votre espace.</p>
+        </div>
+        <div class="addon-visual" aria-hidden="true">
+          <div class="ticket">
+            <div class="ticket-top"><b>Nouvelle commande</b><span class="mode">À emporter · 12:30</span></div>
+            <div class="ticket-row"><span>1 × Menu burger<small>Boisson : citron</small></span><span class="num">9,50 €</span></div>
+            <div class="ticket-row"><span>1 × Frites</span><span class="num">3,00 €</span></div>
+            <div class="ticket-total"><span>Total</span><span class="num">12,50 €</span></div>
+          </div>
+        </div>
+      </article>
+      <article class="addon-card reveal">
+        <div>
+          <h3><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Prise de rendez-vous</h3>
+          <p>Vos clients choisissent un créneau en ligne, sans vous appeler. Les rendez-vous arrivent dans votre espace, et vous pouvez aussi en ajouter à la main.</p>
+        </div>
+        <div class="addon-visual" aria-hidden="true">
+          <div class="ticket">
+            <div class="slots-day"><span>Lun<b>13</b></span><span class="on">Mar<b>14</b></span><span>Mer<b>15</b></span><span>Jeu<b>16</b></span></div>
+            <div class="slots"><span class="off">9:00</span><span>9:30</span><span class="off">10:00</span><span>10:30</span><span class="on">11:00</span><span>11:30</span></div>
+          </div>
+        </div>
+      </article>
+    </div>
+    <div class="addon-foot reveal">
+      <span><b>+10 € par mois</b>, en plus de votre abonnement. Exemples ci-dessus fictifs.</span>
+      <a class="btn btn-brand" href="#contact">Ajouter l’option <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    </div>
+  </div>
+</section>
+
 <!-- STATISTIQUES -->
 <section class="section dark" id="statistiques" aria-labelledby="stats-title">
   <div class="wrap">
@@ -936,49 +989,6 @@ footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0
         <li><span class="when">Ensuite</span><span><b>On crée votre carte</b>Logo, couleurs, règles de points, paliers et QR code.</span></li>
         <li class="end"><span class="when">Jour 7 max</span><span><b>Vos clients peuvent s’inscrire</b>On vous montre comment scanner et valider une récompense.</span></li>
       </ol>
-    </div>
-  </div>
-</section>
-
-<!-- OPTION COMMANDES ET RENDEZ-VOUS -->
-<section class="section dark addon" id="option" aria-labelledby="option-title">
-  <div class="wrap">
-    <div class="head reveal">
-      <span class="opt-badge">Option · +10 € / mois</span>
-      <h2 id="option-title">Commandes et rendez-vous, depuis la même carte.</h2>
-      <p class="sub">Vous prenez des commandes ou des rendez-vous ? Ajoutez l’option. Vos clients passent par la carte qu’ils ont déjà, et tout arrive dans votre espace gérant.</p>
-    </div>
-    <div class="addon-grid">
-      <article class="addon-card reveal">
-        <div>
-          <h3><svg class="ic" aria-hidden="true"><use href="#i-bag"/></svg>Commande en ligne <span class="new">Nouveau</span></h3>
-          <p>Votre menu en ligne, avec les options de chaque produit. Vos clients commandent sur place ou à emporter, tout de suite ou pour plus tard. Vous suivez chaque commande depuis votre espace.</p>
-        </div>
-        <div class="addon-visual" aria-hidden="true">
-          <div class="ticket">
-            <div class="ticket-top"><b>Nouvelle commande</b><span class="mode">À emporter · 12:30</span></div>
-            <div class="ticket-row"><span>1 × Menu burger<small>Boisson : citron</small></span><span class="num">9,50 €</span></div>
-            <div class="ticket-row"><span>1 × Frites</span><span class="num">3,00 €</span></div>
-            <div class="ticket-total"><span>Total</span><span class="num">12,50 €</span></div>
-          </div>
-        </div>
-      </article>
-      <article class="addon-card reveal">
-        <div>
-          <h3><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Prise de rendez-vous</h3>
-          <p>Vos clients choisissent un créneau en ligne, sans vous appeler. Les rendez-vous arrivent dans votre espace, et vous pouvez aussi en ajouter à la main.</p>
-        </div>
-        <div class="addon-visual" aria-hidden="true">
-          <div class="ticket">
-            <div class="slots-day"><span>Lun<b>13</b></span><span class="on">Mar<b>14</b></span><span>Mer<b>15</b></span><span>Jeu<b>16</b></span></div>
-            <div class="slots"><span class="off">9:00</span><span>9:30</span><span class="off">10:00</span><span>10:30</span><span class="on">11:00</span><span>11:30</span></div>
-          </div>
-        </div>
-      </article>
-    </div>
-    <div class="addon-foot reveal">
-      <span><b>+10 € par mois</b>, en plus de votre abonnement. Exemples ci-dessus fictifs.</span>
-      <a class="btn btn-brand" href="#contact">Ajouter l’option <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
     </div>
   </div>
 </section>
@@ -1124,6 +1134,9 @@ footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0
   </div>
 </footer>
 
+<div class="cursor-ring" id="cursor-ring" aria-hidden="true"></div>
+<div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
+
 <nav class="mbar" id="mbar" aria-label="Actions rapides">
   <a class="btn btn-line" href="tel:+33645421187" aria-label="Appeler le 06 45 42 11 87"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg></a>
   <a class="btn btn-line" href="https://wa.me/33645421187" target="_blank" rel="noopener" aria-label="Écrire sur WhatsApp"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg></a>
@@ -1137,6 +1150,30 @@ const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)
 (function () {
   const phone = document.getElementById('hero-phone');
   if (phone) requestAnimationFrame(() => requestAnimationFrame(() => phone.classList.add('in')));
+})();
+
+/* ---------- Curseur personnalisé : le point suit la souris, l'anneau suit avec un léger retard ---------- */
+(function () {
+  if (prefersReducedMotion || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  const dot = document.getElementById('cursor-dot');
+  const ring = document.getElementById('cursor-ring');
+  let mx = 0, my = 0, rx = 0, ry = 0, started = false;
+  window.addEventListener('mousemove', (e) => {
+    mx = e.clientX; my = e.clientY;
+    dot.style.transform = 'translate(' + mx + 'px,' + my + 'px)';
+    if (!started) { started = true; rx = mx; ry = my; document.documentElement.classList.add('has-custom-cursor'); requestAnimationFrame(loop); }
+  });
+  document.addEventListener('mouseleave', () => document.documentElement.classList.remove('has-custom-cursor'));
+  document.addEventListener('mouseenter', () => { if (started) document.documentElement.classList.add('has-custom-cursor'); });
+  function loop() {
+    rx += (mx - rx) * 0.18; ry += (my - ry) * 0.18;
+    ring.style.transform = 'translate(' + rx + 'px,' + ry + 'px)';
+    requestAnimationFrame(loop);
+  }
+  document.querySelectorAll('a, button, summary, .card').forEach(el => {
+    el.addEventListener('mouseenter', () => ring.classList.add('grow'));
+    el.addEventListener('mouseleave', () => ring.classList.remove('grow'));
+  });
 })();
 
 /* ---------- Compteurs ---------- */
