@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>FidélyPass — La carte de fidélité qui remplace le papier</title>
+<meta name="description" content="Transformez votre carte de fidélité papier en carte digitale dans le téléphone de vos clients — récompenses automatiques, notifications, parrainage et statistiques.">
+<link rel="canonical" href="https://fidelypass-production.up.railway.app/landing.html">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FidélyPass">
+<meta property="og:title" content="FidélyPass — La carte de fidélité qui remplace le papier">
+<meta property="og:description" content="Transformez votre carte de fidélité papier en carte digitale dans le téléphone de vos clients — récompenses automatiques, notifications, parrainage et statistiques.">
+<meta property="og:image" content="https://fidelypass-production.up.railway.app/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://fidelypass-production.up.railway.app/landing.html">
+<meta property="og:locale" content="fr_FR">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FidélyPass — La carte de fidélité qui remplace le papier">
+<meta name="twitter:description" content="Transformez votre carte de fidélité papier en carte digitale dans le téléphone de vos clients.">
+<meta name="twitter:image" content="https://fidelypass-production.up.railway.app/og-image.png">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "FidélyPass",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "iOS, Android, Web",
+  "description": "Carte de fidélité digitale dans Apple Wallet et Google Wallet pour commerçants indépendants — récompenses automatiques, notifications, parrainage et statistiques.",
+  "url": "https://fidelypass-production.up.railway.app/landing.html",
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "EUR",
+    "price": "29"
+  }
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#0A0C11;
+  --bg-elev:#12151D;
+  --bg-elev2:#181C26;
+  --line:rgba(255,255,255,0.09);
+  --line-strong:rgba(255,255,255,0.16);
+  --text:#EDEFF5;
+  --text-dim:#B0B8CC;
+  --text-dimmer:#7C8499;
+  --indigo:#6C5CE7;
+  --cyan:#22D3EE;
+  --green:#34D399;
+  --amber:#FBBF24;
+  --red:#F87171;
+  --grad: linear-gradient(90deg, var(--indigo), var(--cyan));
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:'Inter',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-0.01em}
+.mono{font-family:'JetBrains Mono',monospace}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+::selection{background:var(--indigo);color:white}
+
+.bg-grid{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+}
+.bg-glow{
+  position:fixed;top:0;left:0;width:520px;height:520px;border-radius:50%;
+  background:radial-gradient(circle, rgba(108,92,231,0.16), transparent 70%);
+  pointer-events:none;z-index:0;transform:translate(-50%,-50%);
+  filter:blur(10px);
+}
+
+.cursor-dot{position:fixed;top:0;left:0;width:8px;height:8px;border-radius:50%;background:var(--cyan);pointer-events:none;z-index:999;transform:translate(-50%,-50%)}
+.cursor-ring{position:fixed;top:0;left:0;width:32px;height:32px;border-radius:50%;border:1.5px solid var(--indigo);pointer-events:none;z-index:998;transform:translate(-50%,-50%);transition:width .2s,height .2s,opacity .2s,border-color .2s}
+.cursor-ring.grow{width:56px;height:56px;background:rgba(108,92,231,0.1)}
+html.has-custom-cursor, html.has-custom-cursor a, html.has-custom-cursor button{cursor:none}
+
+/* ---------- NAV ---------- */
+.nav{position:sticky;top:0;z-index:50;background:rgba(10,12,17,0.75);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;max-width:1140px;margin:0 auto;gap:20px}
+.brand{display:flex;align-items:center;gap:9px;font-family:'Space Grotesk';font-weight:700;font-size:18px}
+.brand-mark{width:26px;height:26px;border-radius:8px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#0A0C11}
+.nav-links{display:flex;gap:22px;font-size:13.5px;color:var(--text-dim)}
+.nav-links a:hover{color:var(--text)}
+.nav-links{display:none}
+@media (min-width:900px){.nav-links{display:flex}}
+.nav-cta{background:var(--grad);color:#0A0C11;padding:9px 18px;border-radius:8px;font-weight:700;font-size:13px;border:none;cursor:pointer;white-space:nowrap}
+.nav-phone{display:none;color:var(--text-dim);font-size:13px;font-weight:600;white-space:nowrap;text-decoration:none;margin-left:14px}
+@media(min-width:1080px){.nav-phone{display:inline-block}}
+
+/* ---------- BUTTONS ---------- */
+.btn-primary{
+  display:inline-flex;align-items:center;gap:9px;background:var(--grad);color:#0A0C11;
+  padding:14px 26px;border-radius:10px;font-weight:700;font-size:14.5px;border:none;cursor:pointer;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.06), 0 8px 24px rgba(108,92,231,0.28);
+}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:8px;background:var(--bg-elev);color:var(--text);
+  padding:13px 24px;border-radius:10px;font-weight:600;font-size:14px;border:1px solid var(--line-strong);cursor:pointer;
+}
+.btn-ghost:hover{border-color:var(--cyan)}
+
+/* ---------- SECTION HELPERS ---------- */
+.section{position:relative;z-index:1;padding:88px 0}
+.section-tight{padding:56px 0}
+.section-tag{font-family:'JetBrains Mono';font-size:12px;color:var(--cyan);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-tag::before{content:'//';opacity:0.6}
+.section-head{max-width:640px;margin-bottom:44px}
+.section-head.center{margin:0 auto 48px;text-align:center}
+.section h2{font-size:36px;line-height:1.15;margin-bottom:14px}
+.section-sub{font-size:16px;font-weight:500;color:var(--text-dim);line-height:1.65}
+.card{background:var(--bg-elev);border:1px solid var(--line);border-radius:16px}
+.testimonial-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:920px;margin:0 auto}
+.testimonial-card{padding:32px 28px}
+.testimonial-stars{color:#F5B400;font-size:18px;letter-spacing:2px;margin-bottom:16px}
+.testimonial-quote{font-size:16px;line-height:1.65;color:var(--text);margin-bottom:20px}
+.testimonial-author{font-size:14px;color:var(--text-dimmer)}
+@media(max-width:760px){.testimonial-grid{grid-template-columns:1fr}}
+
+/* ---------- HERO ---------- */
+.hero{padding:64px 0 40px;position:relative;z-index:1}
+.hero-inner{display:grid;grid-template-columns:1.05fr 0.95fr;gap:52px;align-items:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono';font-size:12px;color:var(--cyan);background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.25);padding:6px 12px;border-radius:99px;margin-bottom:22px}
+.eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.hero h1{font-size:52px;margin-bottom:20px}
+.hero h1 .word{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:0.08em;margin-bottom:-0.08em}
+.hero h1 .word-inner{display:inline-block}
+.hero h1 .grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+@media (prefers-reduced-motion:reduce){.hero h1 .word-inner{transform:none}}
+.hero p.lede{font-size:17px;font-weight:500;color:var(--text-dim);max-width:480px;margin-bottom:32px;line-height:1.6}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:26px}
+.hero-note{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);display:flex;flex-wrap:wrap;align-items:center;row-gap:8px}
+.hero-note span{white-space:nowrap}
+.hero-note b{color:var(--text)}
+.hero-trust{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:13.5px;color:var(--text-dim)}
+.hero-trust-stars{color:#F5B400;letter-spacing:1px;font-size:14px}
+.hero-trust b{color:var(--text)}
+.hero-urgency{display:inline-block;background:rgba(34,211,238,0.1);color:var(--cyan);font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:99px;margin-top:16px;width:fit-content}
+
+/* Terminal mock */
+.terminal-caption{font-size:11.5px;color:var(--text-dimmer);margin-bottom:10px;text-align:center}
+.terminal{
+  background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:14px;overflow:hidden;
+  box-shadow:0 30px 70px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+}
+.terminal-bar{display:flex;align-items:center;gap:7px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--bg-elev2)}
+.terminal-dot{width:10px;height:10px;border-radius:50%}
+.terminal-body{padding:20px;font-family:'JetBrains Mono';font-size:12.5px;line-height:2;min-height:220px}
+.terminal-line{opacity:0;white-space:pre-wrap}
+.terminal-prompt{color:var(--cyan)}
+.terminal-ok{color:var(--green)}
+.terminal-cursor{display:inline-block;width:7px;height:14px;background:var(--cyan);vertical-align:middle;animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+
+.hero-visual{position:relative}
+.seal-canvas{position:absolute;right:-30px;top:-40px;width:150px;height:150px;pointer-events:none;z-index:2}
+
+/* ---------- PROBLEM CARDS ---------- */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.problem-card{padding:26px 22px;position:relative}
+.problem-icon{font-size:24px;margin-bottom:14px;display:block}
+.problem-card h3{font-size:15.5px;font-weight:700;margin-bottom:8px}
+.problem-card p{font-size:13px;color:var(--text-dim);line-height:1.55}
+.transition-line{text-align:center;font-family:'Space Grotesk';font-size:22px;font-weight:600;margin-top:44px;color:var(--text)}
+.transition-line .grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- COMPARISON TABLE ---------- */
+.compare{width:100%;border-collapse:collapse;overflow:hidden;border-radius:14px;border:1px solid var(--line)}
+.compare th,.compare td{padding:14px 18px;text-align:left;font-size:13.5px;border-bottom:1px solid var(--line)}
+.compare th{font-family:'JetBrains Mono';font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-dimmer);background:var(--bg-elev2)}
+.compare tr:last-child td{border-bottom:none}
+.compare td.old{color:var(--text-dimmer)}
+.compare td.new{color:var(--text);font-weight:600}
+.compare td.new::before{content:'✓ ';color:var(--green)}
+.compare td.old::before{content:'✕ ';color:var(--text-dimmer)}
+
+/* ---------- HOW IT WORKS ---------- */
+.howgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.how-step{padding:0 20px;position:relative}
+.how-step:not(:last-child)::after{content:'';position:absolute;top:24px;right:-1px;width:1px;height:calc(100% - 40px);background:repeating-linear-gradient(to bottom,var(--line) 0 6px,transparent 6px 12px)}
+.how-num{width:44px;height:44px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:17px;color:#0A0C11;margin-bottom:16px}
+.how-step h3{font-size:15.5px;margin-bottom:8px}
+.how-step p{font-size:13px;color:var(--text-dim);line-height:1.6}
+
+/* ---------- WALLET SECTION ---------- */
+.wallet-block{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.wallet-badges{display:flex;gap:10px;margin:20px 0}
+.wallet-badge{display:flex;align-items:center;gap:8px;background:var(--bg-elev);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600}
+.wallet-checks{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.wallet-checks div{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text-dim)}
+.wallet-checks span{color:var(--green)}
+.phone-frame-wrap{position:relative;display:flex;justify-content:center;padding:30px 0}
+.phone-frame{
+  position:relative;z-index:1;max-width:280px;margin:0 auto;
+  padding:14px 14px 22px;background:#000;
+  border-radius:36px;border:1px solid var(--line-strong);
+}
+.phone-frame::before{
+  content:'';position:absolute;top:14px;left:50%;transform:translateX(-50%);
+  width:70px;height:6px;background:#1a1a1a;border-radius:99px;z-index:2;
+}
+.phone-mock{border-radius:22px;overflow:hidden}
+
+/* ---------- TICKETS (condensed features) ---------- */
+.tickets{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.ticket{padding:24px 20px;position:relative;transition:transform .25s ease, border-color .25s ease}
+.soon-badge{position:absolute;top:14px;right:14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#0a0a0f;font-size:10px;font-weight:800;padding:4px 10px;border-radius:99px;letter-spacing:0.3px;text-transform:uppercase}
+.new-badge{position:absolute;top:14px;right:14px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#0a0a0f;font-size:10px;font-weight:800;padding:4px 10px;border-radius:99px;letter-spacing:0.3px;text-transform:uppercase}
+.ticket:hover{transform:translateY(-4px);border-color:var(--indigo)}
+.ticket-icon{width:38px;height:38px;border-radius:10px;background:var(--bg-elev2);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px}
+.ticket h3{font-size:15px;margin-bottom:8px}
+.ticket p{font-size:13px;color:var(--text-dim);line-height:1.55;margin-bottom:12px}
+.ticket-foot{font-family:'JetBrains Mono';font-size:10.5px;color:var(--indigo)}
+
+/* ---------- SCAN DEMO (mini interactive) ---------- */
+.demo-wrap{display:flex;justify-content:center}
+.demo-card{width:100%;max-width:420px;padding:28px 26px}
+.demo-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.demo-shop{font-family:'Space Grotesk';font-weight:700;font-size:17px}
+.demo-pts{font-family:'JetBrains Mono';font-size:12px;color:var(--text-dim)}
+.demo-bar-track{height:8px;background:var(--bg-elev2);border-radius:99px;overflow:hidden;margin-bottom:22px}
+.demo-bar-fill{height:100%;width:0%;background:var(--grad);border-radius:99px;transition:width .5s ease}
+.demo-qr-zone{
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;
+  border:1.5px dashed var(--line-strong);border-radius:12px;padding:26px;margin-bottom:20px;position:relative;overflow:hidden;
+}
+.demo-qr-flash{position:absolute;inset:0;background:var(--cyan);opacity:0;pointer-events:none}
+.demo-qr-icon{font-size:34px}
+.demo-log{font-family:'JetBrains Mono';font-size:11.5px;color:var(--text-dimmer);min-height:18px}
+.demo-reward{display:none;text-align:center;padding:10px 0}
+.demo-reward.show{display:block}
+.demo-reward-emoji{font-size:38px;margin-bottom:8px}
+.demo-reward-text{font-family:'Space Grotesk';font-weight:700;font-size:17px}
+
+/* ---------- STATS MOCK ---------- */
+.stats-block{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.stats-mock{padding:22px}
+.stats-mock .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.stats-mock .kpi{background:var(--bg-elev2);border-radius:10px;padding:12px;text-align:center}
+.stats-mock .kpi b{display:block;font-family:'Space Grotesk';font-size:22px;font-weight:700}
+.stats-mock .kpi.g b{color:var(--green)}
+.stats-mock .kpi.o b{color:var(--amber)}
+.stats-mock .kpi.r b{color:var(--cyan)}
+.stats-mock .kpi span{font-family:'JetBrains Mono';font-size:9px;color:var(--text-dimmer);text-transform:uppercase}
+.stats-mock .note{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--amber);margin-bottom:14px}
+.stats-mock .bars{display:flex;align-items:flex-end;gap:5px;height:44px}
+.stats-mock .bars div{flex:1;background:var(--indigo);border-radius:3px 3px 0 0;opacity:0.35}
+.stats-mock .bars div.on{opacity:1;background:var(--cyan)}
+.stats-example-tag{font-family:'JetBrains Mono';font-size:10px;color:var(--text-dimmer);text-align:center;margin-top:10px}
+.stats-example-tag-top{display:inline-block;background:rgba(245,180,0,0.12);color:#F5B400;font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:99px;margin:0 0 16px;text-align:left}
+.stats-mini-label{font-size:10px;color:var(--text-dimmer);margin-bottom:6px;font-weight:600}
+
+/* ---------- CARD MOCK SECTION ---------- */
+.cardinfo-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.cardinfo-list{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+.cardinfo-list div{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text-dim)}
+
+/* ---------- SIMPLICITY ---------- */
+.simplicity-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.simple-card{padding:26px}
+.simple-card h3{font-size:15px;margin-bottom:14px;font-family:'JetBrains Mono';color:var(--text-dimmer);text-transform:uppercase;letter-spacing:0.04em}
+.simple-list div{display:flex;align-items:center;gap:10px;font-size:13.5px;padding:7px 0}
+.simple-list .no{color:var(--text-dimmer)}
+.simple-list .no::before{content:'✕';color:var(--red);margin-right:2px}
+.simple-list .yes{color:var(--text);font-weight:600}
+.simple-list .yes::before{content:'✓';color:var(--green);margin-right:2px}
+
+/* ---------- BENEFITS 3 AXES ---------- */
+.axes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.axis-card{padding:28px 24px;text-align:center}
+.axis-icon{font-size:30px;margin-bottom:14px}
+.axis-card h3{font-family:'JetBrains Mono';font-size:13px;color:var(--cyan);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px}
+.axis-card p{font-size:13.5px;color:var(--text-dim);line-height:1.6}
+
+/* ---------- INSTALLATION STEPS ---------- */
+.install-steps{display:flex;flex-direction:column;gap:0}
+.install-step{display:flex;gap:20px;padding:22px 0;border-bottom:1px solid var(--line)}
+.install-step:last-child{border-bottom:none}
+.install-num{font-family:'JetBrains Mono';font-size:13px;color:var(--indigo);flex-shrink:0;width:60px}
+.install-step h3{font-size:15.5px;margin-bottom:6px}
+.install-step p{font-size:13.5px;color:var(--text-dim);line-height:1.6}
+
+/* ---------- PRICING ---------- */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.price-card{padding:28px 24px;display:flex;flex-direction:column;position:relative;transition:transform .25s ease}
+.price-card:hover{transform:translateY(-5px)}
+.price-card.featured{border-color:var(--indigo);box-shadow:0 0 0 1px var(--indigo), 0 20px 50px rgba(108,92,231,0.18)}
+.price-badge{position:absolute;top:-12px;left:24px;background:var(--grad);color:#0A0C11;font-family:'JetBrains Mono';font-size:10px;font-weight:700;text-transform:uppercase;padding:5px 12px;border-radius:99px}
+.price-name{font-size:13px;color:var(--text-dim);font-weight:600;margin-bottom:16px}
+.price-step{background:var(--bg-elev2);border-radius:10px;padding:13px 15px;margin-bottom:9px}
+.price-step-label{font-family:'JetBrains Mono';font-size:10px;color:var(--text-dimmer);text-transform:uppercase;margin-bottom:4px}
+.price-step-amount{font-family:'Space Grotesk';font-weight:700;font-size:23px}
+.price-step-amount span{font-family:'Inter';font-size:11.5px;font-weight:500;color:var(--text-dim)}
+.price-step-recurring{background:rgba(108,92,231,0.1);border:1px solid rgba(108,92,231,0.25);margin-bottom:18px}
+.price-step-recurring .price-step-amount{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.price-list{list-style:none;margin-bottom:22px;flex:1}
+.price-list li{font-size:13px;color:var(--text-dim);padding:7px 0;padding-left:20px;position:relative}
+.price-list li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
+.price-custom{font-family:'Space Grotesk';font-weight:700;font-size:26px;margin-bottom:16px}
+.price-footnote{text-align:center;font-family:'JetBrains Mono';font-size:11.5px;color:var(--text-dimmer);margin-top:24px}
+
+/* ---------- FAQ ACCORDION ---------- */
+.faq-list{display:flex;flex-direction:column;gap:10px}
+.faq-item{border-radius:12px;overflow:hidden}
+.faq-q{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;cursor:pointer;font-size:14.5px;font-weight:600}
+.faq-q .plus{font-family:'JetBrains Mono';color:var(--indigo);font-size:16px;transition:transform .25s ease;flex-shrink:0;margin-left:16px}
+.faq-item.open .plus{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.faq-a-inner{padding:0 20px 18px;font-size:13.5px;color:var(--text-dim);line-height:1.6}
+
+/* ---------- FINAL CTA ---------- */
+.final{text-align:center;padding:90px 0 50px}
+.lead-form{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:560px;margin:0 auto 14px}
+.lead-form input{
+  flex:1;min-width:180px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;
+  padding:14px 16px;font-size:14px;color:var(--text);font-family:'Inter';
+}
+.lead-form input::placeholder{color:var(--text-dimmer)}
+.lead-form input:focus{outline:none;border-color:var(--indigo)}
+.lead-form .btn-primary{white-space:nowrap}
+.lead-success{color:var(--green);font-weight:600;font-size:14.5px;margin-bottom:14px}
+.final h2{font-size:38px;margin-bottom:14px}
+.final p{color:var(--text-dim);font-size:15.5px;margin-bottom:30px;max-width:520px;margin-left:auto;margin-right:auto}
+.final-note{font-family:'JetBrains Mono';font-size:12px;color:var(--text-dimmer);margin-top:18px}
+.contact-alt{margin-top:14px;font-size:13.5px;color:var(--text-dim);display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.contact-alt a{color:var(--cyan);text-decoration:none;font-weight:600}
+.contact-alt a:hover{text-decoration:underline}
+
+footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index:1}
+.foot-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;font-size:12.5px;color:var(--text-dimmer)}
+.foot-inner a{text-decoration:underline;text-underline-offset:2px}
+
+.reveal-init{opacity:0;transform:translateY(18px);transition:opacity .55s ease, transform .55s ease}
+.reveal-init.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.reveal-init{opacity:1;transform:none;transition:none}}
+
+@media (max-width:900px){
+  .hero-note span:nth-child(2), .hero-note span:nth-child(4) { display: none; }
+  .hero-note { flex-direction: column; align-items: flex-start; }
+  .hero-inner{grid-template-columns:1fr;gap:36px}
+  .hero h1{font-size:36px}
+  .grid-4{grid-template-columns:1fr 1fr}
+  .howgrid{grid-template-columns:1fr 1fr;gap:28px 20px}
+  .how-step:nth-child(2)::after{display:none}
+  .how-step::after{display:none}
+  .wallet-block, .stats-block, .cardinfo-grid, .simplicity-grid{grid-template-columns:1fr;gap:28px}
+  .tickets{grid-template-columns:1fr}
+  .axes{grid-template-columns:1fr}
+  .pricing-grid{grid-template-columns:1fr}
+  .price-card.featured{order:-1}
+  .seal-canvas{display:none}
+  .compare{font-size:12px}
+  .compare th,.compare td{padding:10px 10px}
+  .final h2{font-size:28px}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow" id="bg-glow"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+<div class="cursor-dot" id="cursor-dot"></div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="brand"><span class="brand-mark">F</span>FidélyPass</div>
+    <div class="nav-links">
+      <a href="#probleme">Le problème</a>
+      <a href="#comment">Comment ça marche</a>
+      <a href="#fonctionnalites">Fonctionnalités</a>
+      <a href="#tarifs">Tarifs</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <button class="nav-cta" onclick="location.href='#contact'">Créer ma carte</button>
+    <a href="tel:+33645421187" class="nav-phone">📞 06 45 42 11 87</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-inner">
+    <div>
+      <div class="eyebrow">Carte de fidélité digitale</div>
+      <h1 class="hero-h1"><span class="word"><span class="word-inner">La</span></span> <span class="word"><span class="word-inner">carte</span></span> <span class="word"><span class="word-inner">de</span></span> <span class="word"><span class="word-inner">fidélité</span></span> <span class="word"><span class="word-inner">qui</span></span> <span class="word"><span class="word-inner">remplace</span></span> <span class="word"><span class="word-inner grad-text">le&nbsp;papier</span></span><span class="word"><span class="word-inner">.</span></span></h1>
+      <p class="lede">Transformez votre carte de fidélité papier en carte digitale, directement dans le téléphone de vos clients — récompenses automatiques, notifications, parrainage et statistiques pour les faire revenir.</p>
+      <div class="hero-ctas">
+        <button class="btn-primary" onclick="location.href='#contact'">Créer ma carte de fidélité →</button>
+        <button class="btn-ghost" onclick="location.href='#comment'">Voir comment ça marche</button>
+      </div>
+      <div class="hero-urgency">⚡ Installée chez vous sous 7 jours</div>
+      <div class="hero-note"><span><b>2 min</b> d'installation</span><span>&nbsp;·&nbsp;</span><span><b>0€</b> pour vos clients</span></div>
+      <div class="hero-trust"><span class="hero-trust-stars">★★★★★</span><span>Déjà adopté par <b>ZI FOOD</b> et <b>MS Barber</b></span></div>
+    </div>
+    <div class="hero-visual">
+      <canvas id="seal-canvas" class="seal-canvas" aria-hidden="true"></canvas>
+      <div class="terminal-caption mono">ce qui se passe en coulisse, à chaque scan :</div>
+      <div class="terminal reveal">
+        <div class="terminal-bar">
+          <div class="terminal-dot" style="background:#F87171"></div>
+          <div class="terminal-dot" style="background:#FBBF24"></div>
+          <div class="terminal-dot" style="background:#34D399"></div>
+          <span class="mono" style="margin-left:8px;font-size:11.5px;color:var(--text-dimmer)">fidelypass — live</span>
+        </div>
+        <div class="terminal-body" id="terminal-body"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLÈME -->
+<section class="section" id="probleme">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">le problème</div>
+      <h2>Votre carte de fidélité fonctionne… jusqu'au moment où votre client l'oublie.</h2>
+      <p class="section-sub">Le papier a un défaut qu'aucun commerçant ne peut résoudre : il dépend du client, pas de vous.</p>
+    </div>
+    <div class="grid-4 reveal">
+      <div class="card problem-card">
+        <span class="problem-icon">🗑️</span>
+        <h3>Carte oubliée ou perdue</h3>
+        <p>Votre client n'a pas sa carte sur lui ? Il ne cumule pas ses points. Une carte perdue, c'est parfois un historique de fidélité perdu.</p>
+      </div>
+      <div class="card problem-card">
+        <span class="problem-icon">📄</span>
+        <h3>Des données qui disparaissent</h3>
+        <p>Impossible de savoir précisément qui sont vos meilleurs clients, qui revient régulièrement, ou qui commence à décrocher.</p>
+      </div>
+      <div class="card problem-card">
+        <span class="problem-icon">🔕</span>
+        <h3>Aucun contact entre deux visites</h3>
+        <p>Une carte papier ne peut pas rappeler à un client qu'il n'est pas venu depuis 30 jours, ni lui envoyer une offre ciblée.</p>
+      </div>
+      <div class="card problem-card">
+        <span class="problem-icon">👻</span>
+        <h3>Aucune visibilité</h3>
+        <p>Vous distribuez des cartes, mais savez-vous combien de clients les utilisent réellement ? Combien reviennent ? À quelle fréquence ?</p>
+      </div>
+    </div>
+    <div class="transition-line reveal">Le problème n'est pas la fidélité. <span class="grad-text">Le problème, c'est l'outil.</span></div>
+  </div>
+</section>
+
+<!-- SOLUTION + COMPARATIF -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">la solution</div>
+      <h2>FidélyPass transforme votre carte en véritable outil de fidélisation.</h2>
+      <p class="section-sub">Une carte digitale installée directement dans Apple Wallet ou Google Wallet, associée à un système de points, de récompenses, de notifications et de suivi client. Le client garde sa carte dans son téléphone — vous gardez le contrôle depuis une interface simple.</p>
+    </div>
+    <div class="card reveal" style="overflow:hidden">
+      <table class="compare">
+        <tr><th>Carte papier</th><th>FidélyPass</th></tr>
+        <tr><td class="old">Peut être oubliée</td><td class="new">Toujours dans le téléphone</td></tr>
+        <tr><td class="old">Peut être perdue</td><td class="new">Carte digitale, incassable</td></tr>
+        <tr><td class="old">Pas de données exploitables</td><td class="new">Statistiques clients complètes</td></tr>
+        <tr><td class="old">Pas de relance possible</td><td class="new">Notifications push</td></tr>
+        <tr><td class="old">Pas de parrainage intégré</td><td class="new">Parrainage automatique</td></tr>
+        <tr><td class="old">Récompense au jugé</td><td class="new">Récompenses configurables</td></tr>
+        <tr><td class="old">Aucun suivi des clients inactifs</td><td class="new">Clients à risque identifiés</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- COMMENT ÇA MARCHE -->
+<section class="section" id="comment">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">comment ça marche</div>
+      <h2>4 étapes. Aucune usine à gaz.</h2>
+      <p class="section-sub">Ni terminal, ni lecteur QR, ni application à installer pour le client.</p>
+    </div>
+    <div class="howgrid reveal">
+      <div class="how-step">
+        <div class="how-num">01</div>
+        <h3>Le client scanne</h3>
+        <p>Un QR code au comptoir. Il le scanne avec l'appareil photo de son téléphone, entre son prénom. Carte créée en 10 secondes.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">02</div>
+        <h3>Sa carte arrive dans son téléphone</h3>
+        <p>Elle s'ajoute à Apple Wallet ou Google Wallet — votre logo, vos couleurs, toujours accessible, même hors connexion.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">03</div>
+        <h3>Vous scannez à chaque passage</h3>
+        <p>Depuis votre téléphone ou une tablette. Les points se créditent automatiquement selon vos règles (ex : 1€ = 1 point).</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">04</div>
+        <h3>La récompense se débloque seule</h3>
+        <p>Notification automatique dès l'objectif atteint. Le client vous montre sa carte, vous validez, le compteur repart.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WALLET -->
+<section class="section">
+  <div class="wrap">
+    <div class="wallet-block reveal">
+      <div>
+        <div class="section-tag">apple &amp; google wallet</div>
+        <h2>Sa carte, dans le portefeuille de son téléphone.</h2>
+        <p class="section-sub">Pas d'application supplémentaire à télécharger. Pas de mot de passe. Pas de compte compliqué.</p>
+        <div class="wallet-badges">
+          <div class="wallet-badge"><img src="/wallet-icons/apple-wallet-icon-96.png" alt="" width="18" height="18" style="border-radius:4px;vertical-align:-4px;margin-right:2px"> Apple Wallet</div>
+          <div class="wallet-badge"><img src="/wallet-icons/google-wallet-icon-96.png" alt="" width="18" height="18" style="border-radius:4px;vertical-align:-4px;margin-right:2px"> Google Wallet</div>
+        </div>
+        <div class="wallet-checks">
+          <div><span>✓</span> Votre logo, vos couleurs, le nom de votre commerce</div>
+          <div><span>✓</span> Accessible même sans connexion internet</div>
+          <div><span>✓</span> Apparaît sur l'écran verrouillé à proximité de votre boutique (iPhone)</div>
+        </div>
+      </div>
+      <div class="phone-frame-wrap"><div class="phone-frame"><div class="phone-mock"><img src="/screenshot-card.png" alt="Carte de fidélité FidélyPass sur smartphone"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FONCTIONNALITÉS CONDENSÉES -->
+<section class="section" id="fonctionnalites">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">les outils qui font revenir vos clients</div>
+      <h2>Pas une carte digitale. Un outil marketing.</h2>
+      <p class="section-sub">Chaque fonctionnalité automatise une tâche qu'aucun commerçant n'a le temps de faire à la main.</p>
+    </div>
+    <div class="tickets reveal">
+      <div class="card ticket">
+        <div class="ticket-icon">🔔</div>
+        <h3>Notifications push</h3>
+        <p>Offre flash, nouveau produit, rappel après une absence — envoyé à tous vos abonnés, gratuitement et sans limite.</p>
+        <div class="ticket-foot">$ contrairement au SMS</div>
+      </div>
+      <div class="card ticket">
+        <div class="ticket-icon">📅</div>
+        <h3>Prise de rendez-vous</h3>
+        <p>Vos clients réservent un créneau directement depuis leur carte, selon vos disponibilités. Vous gardez la main sur votre planning.</p>
+        <div class="ticket-foot">$ idéal coiffeurs, instituts</div>
+      </div>
+      <div class="card ticket">
+        <div class="ticket-icon">⚠️</div>
+        <h3>Relance automatique des clients inactifs</h3>
+        <p>FidélyPass détecte qui n'est pas revenu depuis un moment et lui envoie une notification tout seul — sans que vous ayez à y penser.</p>
+        <div class="ticket-foot">$ liste nominative</div>
+      </div>
+      <div class="card ticket">
+        <div class="ticket-icon">🎯</div>
+        <h3>Récompenses &amp; paliers</h3>
+        <p>Vous choisissez vos règles de points, et plusieurs paliers (10€ → café, 50€ → menu) pour des victoires régulières.</p>
+        <div class="ticket-foot">$ configurable</div>
+      </div>
+      <div class="card ticket">
+        <div class="ticket-icon">🥇</div>
+        <h3>Grades de fidélité</h3>
+        <p>Bronze → Argent → Or → Platine → Diamant → Élite → Famille. Vos meilleurs clients construisent un statut, pas juste un solde.</p>
+        <div class="ticket-foot">$ gamification</div>
+      </div>
+      <div class="card ticket">
+        <div class="ticket-icon">🤝</div>
+        <h3>Parrainage automatique</h3>
+        <p>Chaque client a son propre lien à partager. Parrain et filleul reçoivent des points — vos clients recrutent pour vous.</p>
+        <div class="ticket-foot">$ zéro budget pub</div>
+      </div>
+      <div class="card ticket">
+        <div class="ticket-icon">⭐</div>
+        <h3>Avis Google automatiques</h3>
+        <p>Au moment où le client débloque sa récompense — le plus satisfait — FidélyPass lui propose de laisser un avis.</p>
+        <div class="ticket-foot">$ le bon moment</div>
+      </div>
+      <div class="card ticket">
+        <div class="new-badge">Nouveau</div>
+        <div class="ticket-icon">🛍️</div>
+        <h3>Commande en ligne</h3>
+        <p>Vos clients commandent depuis leur interface, vous préparez, ils récupèrent sur place — sans passer par la caisse. Points crédités automatiquement à la remise.</p>
+        <div class="ticket-foot">$ idéal snacks, boulangeries</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MINI DEMO SCAN -->
+<section class="section" id="demo">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <div class="section-tag">essayez</div>
+      <h2>Voyez ce que vit votre client.</h2>
+      <p class="section-sub">C'est exactement ce geste-là qui se produit à chaque passage en caisse.</p>
+    </div>
+    <div class="demo-wrap reveal">
+      <div class="card demo-card">
+        <div class="demo-top">
+          <div class="demo-shop">Votre Commerce</div>
+          <div class="demo-pts"><span id="demo-pts-val">0</span>/50 pts</div>
+        </div>
+        <div class="demo-bar-track"><div class="demo-bar-fill" id="demo-bar"></div></div>
+        <div class="demo-qr-zone" id="demo-qr-zone">
+          <div class="demo-qr-flash" id="demo-flash"></div>
+          <div class="demo-qr-icon">▦</div>
+          <div class="demo-log mono" id="demo-log">$ en attente de scan…</div>
+        </div>
+        <button class="btn-primary" id="demo-scan-btn" style="width:100%;justify-content:center">Scanner un achat (+10€)</button>
+        <div class="demo-reward" id="demo-reward">
+          <div class="demo-reward-emoji">🎉</div>
+          <div class="demo-reward-text">Récompense débloquée !</div>
+          <button class="btn-ghost" id="demo-replay-btn" style="margin-top:14px">Recommencer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="section">
+  <div class="wrap">
+    <div class="stats-block reveal">
+      <div>
+        <div class="section-tag">statistiques avancées</div>
+        <h2>Vous savez enfin ce qui se passe dans votre clientèle.</h2>
+        <p class="section-sub">Vous ne distribuez plus simplement des cartes. Vous comprenez votre clientèle — et vous savez exactement où agir.</p>
+        <div class="wallet-checks">
+          <div><span>✓</span> Score de risque personnalisé, selon le rythme de chaque client</div>
+          <div><span>✓</span> Comparaison anonymisée avec les autres boutiques du réseau</div>
+          <div><span>✓</span> Panier moyen, valeur client (LTV) et projection annuelle</div>
+          <div><span>✓</span> Carte de chaleur des jours et heures de pointe</div>
+          <div><span>✓</span> Export CSV et alertes automatiques</div>
+        </div>
+      </div>
+      <div class="card stats-mock">
+        <div class="stats-example-tag stats-example-tag-top">📊 Exemple illustratif — pas vos vraies données</div>
+        <div class="row3">
+          <div class="kpi g"><b><span class="count-num" data-count="62">0</span></b><span>Actifs</span></div>
+          <div class="kpi o"><b><span class="count-num" data-count="14">0</span></b><span>À risque</span></div>
+          <div class="kpi r"><b><span class="count-num" data-count="78">0</span>%</b><span>Rétention</span></div>
+        </div>
+        <div class="note mono">$ vous : 74% · moyenne réseau : 61%</div>
+        <div class="stats-mini-label">Panier moyen · valeur client (LTV)</div>
+        <div class="row3" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
+          <div class="kpi"><b style="color:var(--text)">12,50€</b><span>Panier moyen</span></div>
+          <div class="kpi"><b style="color:var(--text)">145€</b><span>LTV estimée</span></div>
+        </div>
+        <div class="stats-mini-label">Fréquentation par créneau</div>
+        <div class="bars">
+          <div style="height:35%"></div><div style="height:55%"></div><div style="height:45%" class="on"></div>
+          <div style="height:70%" class="on"></div><div style="height:100%" class="on"></div><div style="height:80%" class="on"></div>
+          <div style="height:25%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CARTE CLIENT -->
+<section class="section">
+  <div class="wrap">
+    <div class="cardinfo-grid reveal">
+      <div class="phone-frame-wrap"><div class="phone-frame"><div class="phone-mock"><img src="/screenshot-gerant.png" alt="Interface gérant FidélyPass"></div></div></div>
+      <div>
+        <div class="section-tag">la carte client</div>
+        <h2>Toutes les informations, au même endroit.</h2>
+        <p class="section-sub">Votre client n'a plus besoin de chercher votre Instagram, votre numéro ou votre menu.</p>
+        <div class="cardinfo-list">
+          <div>🎁 Récompenses et progression</div>
+          <div>🍔 Menu à jour</div>
+          <div>🕐 Horaires d'ouverture</div>
+          <div>📞 Téléphone en un tap</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SIMPLICITÉ -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <div class="section-tag">pour le commerçant</div>
+      <h2>Vous n'êtes pas là pour gérer un logiciel.</h2>
+      <p class="section-sub">Vous êtes là pour gérer votre commerce. FidélyPass s'occupe du reste.</p>
+    </div>
+    <div class="simplicity-grid reveal">
+      <div class="card simple-card">
+        <h3>Ce que FidélyPass prend en charge</h3>
+        <div class="simple-list">
+          <div class="yes">Configuration complète</div>
+          <div class="yes">Création de la carte</div>
+          <div class="yes">Génération des QR codes</div>
+          <div class="yes">Règles de points et récompenses</div>
+          <div class="yes">Mise en place initiale avec vous</div>
+        </div>
+      </div>
+      <div class="card simple-card">
+        <h3>Ce que vous devez faire</h3>
+        <div class="simple-list">
+          <div class="yes">Scanner la carte du client. C'est tout.</div>
+          <div class="no">Pas de terminal spécifique</div>
+          <div class="no">Pas de lecteur QR à acheter</div>
+          <div class="no">Pas d'app à installer pour le client</div>
+          <div class="no">Pas de matériel supplémentaire</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BÉNÉFICES 3 AXES -->
+<section class="section">
+  <div class="wrap">
+    <div class="axes reveal">
+      <div class="card axis-card">
+        <div class="axis-icon">💰</div>
+        <h3>Fidéliser</h3>
+        <p>Faire revenir les clients existants, plus souvent, avec des récompenses qui ont du sens.</p>
+      </div>
+      <div class="card axis-card">
+        <div class="axis-icon">📣</div>
+        <h3>Relancer</h3>
+        <p>Réactivés automatiquement par notification, avant qu'ils n'aillent voir ailleurs.</p>
+      </div>
+      <div class="card axis-card">
+        <div class="axis-icon">📈</div>
+        <h3>Développer</h3>
+        <p>Parrainage, avis Google, meilleure connaissance client — un vrai canal de croissance.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALLATION -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="section-tag">installation</div>
+      <h2>On s'occupe de tout.</h2>
+    </div>
+    <div class="card reveal" style="padding:8px 28px">
+      <div class="install-steps">
+        <div class="install-step">
+          <div class="install-num mono">01</div>
+          <div><h3>Vous nous donnez vos informations</h3><p>Logo, couleurs, règles de fidélité, récompenses, informations pratiques.</p></div>
+        </div>
+        <div class="install-step">
+          <div class="install-num mono">02</div>
+          <div><h3>Nous configurons votre FidélyPass</h3><p>Carte, QR codes, système de points et récompenses — prêts à l'emploi.</p></div>
+        </div>
+        <div class="install-step">
+          <div class="install-num mono">03</div>
+          <div><h3>Vous installez votre QR code</h3><p>Comptoir, caisse, ou tablette — support fourni.</p></div>
+        </div>
+        <div class="install-step">
+          <div class="install-num mono">04</div>
+          <div><h3>Vous commencez à fidéliser</h3><p>Vos clients s'inscrivent, votre programme fonctionne dès le premier jour.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RÉSULTATS -->
+<section class="section" id="resultats">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <div class="section-tag">résultats</div>
+      <h2>Déjà en place chez de vrais commerçants</h2>
+    </div>
+    <div class="testimonial-grid">
+      <div class="card reveal testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">« Un vrai snack à l'ancienne — j'ai eu l'impression de faire un bond dans les années 2000. Et avec le système de fidélité en plus, les récompenses donnent encore plus envie d'y retourner. Je recommande ZI FOOD à fond ! »</p>
+        <p class="testimonial-author">— Client de <strong>ZI FOOD</strong></p>
+      </div>
+      <div class="card reveal testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-quote">« J'ai pris rendez-vous directement depuis la plateforme, qui sert aussi de carte de fidélité — super pratique, sans prise de tête, et plus besoin d'attendre sur place. Coupe au top, et en plus je suis reparti avec ma récompense. Ça donne vraiment envie de revenir chez le coiffeur ! »</p>
+        <p class="testimonial-author">— Client de <strong>MS Barber</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TARIFS -->
+<section class="section" id="tarifs">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <div class="section-tag">tarifs</div>
+      <h2>Simple. Clair. Sans surprise.</h2>
+      <p class="section-sub">Installation prise en charge intégralement.</p>
+    </div>
+    <div class="pricing-grid reveal">
+      <div class="card price-card">
+        <div class="price-name">1 boutique</div>
+        <div class="price-step">
+          <div class="price-step-label mono">1. installation (une fois)</div>
+          <div class="price-step-amount">80 €</div>
+        </div>
+        <div class="price-step price-step-recurring">
+          <div class="price-step-label mono">2. abonnement mensuel</div>
+          <div class="price-step-amount">29 <span>€ / mois</span></div>
+        </div>
+        <ul class="price-list">
+          <li>Carte digitale illimitée</li>
+          <li>Apple &amp; Google Wallet</li>
+          <li>Notifications push</li>
+          <li>Prise de rendez-vous</li>
+          <li>Statistiques avancées</li>
+        </ul>
+        <button class="btn-primary" style="width:100%;justify-content:center" onclick="location.href='#contact'">Être rappelé sous 24h</button>
+      </div>
+      <div class="card price-card featured">
+        <div class="price-badge">le plus choisi</div>
+        <div class="price-name">Plusieurs boutiques</div>
+        <div class="price-step">
+          <div class="price-step-label mono">1. installation (1ère boutique)</div>
+          <div class="price-step-amount">80 €</div>
+        </div>
+        <div class="price-step price-step-recurring">
+          <div class="price-step-label mono">2. abonnement, par boutique</div>
+          <div class="price-step-amount">24 <span>€ / mois</span></div>
+        </div>
+        <ul class="price-list">
+          <li>Tout ce qui est inclus à 1 boutique</li>
+          <li>Un tableau de bord par boutique</li>
+          <li>Tarif dégressif automatique</li>
+        </ul>
+        <button class="btn-primary" style="width:100%;justify-content:center" onclick="location.href='#contact'">Être rappelé sous 24h</button>
+      </div>
+      <div class="card price-card">
+        <div class="price-name">Réseau / franchise</div>
+        <div class="price-custom">Sur-mesure</div>
+        <p style="font-size:12.5px;color:var(--text-dim);margin-bottom:18px">On en discute ensemble, selon votre nombre de boutiques.</p>
+        <ul class="price-list">
+          <li>Tarif adapté au volume</li>
+          <li>Accompagnement dédié</li>
+        </ul>
+        <button class="btn-ghost" style="width:100%;justify-content:center" onclick="location.href='#contact'">Nous contacter</button>
+      </div>
+    </div>
+    <p class="price-footnote">✓ Installation prise en charge · ✓ Aucun frais caché · ✓ Résiliation quand vous voulez</p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="wrap" style="max-width:760px">
+    <div class="section-head center reveal">
+      <div class="section-tag">questions fréquentes</div>
+      <h2>Tout ce qu'il reste à savoir.</h2>
+    </div>
+    <div class="faq-list reveal">
+      <div class="card faq-item">
+        <div class="faq-q">Mes clients doivent-ils télécharger une application ?<span class="plus">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">Non. La carte s'ajoute directement à Apple Wallet ou Google Wallet, déjà présents sur tous les smartphones.</div></div>
+      </div>
+      <div class="card faq-item">
+        <div class="faq-q">Dois-je acheter un lecteur QR ?<span class="plus">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">Non. Votre téléphone ou votre tablette suffit pour scanner les cartes de vos clients.</div></div>
+      </div>
+      <div class="card faq-item">
+        <div class="faq-q">Est-ce compliqué à installer ?<span class="plus">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">Non. La configuration complète (carte, QR codes, règles de points) est prise en charge avec vous.</div></div>
+      </div>
+      <div class="card faq-item">
+        <div class="faq-q">Puis-je choisir mes propres récompenses ?<span class="plus">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">Oui. Vous définissez vos règles de points et vos récompenses, y compris plusieurs paliers.</div></div>
+      </div>
+      <div class="card faq-item">
+        <div class="faq-q">Puis-je envoyer des notifications à mes clients ?<span class="plus">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">Oui, les notifications push sont incluses et illimitées, sans surcoût par envoi.</div></div>
+      </div>
+      <div class="card faq-item">
+        <div class="faq-q">Puis-je avoir plusieurs boutiques ?<span class="plus">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">Oui, avec un tarif dégressif automatique dès la deuxième boutique.</div></div>
+      </div>
+      <div class="card faq-item">
+        <div class="faq-q">Puis-je voir mes clients les plus fidèles ?<span class="plus">+</span></div>
+        <div class="faq-a"><div class="faq-a-inner">Oui. Les statistiques identifient vos meilleurs clients, votre rétention et vos clients à risque.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="final" id="contact">
+  <div class="wrap">
+    <h2>Votre prochaine carte de fidélité<br>n'a pas besoin d'être en papier.</h2>
+    <p>Laissez-nous votre contact — on vous installe FidélyPass dans la semaine.</p>
+    <form id="lead-form" class="lead-form">
+      <input type="text" id="lead-name" placeholder="Nom de votre commerce" required>
+      <input type="tel" id="lead-phone" placeholder="Votre numéro" required>
+      <button type="submit" class="btn-primary" id="lead-submit">Être contacté →</button>
+    </form>
+    <div id="lead-success" class="lead-success" style="display:none">✓ Merci ! On vous rappelle très vite.</div>
+    <div class="final-note">Réponse sous 24h</div>
+    <div class="contact-alt">
+      <span>ou directement par</span>
+      <a href="https://wa.me/33645421187" target="_blank" rel="noopener">💬 WhatsApp</a>
+      <span>·</span>
+      <a href="tel:+33645421187">📞 06 45 42 11 87</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-inner">
+    <div>© 2026 FidélyPass — Tous droits réservés</div>
+    <div><a href="mailto:walyd.benaissi@icloud.com">walyd.benaissi@icloud.com</a> · <a href="tel:+33645421187">06 45 42 11 87</a> · <a href="/mentions-legales.html">Mentions légales</a> · <a href="/confidentialite.html">Confidentialité</a></div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const hasGSAP = typeof gsap !== 'undefined';
+const hasHover = window.matchMedia('(hover: hover)').matches;
+
+/* ---------- Curseur personnalisé ---------- */
+if (hasHover && !prefersReducedMotion && hasGSAP) {
+  document.documentElement.classList.add('has-custom-cursor');
+  const dot = document.getElementById('cursor-dot');
+  const ring = document.getElementById('cursor-ring');
+  const glow = document.getElementById('bg-glow');
+  const moveDotX = gsap.quickTo(dot, 'x', { duration: 0.05, ease: 'none' });
+  const moveDotY = gsap.quickTo(dot, 'y', { duration: 0.05, ease: 'none' });
+  const moveRingX = gsap.quickTo(ring, 'x', { duration: 0.35, ease: 'power3' });
+  const moveRingY = gsap.quickTo(ring, 'y', { duration: 0.35, ease: 'power3' });
+  const moveGlowX = gsap.quickTo(glow, 'x', { duration: 0.6, ease: 'power2' });
+  const moveGlowY = gsap.quickTo(glow, 'y', { duration: 0.6, ease: 'power2' });
+  window.addEventListener('mousemove', (e) => {
+    moveDotX(e.clientX); moveDotY(e.clientY);
+    moveRingX(e.clientX); moveRingY(e.clientY);
+    moveGlowX(e.clientX); moveGlowY(e.clientY);
+  });
+  document.querySelectorAll('a, button, .ticket, .price-card, .faq-q').forEach(el => {
+    el.addEventListener('mouseenter', () => ring.classList.add('grow'));
+    el.addEventListener('mouseleave', () => ring.classList.remove('grow'));
+  });
+}
+
+/* ---------- Terminal hero : log de scan simulé ---------- */
+(function () {
+  const body = document.getElementById('terminal-body');
+  if (!body) return;
+  const lines = [
+    { html: '<span class="terminal-prompt">$</span> fidelypass --watch', cls: '' },
+    { html: 'Connexion à la boutique… <span class="terminal-ok">OK</span>', cls: '' },
+    { html: '', cls: '' },
+    { html: '<span class="terminal-prompt">→</span> scan reçu · client #248', cls: '' },
+    { html: '  +10 pts crédités <span class="terminal-ok">✓</span>', cls: '' },
+    { html: '', cls: '' },
+    { html: '<span class="terminal-prompt">→</span> scan reçu · client #391', cls: '' },
+    { html: '  objectif atteint → <span class="terminal-ok">récompense débloquée 🎁</span>', cls: '' },
+    { html: '  notification envoyée <span class="terminal-ok">✓</span>', cls: '' },
+    { html: '', cls: '' },
+    { html: '<span class="terminal-prompt">$</span> <span class="terminal-cursor"></span>', cls: '' },
+  ];
+  lines.forEach(l => {
+    const div = document.createElement('div');
+    div.className = 'terminal-line mono';
+    div.innerHTML = l.html;
+    body.appendChild(div);
+  });
+  const lineEls = body.querySelectorAll('.terminal-line');
+  if (hasGSAP) {
+    const tl = gsap.timeline({ delay: 0.5 });
+    lineEls.forEach((el, i) => {
+      tl.to(el, { opacity: 1, duration: 0.05 }, i * 0.32);
+    });
+  } else {
+    lineEls.forEach(el => el.style.opacity = 1);
+  }
+})();
+
+if (hasGSAP) {
+  /* ---------- Hero entrance ---------- */
+  const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+  heroTl
+    .from('.eyebrow', { opacity: 0, y: 10, duration: 0.5 })
+    .from('.hero-h1 .word-inner', { y: '115%', duration: 0.7, stagger: 0.045, ease: 'power4.out' }, '-=0.25')
+    .from('.lede', { opacity: 0, y: 14, duration: 0.6 }, '-=0.3')
+    .from('.hero-ctas .btn-primary, .hero-ctas .btn-ghost', { opacity: 0, y: 14, duration: 0.5, stagger: 0.1 }, '-=0.3')
+    .from('.hero-note', { opacity: 0, duration: 0.5 }, '-=0.2')
+    .from('.hero-visual .terminal', { opacity: 0, y: 20, scale: 0.97, duration: 0.7 }, '-=0.9');
+
+  /* ---------- Reveal en cascade au scroll — IntersectionObserver, pas ScrollTrigger ----------
+     ScrollTrigger calcule les positions de déclenchement à partir du scroll du navigateur, ce qui
+     entre en conflit avec `scroll-behavior:smooth` sur Safari réel (le scroll natif désynchronise
+     ses calculs) et peut laisser des sections bloquées invisibles indéfiniment. IntersectionObserver
+     ne dépend d'aucun calcul de position de scroll et est donc immunisé contre ce problème. */
+  if ('IntersectionObserver' in window) {
+    const STAGGER_SELECTORS = ['.grid-4', '.howgrid', '.tickets', '.pricing-grid', '.axes', '.faq-list', '.simplicity-grid'];
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const isStagger = STAGGER_SELECTORS.some(sel => el.matches(sel));
+        gsap.to(isStagger ? el.children : el, {
+          opacity: 1, y: 0, duration: 0.6, stagger: isStagger ? 0.08 : 0, ease: 'power3.out'
+        });
+        revealObserver.unobserve(el);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => {
+      const isStagger = STAGGER_SELECTORS.some(sel => el.matches(sel));
+      gsap.set(isStagger ? el.children : el, { opacity: 0, y: 26 });
+      revealObserver.observe(el);
+    });
+  }
+
+  /* ---------- Compteurs animés — IntersectionObserver, même raison ---------- */
+  if ('IntersectionObserver' in window) {
+    const countObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const target = parseInt(el.dataset.count, 10);
+        countObserver.unobserve(el);
+        if (prefersReducedMotion) { el.textContent = target; return; }
+        gsap.fromTo(el, { textContent: 0 }, {
+          textContent: target, duration: 1, ease: 'power2.out', snap: { textContent: 1 },
+          onUpdate: function () { el.textContent = Math.round(this.targets()[0].textContent); }
+        });
+      });
+    }, { threshold: 0.4 });
+    document.querySelectorAll('.count-num').forEach(el => countObserver.observe(el));
+  }
+}
+
+/* ---------- Sceau 3D (Three.js) ---------- */
+if (typeof THREE !== 'undefined') {
+  const canvas = document.getElementById('seal-canvas');
+  if (canvas) {
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+    camera.position.set(0, 0, 6);
+    function sizeCanvas() {
+      const size = canvas.clientWidth || 150;
+      renderer.setSize(size, size, false);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      camera.aspect = 1; camera.updateProjectionMatrix();
+    }
+    sizeCanvas();
+    window.addEventListener('resize', sizeCanvas);
+
+    const token = new THREE.Group();
+    const wireGeo = new THREE.IcosahedronGeometry(1.4, 0);
+    const wireMat = new THREE.MeshBasicMaterial({ color: 0x22D3EE, wireframe: true, transparent: true, opacity: 0.85 });
+    token.add(new THREE.Mesh(wireGeo, wireMat));
+    const coreMat = new THREE.MeshStandardMaterial({ color: 0x6C5CE7, metalness: 0.4, roughness: 0.3, transparent: true, opacity: 0.5 });
+    token.add(new THREE.Mesh(new THREE.IcosahedronGeometry(1.05, 0), coreMat));
+    scene.add(token);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const dl = new THREE.DirectionalLight(0x22D3EE, 1);
+    dl.position.set(2, 3, 4);
+    scene.add(dl);
+
+    let targetX = 0, targetY = 0;
+    if (hasHover) {
+      window.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        targetY = ((e.clientX - (rect.left + rect.width / 2)) / window.innerWidth) * 1.2;
+        targetX = ((e.clientY - (rect.top + rect.height / 2)) / window.innerHeight) * 1.2;
+      });
+    }
+    function animateToken() {
+      token.rotation.y += 0.007;
+      token.rotation.x += (targetX - token.rotation.x) * 0.05;
+      renderer.render(scene, camera);
+      requestAnimationFrame(animateToken);
+    }
+    if (prefersReducedMotion) renderer.render(scene, camera);
+    else requestAnimationFrame(animateToken);
+  }
+}
+
+/* ---------- Mini-démo : simulateur de scan (automatique, façon petit GIF) ---------- */
+(function () {
+  const btn = document.getElementById('demo-scan-btn');
+  const bar = document.getElementById('demo-bar');
+  const ptsVal = document.getElementById('demo-pts-val');
+  const flash = document.getElementById('demo-flash');
+  const log = document.getElementById('demo-log');
+  const reward = document.getElementById('demo-reward');
+  const replayBtn = document.getElementById('demo-replay-btn');
+  const card = document.querySelector('.demo-card');
+  if (!btn) return;
+
+  const GOAL = 50;
+  let pts = 0;
+  let autoTimer = null;
+
+  function scan() {
+    if (pts >= GOAL) return;
+    pts = Math.min(GOAL, pts + 10);
+    ptsVal.textContent = pts;
+    bar.style.width = (pts / GOAL * 100) + '%';
+    log.textContent = '$ scan reçu · +10 pts crédités ✓';
+    if (hasGSAP && !prefersReducedMotion) {
+      gsap.fromTo(flash, { opacity: 0.55 }, { opacity: 0, duration: 0.4 });
+      gsap.fromTo(ptsVal, { scale: 1.3 }, { scale: 1, duration: 0.3, ease: 'back.out(3)' });
+    }
+    if (pts >= GOAL) {
+      btn.disabled = true;
+      log.textContent = '$ objectif atteint → récompense débloquée';
+      setTimeout(() => {
+        reward.classList.add('show');
+        if (hasGSAP && !prefersReducedMotion) {
+          gsap.fromTo(reward, { opacity: 0 }, { opacity: 1, duration: 0.35 });
+          gsap.fromTo('.demo-reward-emoji', { scale: 0, rotate: -20 }, { scale: 1, rotate: 0, duration: 0.5, ease: 'back.out(3)' });
+        }
+      }, 400);
+    }
+  }
+
+  function resetDemo() {
+    pts = 0; ptsVal.textContent = 0; bar.style.width = '0%';
+    log.textContent = '$ en attente de scan…';
+    reward.classList.remove('show');
+    btn.disabled = false;
+  }
+
+  function stopAuto() {
+    if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+  }
+
+  function playAutoStep() {
+    if (pts < GOAL) {
+      scan();
+      autoTimer = setTimeout(playAutoStep, 900);
+    } else {
+      // Pause sur la récompense débloquée, puis relance depuis le début — comme un GIF en boucle
+      autoTimer = setTimeout(() => {
+        resetDemo();
+        autoTimer = setTimeout(playAutoStep, 700);
+      }, 3200);
+    }
+  }
+
+  // Un clic manuel coupe l'automatique (évite un double rythme bizarre) et avance d'un coup
+  btn.addEventListener('click', () => { stopAuto(); scan(); });
+  if (replayBtn) {
+    replayBtn.addEventListener('click', () => { stopAuto(); resetDemo(); });
+  }
+
+  // Se joue automatiquement dès que la démo apparaît à l'écran — personne n'a besoin de
+  // cliquer 5 fois pour voir la récompense se débloquer. Se met en pause hors de l'écran.
+  if (card && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          if (!autoTimer) autoTimer = setTimeout(playAutoStep, 500);
+        } else {
+          stopAuto();
+        }
+      });
+    }, { threshold: 0.5 });
+    io.observe(card);
+  }
+})();
+
+/* ---------- Formulaire de contact ---------- */
+(function () {
+  const form = document.getElementById('lead-form');
+  if (!form) return;
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const btn = document.getElementById('lead-submit');
+    const name = document.getElementById('lead-name').value.trim();
+    const phone = document.getElementById('lead-phone').value.trim();
+    if (!name || !phone) return;
+    btn.disabled = true;
+    btn.textContent = 'Envoi…';
+    fetch('/api/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ business_name: name, phone: phone })
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          form.style.display = 'none';
+          document.getElementById('lead-success').style.display = 'block';
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Être contacté →';
+          alert(data.error || "Une erreur est survenue, réessayez.");
+        }
+      })
+      .catch(() => {
+        btn.disabled = false;
+        btn.textContent = 'Être contacté →';
+        alert("Une erreur est survenue, réessayez.");
+      });
+  });
+})();
+
+/* ---------- FAQ accordéon ---------- */
+document.querySelectorAll('.faq-item').forEach(item => {
+  const q = item.querySelector('.faq-q');
+  const a = item.querySelector('.faq-a');
+  q.addEventListener('click', () => {
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(other => {
+      if (other !== item) {
+        other.classList.remove('open');
+        other.querySelector('.faq-a').style.maxHeight = null;
+      }
+    });
+    if (isOpen) {
+      item.classList.remove('open');
+      a.style.maxHeight = null;
+    } else {
+      item.classList.add('open');
+      a.style.maxHeight = a.scrollHeight + 'px';
+    }
+  });
+});
+</script>
+
+</body>
+</html>

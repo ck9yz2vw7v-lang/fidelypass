@@ -3,17 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="dark">
-<title>FidélyPass — La carte de fidélité qui remplace le papier</title>
-<meta name="description" content="Transformez votre carte de fidélité papier en carte digitale dans le téléphone de vos clients — récompenses automatiques, notifications, parrainage et statistiques.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#FFFFFF">
+<title>FidélyPass · La carte de fidélité qui remplace le papier</title>
+<meta name="description" content="La carte de fidélité digitale de votre commerce, dans Apple Wallet et Google Wallet : points et récompenses automatiques, notifications, parrainage et statistiques.">
 <link rel="canonical" href="https://fidelypass-production.up.railway.app/landing.html">
 <link rel="icon" type="image/png" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-192.png">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FidélyPass">
-<meta property="og:title" content="FidélyPass — La carte de fidélité qui remplace le papier">
-<meta property="og:description" content="Transformez votre carte de fidélité papier en carte digitale dans le téléphone de vos clients — récompenses automatiques, notifications, parrainage et statistiques.">
+<meta property="og:title" content="FidélyPass · La carte de fidélité qui remplace le papier">
+<meta property="og:description" content="La carte de fidélité digitale de votre commerce, dans Apple Wallet et Google Wallet : points et récompenses automatiques, notifications, parrainage et statistiques.">
 <meta property="og:image" content="https://fidelypass-production.up.railway.app/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -21,8 +22,8 @@
 <meta property="og:locale" content="fr_FR">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="FidélyPass — La carte de fidélité qui remplace le papier">
-<meta name="twitter:description" content="Transformez votre carte de fidélité papier en carte digitale dans le téléphone de vos clients.">
+<meta name="twitter:title" content="FidélyPass · La carte de fidélité qui remplace le papier">
+<meta name="twitter:description" content="La carte de fidélité digitale de votre commerce, dans le téléphone de vos clients.">
 <meta name="twitter:image" content="https://fidelypass-production.up.railway.app/og-image.png">
 
 <script type="application/ld+json">
@@ -32,7 +33,7 @@
   "name": "FidélyPass",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "iOS, Android, Web",
-  "description": "Carte de fidélité digitale dans Apple Wallet et Google Wallet pour commerçants indépendants — récompenses automatiques, notifications, parrainage et statistiques.",
+  "description": "Carte de fidélité digitale dans Apple Wallet et Google Wallet pour commerçants indépendants : points et récompenses automatiques, notifications, parrainage et statistiques.",
   "url": "https://fidelypass-production.up.railway.app/landing.html",
   "offers": {
     "@type": "Offer",
@@ -42,1161 +43,1290 @@
 }
 </script>
 
+<!--
+  Emplacement réservé aux futurs pixels de suivi (publicité, mesure d'audience).
+  Coller ici les balises fournies par chaque plateforme, une fois les identifiants obtenus.
+  Penser à les conditionner au consentement (bandeau cookies) avant activation.
+-->
+
+<script>document.documentElement.classList.add('js');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@600..800&family=Funnel+Sans:wght@400..700&display=swap" rel="stylesheet">
 <style>
 :root{
-  color-scheme: dark;
-  --bg:#0A0C11;
-  --bg-elev:#12151D;
-  --bg-elev2:#181C26;
-  --line:rgba(255,255,255,0.09);
-  --line-strong:rgba(255,255,255,0.16);
-  --text:#EDEFF5;
-  --text-dim:#B0B8CC;
-  --text-dimmer:#7C8499;
-  --indigo:#6C5CE7;
-  --cyan:#22D3EE;
-  --green:#34D399;
-  --amber:#FBBF24;
-  --red:#F87171;
-  --grad: linear-gradient(90deg, var(--indigo), var(--cyan));
+  color-scheme: light;
+  accent-color: var(--brand);
+  /* Neutres */
+  --bg:#ECEEF3;
+  --surface:#FFFFFF;
+  --surface-2:#E9ECF2;
+  --line:#DCE0E8;
+  --line-strong:#D3D8E1;
+  --ink:#0B0D12;
+  --ink-2:#4B5263;
+  --ink-3:#5A6274;
+  /* Marque */
+  --brand:#4B3BF5;
+  --brand-hover:#3A2BE0;
+  --brand-soft:#EEEBFF;
+  --brand-softer:#F6F4FF;
+  --on-brand:#FFFFFF;
+  --on-brand-2:#E4E0FF;
+  --deep:#16123F;
+  --deep-2:#B9B3E8;
+  --deep-line:rgba(255,255,255,0.14);
+  --deep-well:rgba(255,255,255,0.08);
+  /* États */
+  --ok:#0B7A57;
+  --ok-soft:#E6F6EF;
+  --no:#B42318;
+  --warn:#C2410C;
+  --warn-soft:#FFF1E6;
+  --gold-ink:#8A6100;
+  --gold-soft:#FFF4D6;
+  --gold:#FFB020;
+  --focus:#4B3BF5;
+  /* Objets */
+  --device:#0B0D12;
+  --device-edge:#2A2E38;
+  --screen:#F2F2F7;
+  --qr:#0B0D12;
+  --shadow-sm:0 1px 2px rgba(11,13,18,0.06);
+  --shadow-btn:0 1px 2px rgba(11,13,18,0.12), inset 0 1px 0 rgba(255,255,255,0.18);
+  --shadow-md:0 1px 2px rgba(11,13,18,0.05), 0 8px 24px rgba(11,13,18,0.07);
+  --shadow-lg:0 2px 6px rgba(11,13,18,0.06), 0 24px 56px rgba(11,13,18,0.14);
+
+  --font:'Funnel Sans', system-ui, -apple-system, sans-serif;
+  --font-display:'Funnel Display', 'Funnel Sans', system-ui, sans-serif;
+  --r-lg:24px;
+  --r-md:16px;
+  --r-sm:10px;
+  --gutter:16px;
+  --ease:cubic-bezier(.22,1,.36,1);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-  background:var(--bg); color:var(--text);
-  font-family:'Inter',sans-serif;
-  -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
+[hidden]{display:none !important}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;scroll-padding-top:72px}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
+main{overflow-x:clip}
+a{color:inherit}
+h1,h2,h3{font-family:var(--font-display);font-weight:700;letter-spacing:-0.03em;line-height:1.05;text-wrap:balance}
+p{text-wrap:pretty}
+::selection{background:var(--brand);color:var(--on-brand)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:8px}
+.deep :focus-visible,.dark :focus-visible,.install :focus-visible{outline-color:var(--on-brand)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip-link{position:absolute;left:var(--gutter);top:-80px;z-index:100;background:var(--ink);color:var(--surface);padding:12px 18px;border-radius:999px;font-weight:600;text-decoration:none}
+.skip-link:focus{top:12px}
+.ic{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.wrap{max-width:1200px;margin:0 auto;padding:0 var(--gutter)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- Éléments de base ---------- */
+.label{font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-3);line-height:1.3}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:999px;font:600 15px/1.2 var(--font);text-decoration:none;border:none;cursor:pointer;white-space:nowrap;transition:background-color .2s ease, box-shadow .2s ease, transform .2s ease}
+.btn:active{transform:scale(0.98)}
+.btn-brand{background:var(--brand);color:var(--on-brand);box-shadow:var(--shadow-btn)}
+.btn-ink{background:var(--ink);color:var(--surface)}
+.btn-line{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.btn-ghost-deep{background:var(--deep-well);color:var(--on-brand);box-shadow:inset 0 0 0 1px var(--deep-line)}
+@media (hover:hover){
+  .btn-brand:hover{background:var(--brand-hover)}
+  .btn-ink:hover{background:var(--ink-2)}
+  .btn-line:hover{box-shadow:inset 0 0 0 1px var(--ink-3)}
+  .btn-ghost-deep:hover{background:var(--deep-line)}
 }
-h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;font-weight:700;letter-spacing:-0.01em}
-.mono{font-family:'JetBrains Mono',monospace}
-a{color:inherit;text-decoration:none}
-img{max-width:100%;display:block}
-.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
-::selection{background:var(--indigo);color:white}
+.btn-sm{min-height:44px;padding:0 16px;font-size:14px}
+.btn-lg{min-height:52px;padding:0 24px;font-size:16px}
+.btn:disabled{opacity:0.55;cursor:default}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:13px;font-weight:500;color:var(--ink-2)}
+.chip .ic{width:16px;height:16px;color:var(--brand)}
+.chip img{width:16px;height:16px;border-radius:4px}
+a.chip{min-height:44px;text-decoration:none;color:var(--brand);border-color:var(--brand-soft);background:var(--brand-softer)}
+a.chip:hover{border-color:var(--brand)}
+.new{font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--brand);background:var(--brand-soft);padding:2px 8px;border-radius:999px}
 
-.bg-grid{
-  position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-  background-size:44px 44px;
-  mask-image:radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+/* ---------- En-tête ---------- */
+.top{position:sticky;top:0;z-index:50;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-inner{display:flex;align-items:center;gap:6px;min-height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:-0.02em;text-decoration:none;margin-right:auto;min-height:44px}
+.logo{width:28px;height:28px;border-radius:8px;background:var(--brand);position:relative;flex:none}
+.logo::before{content:'';position:absolute;left:6px;right:6px;top:8px;height:3px;border-radius:2px;background:var(--on-brand-2)}
+.logo::after{content:'';position:absolute;right:6px;bottom:6px;width:7px;height:7px;border-radius:50%;background:var(--gold)}
+.top-links{display:none}
+.top-links a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border-radius:999px;font-size:14px;font-weight:500;color:var(--ink-2);text-decoration:none}
+.top-links a:hover{color:var(--ink);background:var(--surface-2)}
+.top-phone{display:none;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 12px;border-radius:999px;text-decoration:none;font-weight:600;font-size:14px;color:var(--ink);white-space:nowrap}
+.top-phone:hover{background:var(--surface-2)}
+
+/* ---------- Hero ---------- */
+.hero{padding:28px 0 36px}
+.hero-grid{display:grid;gap:28px;align-items:center}
+.hero h1{font-size:clamp(2.5rem, 9.2vw, 4.4rem);letter-spacing:-0.04em;line-height:0.98}
+.hero h1 em{font-style:normal;color:var(--brand)}
+.lede{font-size:18px;color:var(--ink-2);margin-top:16px;max-width:31em}
+.lede b{color:var(--ink);font-weight:600}
+.hero-ctas{display:flex;flex-direction:column;gap:10px;margin-top:24px}
+.hero-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.scene{position:relative;border-radius:28px;background:linear-gradient(160deg, #2A2370 0%, var(--deep) 60%, #0F0C2E 100%);border:1px solid #2A2560;padding:24px 16px 20px;overflow:hidden}
+.scene-dots{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,0.16) 1.2px, transparent 1.3px);background-size:22px 22px;opacity:1;-webkit-mask-image:linear-gradient(180deg, black, transparent 70%);mask-image:linear-gradient(180deg, black, transparent 70%)}
+
+/* Téléphone */
+.phone{position:relative;width:min(290px, 78vw);margin:0 auto;background:var(--device);border-radius:46px;padding:10px;box-shadow:inset 0 0 0 2px var(--device-edge), var(--shadow-lg)}
+.phone-screen{position:relative;border-radius:37px;overflow:hidden;background:var(--screen);color:var(--ink)}
+.island{position:absolute;top:10px;left:50%;width:92px;height:26px;margin-left:-46px;border-radius:20px;background:var(--device);z-index:6}
+.statusbar{display:flex;justify-content:space-between;align-items:center;height:44px;padding:13px 26px 0;font-size:13px;font-weight:600}
+.batt{display:inline-block;width:23px;height:11px;border-radius:3px;box-shadow:inset 0 0 0 1.5px currentColor;position:relative}
+.batt::after{content:'';position:absolute;inset:2.5px 5px 2.5px 2.5px;border-radius:1px;background:currentColor}
+
+/* Pass Wallet (démo) */
+.pass{position:relative;margin:8px 10px 14px;border-radius:16px;background:var(--brand);color:var(--on-brand);box-shadow:var(--shadow-md);overflow:hidden}
+.pass .label{color:var(--on-brand-2)}
+.pass-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 10px;white-space:nowrap}
+.shop{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+.shop-logo{width:34px;height:34px;border-radius:9px;background:var(--surface);color:var(--brand);display:flex;align-items:center;justify-content:center;flex:none}
+.shop-logo .ic{width:18px;height:18px}
+.pass-f{display:flex;flex-direction:column;gap:2px}
+.pass-f.r{text-align:right}
+.pass-f b{font-size:15px;font-weight:600}
+.pass-main{padding:6px 16px 14px}
+.pts{font-family:var(--font-display);font-size:54px;font-weight:700;line-height:1;letter-spacing:-0.04em}
+.pts small{font-size:26px;font-weight:600;color:var(--on-brand-2);letter-spacing:-0.02em}
+.bar{height:8px;border-radius:99px;background:var(--deep-well);box-shadow:inset 0 0 0 1px var(--deep-line);overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;width:100%;background:var(--gold);border-radius:99px;transform-origin:left;transform:scaleX(.6);transition:transform .6s var(--ease)}
+.pass-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:12px 16px;border-top:1px solid var(--deep-line)}
+.pass-qr{display:flex;justify-content:center;padding:6px 16px 18px}
+.qr{width:104px;height:104px;padding:8px;background:var(--surface);border-radius:10px}
+.qr svg{width:100%;height:100%;display:block;fill:var(--qr)}
+.pop{animation:pop .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(1.18)}to{transform:scale(1)}}
+
+/* Notification iOS */
+.notif{display:flex;gap:10px;align-items:flex-start;background:var(--surface);color:var(--ink);border-radius:16px;padding:11px 12px;box-shadow:var(--shadow-lg);text-align:left}
+.notif .shop-logo{width:32px;height:32px;border-radius:8px;background:var(--brand);color:var(--on-brand)}
+.notif > div{flex:1;min-width:0}
+.notif-top{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--ink-3);font-weight:500}
+.notif strong{display:block;font-size:14px;font-weight:600}
+.notif p{font-size:13px;color:var(--ink-2);line-height:1.35}
+.demo-notif{position:absolute;left:8px;right:8px;top:48px;z-index:5;opacity:0;transform:translateY(-14px) scale(.97);pointer-events:none;transition:opacity .3s ease, transform .45s var(--ease)}
+.demo-notif.show{opacity:1;transform:none}
+.float{position:absolute;z-index:4;display:none}
+.demo-controls{position:relative;display:flex;gap:8px;justify-content:center;margin-top:16px}
+.btn-round{width:48px;padding:0;flex:none}
+.demo-caption{position:relative;margin-top:10px;font-size:13px;color:var(--deep-2);text-align:center}
+.scene .btn-line{background:var(--deep-well);color:var(--on-brand);box-shadow:inset 0 0 0 1px var(--deep-line)}
+.scene .btn-ink{background:var(--surface);color:var(--ink)}
+.scene :focus-visible{outline-color:var(--on-brand)}
+
+.js .rise{opacity:0;transform:translateY(28px)}
+.js .rise.in{opacity:1;transform:none;transition:opacity .6s ease, transform .9s var(--ease)}
+
+/* ---------- Sections ---------- */
+.section{padding:48px 0}
+.section.dark-soft{background:#201A55;color:var(--on-brand)}
+.dark-soft h2{color:var(--on-brand)}
+.dark-soft .sub{color:var(--deep-2)}
+.dark-soft :focus-visible{outline-color:var(--on-brand)}
+.dark-soft .trust-line{color:var(--deep-2)}
+.dark-soft .wordmark{background:var(--deep-well);border-color:var(--deep-line);color:var(--on-brand)}
+.dark-soft .review{border-color:transparent;color:var(--ink)}
+.section.white{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.head{max-width:720px;margin-bottom:24px}
+.head.center{margin-left:auto;margin-right:auto;text-align:center}
+.section h2{font-size:clamp(1.9rem, 6.2vw, 3rem);letter-spacing:-0.04em}
+.sub{font-size:17px;color:var(--ink-2);margin-top:12px}
+
+/* Avis */
+.trust-line{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 10px;margin-top:14px;font-size:14px;color:var(--ink-3)}
+.wordmark{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-family:var(--font-display);font-weight:800;font-size:14px;letter-spacing:0.04em;color:var(--ink)}
+.reviews{display:grid;gap:14px}
+.review{padding:22px 20px;display:flex;flex-direction:column;gap:16px}
+.review blockquote{font-size:17px;line-height:1.55;letter-spacing:-0.01em;color:var(--ink)}
+.review figcaption{display:flex;align-items:center;gap:12px;margin-top:auto}
+.review figcaption .avatar{width:40px;height:40px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:none}
+.review figcaption b{display:block;font-size:15px}
+.review figcaption span{font-size:13px;color:var(--ink-3)}
+
+/* Papier vs FidélyPass */
+.versus{display:grid;overflow:hidden}
+.vs-col{padding:22px 20px}
+.vs-col + .vs-col{border-top:1px solid var(--line)}
+.vs-col h3{font-size:18px;letter-spacing:-0.02em;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.vs-col.fp{background:var(--brand-softer)}
+.vs-col.fp h3 .logo{width:24px;height:24px;border-radius:7px}
+.vs-list{list-style:none;display:grid;gap:12px}
+.vs-list li{display:flex;gap:10px;align-items:flex-start;font-size:16px}
+.vs-col.paper li{color:var(--ink-2)}
+.vs-list .ic{margin-top:2px;width:18px;height:18px}
+.vs-col.paper .ic{color:var(--no)}
+.vs-col.fp .ic{color:var(--brand)}
+.vs-list b{font-weight:600}
+
+/* Comment ça marche */
+.steps{list-style:none;display:grid;gap:14px}
+.step{display:flex;flex-direction:column;overflow:hidden}
+.step-visual{position:relative;height:180px;padding:20px;background:var(--surface-2);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.step-body{padding:18px 20px 20px}
+.step-n{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:var(--brand-soft);color:var(--brand);font-weight:700;font-size:14px;margin-bottom:10px;flex:none}
+.step h3{font-size:20px;letter-spacing:-0.02em;margin-bottom:8px}
+.step p{font-size:15px;color:var(--ink-2)}
+.v-scan{position:relative;width:140px;height:140px;border-radius:18px;background:var(--surface);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center}
+.v-scan .qr{width:90px;height:90px;padding:0}
+.v-scan::before{content:'';position:absolute;inset:-12px;border-radius:24px;border:2px dashed var(--brand);opacity:0.5}
+.v-scan-pill{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--ink);color:var(--surface);font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px}
+.v-toast{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;box-shadow:var(--shadow-md)}
+.v-toast .okdot{width:30px;height:30px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:flex;align-items:center;justify-content:center}
+.v-toast b{display:block;font-size:15px}
+.v-toast span{font-size:13px;color:var(--ink-3)}
+.v-stack{display:grid;gap:8px;width:min(280px, 86%)}
+.v-stack .v-toast:nth-child(2){opacity:0.6;transform:scale(.96)}
+.v-notifs{width:min(290px, 88%)}
+.callout{display:flex;flex-direction:column;gap:12px;margin-top:14px;padding:18px 20px;border-radius:var(--r-md);background:var(--deep);color:var(--surface)}
+.callout p{font-size:16px}
+.callout b{font-weight:600}
+.callout-chips{display:flex;flex-wrap:wrap;gap:8px}
+.callout-chips span{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;padding:5px 11px;border-radius:999px;background:var(--deep-well);box-shadow:inset 0 0 0 1px var(--deep-line)}
+.callout-chips .ic{width:15px;height:15px}
+.callout-chips img{width:16px;height:16px;border-radius:4px}
+
+/* Deux écrans réels */
+.screens{display:grid;gap:14px;margin-top:14px}
+.screen-card{display:grid;grid-template-columns:110px 1fr;gap:18px;align-items:center;padding:18px}
+.mini-phone{width:110px;background:var(--device);border-radius:22px;padding:5px;box-shadow:inset 0 0 0 1.5px var(--device-edge), var(--shadow-md)}
+.mini-phone .scr{border-radius:18px;overflow:hidden;aspect-ratio:9/18;background:#1C1C1E}
+.mini-phone .scr.wallet{padding:22px 5px 0}
+.mini-phone .scr.wallet img{border-radius:6px}
+.mini-phone .scr.gerant{background:var(--screen);padding-top:14px}
+.screen-card h3{font-size:18px;letter-spacing:-0.02em;margin:6px 0 6px}
+.screen-card p{font-size:15px;color:var(--ink-2)}
+
+/* Fonctionnalités : liste avec visuels */
+.feat-layout{display:grid;gap:24px}
+.feat-side .btn{margin-top:20px}
+.feats{overflow:hidden}
+.feat{display:grid;gap:16px;padding:20px;border-top:1px solid var(--line)}
+.feat:first-child{border-top:none}
+.feat-text{display:grid;grid-template-columns:28px 1fr;gap:4px 12px;align-items:start}
+.feat-text .step-n{margin:0}
+.feat h3{font-size:19px;letter-spacing:-0.02em;padding-top:2px}
+.feat p{grid-column:2;font-size:15px;color:var(--ink-2)}
+.feat-visual{display:flex;justify-content:center;align-items:center;padding:16px;border-radius:var(--r-md);background:var(--brand-softer)}
+.feat-visual .notif{width:100%;max-width:340px;box-shadow:var(--shadow-md)}
+.panel{width:100%;max-width:340px;background:var(--surface);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow-sm);border:1px solid var(--line)}
+.tiers-top{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--ink-3);margin-bottom:10px}
+.tiers-top b{font-family:var(--font-display);font-size:22px;color:var(--ink);letter-spacing:-0.02em}
+.tier-track{position:relative;height:8px;border-radius:99px;background:var(--line)}
+.tier-track i{position:absolute;inset:0;border-radius:99px;background:var(--brand);transform-origin:left;transform:scaleX(.68)}
+.tier-marks{display:flex;justify-content:space-between;margin-top:10px;font-size:12px;color:var(--ink-2)}
+.tier-marks span{display:flex;flex-direction:column;gap:2px}
+.tier-marks span:last-child{text-align:right}
+.tier-marks b{font-size:13px;color:var(--ink)}
+.grades{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.grades span{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--ink-2)}
+.grades span.on{background:var(--brand-soft);color:var(--brand)}
+.share-link{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:12px;padding:10px 12px;font-size:14px;font-weight:500}
+.share-link .ic{color:var(--brand)}
+.share-gain{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.share-gain div{background:var(--brand-softer);border-radius:12px;padding:10px 12px}
+.share-gain b{display:block;font-size:18px;color:var(--brand);letter-spacing:-0.02em}
+.share-gain span{font-size:12px;color:var(--ink-2)}
+.wallet-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.wallet-row span{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:14px;font-weight:600}
+.wallet-row img{width:20px;height:20px;border-radius:5px}
+.also{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
+.also > span:first-child{font-size:14px;font-weight:600;color:var(--ink-2);margin-right:4px}
+
+/* Option commandes et rendez-vous */
+.opt-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--deep);background:var(--gold);padding:5px 11px;border-radius:999px}
+.addon .head{margin-bottom:24px}
+.addon .head h2{margin-top:14px}
+.addon-grid{display:grid;gap:14px}
+.addon-card{display:grid;gap:18px;padding:22px 20px;border-radius:var(--r-lg);background:var(--surface);color:var(--ink)}
+.addon-card h3{font-size:21px;letter-spacing:-0.02em;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.addon-card p{font-size:15px;color:var(--ink-2);margin-top:8px}
+.addon-visual{border-radius:var(--r-md);background:var(--brand-softer);padding:16px;display:flex;justify-content:center}
+.ticket{width:100%;max-width:320px;background:var(--surface);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow-md)}
+.ticket-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--ink-3);padding-bottom:10px;border-bottom:1px dashed var(--line-strong)}
+.ticket-top b{color:var(--ink);font-size:15px}
+.mode{font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-soft);padding:3px 9px;border-radius:999px}
+.ticket-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;font-size:14px}
+.ticket-row small{display:block;font-size:12px;color:var(--ink-3)}
+.ticket-total{display:flex;justify-content:space-between;padding-top:10px;border-top:1px dashed var(--line-strong);font-weight:700}
+.slots-day{display:flex;gap:6px;margin-bottom:12px}
+.slots-day span{flex:1;text-align:center;padding:7px 0;border-radius:10px;font-size:12px;font-weight:600;color:var(--ink-2);background:var(--surface-2)}
+.slots-day span b{display:block;font-size:16px;color:var(--ink)}
+.slots-day span.on{background:var(--deep);color:var(--deep-2)}
+.slots-day span.on b{color:var(--on-brand)}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.slots span{text-align:center;padding:8px 0;border-radius:10px;font-size:13px;font-weight:600;border:1px solid var(--line);color:var(--ink-2)}
+.slots span.off{color:var(--line-strong);text-decoration:line-through}
+.slots span.on{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.addon-foot{display:flex;flex-direction:column;gap:12px;align-items:flex-start;margin-top:18px;color:var(--deep-2);font-size:15px}
+.addon-foot b{color:var(--on-brand);font-family:var(--font-display);font-size:22px;letter-spacing:-0.02em}
+.option{display:grid;gap:14px;margin-top:14px;padding:20px;border:1px dashed var(--brand);background:var(--brand-softer);box-shadow:none}
+.option h3{font-size:18px;letter-spacing:-0.02em;margin-top:10px}
+.option p{font-size:15px;color:var(--ink-2);margin-top:4px}
+.option-price{display:flex;align-items:baseline;gap:6px}
+.option-price b{font-family:var(--font-display);font-size:40px;font-weight:700;letter-spacing:-0.04em;line-height:1;color:var(--brand)}
+.option-price span{font-size:15px;color:var(--ink-2);font-weight:500}
+
+/* Statistiques (bleu nuit) */
+.dark{background:var(--deep);color:var(--on-brand)}
+.dark h2{color:var(--on-brand)}
+.dark .sub{color:var(--deep-2)}
+.stats-layout{display:grid;gap:24px;align-items:center}
+.stats-points{list-style:none;display:grid;gap:10px;margin-top:20px}
+.stats-points li{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--deep-2)}
+.stats-points li b{color:var(--on-brand);font-weight:600}
+.stats-points .ic{width:18px;height:18px;color:var(--gold);margin-top:2px}
+.dash{background:var(--surface);color:var(--ink);border-radius:var(--r-lg);overflow:hidden;box-shadow:0 24px 56px rgba(0,0,0,0.25)}
+.dash-example{display:flex;align-items:center;gap:8px;padding:11px 16px;background:var(--gold-soft);color:var(--gold-ink);font-size:14px;font-weight:700;border-bottom:1px solid rgba(138,97,0,0.15)}
+.dash-example .ic{width:18px;height:18px}
+.stats-top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:13px;font-weight:600;color:var(--ink-2);border-bottom:1px solid var(--line)}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.kpi{padding:14px 16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.kpi:nth-child(2n){border-right:none}
+.kpi b{font-family:var(--font-display);display:block;font-size:26px;font-weight:700;letter-spacing:-0.03em;line-height:1.1}
+.kpi .label{display:block;margin-top:4px}
+.kpi.ok b{color:var(--ok)}
+.kpi.warn b{color:var(--warn)}
+.kpi.violet b{color:var(--brand)}
+.chart{padding:14px 16px 16px}
+.chart-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink-2);font-weight:500}
+.bars{display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:12px}
+.bars span{flex:1;border-radius:6px 6px 2px 2px;background:var(--line);transform-origin:bottom}
+.bars span.on{background:var(--brand-soft)}
+.bars span.peak{background:var(--brand)}
+.bars span:nth-child(1){height:30%}
+.bars span:nth-child(2){height:45%}
+.bars span:nth-child(3){height:38%}
+.bars span:nth-child(4){height:62%}
+.bars span:nth-child(5){height:100%}
+.bars span:nth-child(6){height:84%}
+.bars span:nth-child(7){height:52%}
+.bars-x{display:flex;gap:6px;margin-top:6px}
+.bars-x span{flex:1;text-align:center;font-size:12px;color:var(--ink-3)}
+.stats-note{font-size:13px;color:var(--deep-2);margin-top:16px}
+.js .dash.reveal .bars span{transform:scaleY(0)}
+.js .dash.reveal.in .bars span{transform:none;transition:transform .8s var(--ease)}
+.js .dash.reveal.in .bars span:nth-child(2){transition-delay:.05s}
+.js .dash.reveal.in .bars span:nth-child(3){transition-delay:.1s}
+.js .dash.reveal.in .bars span:nth-child(4){transition-delay:.15s}
+.js .dash.reveal.in .bars span:nth-child(5){transition-delay:.2s}
+.js .dash.reveal.in .bars span:nth-child(6){transition-delay:.25s}
+.js .dash.reveal.in .bars span:nth-child(7){transition-delay:.3s}
+
+/* Installation */
+.install{display:grid;gap:20px;padding:24px 20px;border-radius:var(--r-lg);background:var(--brand);color:var(--on-brand);overflow:hidden}
+.install h2{font-size:clamp(1.8rem, 6vw, 2.5rem);letter-spacing:-0.04em}
+.install .sub{color:var(--on-brand-2);font-size:17px}
+.install-steps{list-style:none;display:grid;gap:8px}
+.install-steps li{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:14px;background:var(--deep-well);box-shadow:inset 0 0 0 1px var(--deep-line);font-size:15px;color:var(--on-brand-2)}
+.install-steps b{display:block;color:var(--on-brand);font-weight:600}
+.install-steps .when{flex:none;min-width:64px;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--on-brand);padding-top:2px}
+.install-steps li.end{background:var(--surface);box-shadow:none;color:var(--ink-2)}
+.install-steps li.end b,.install-steps li.end .when{color:var(--brand)}
+.install-fee{display:inline-flex;align-items:center;gap:8px;margin-top:18px;font-size:15px;font-weight:600;background:var(--surface);color:var(--ink);padding:9px 14px;border-radius:999px}
+.install-fee .ic{width:16px;height:16px;color:var(--brand)}
+
+/* Tarifs */
+.offer{display:grid;gap:18px;padding:22px 20px;border-radius:var(--r-lg);background:var(--brand-softer);border:1px solid var(--brand-soft);margin-bottom:14px}
+.offer-badge{display:inline-flex;align-items:center;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--brand);background:var(--surface);padding:5px 11px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--brand-soft)}
+.offer h3{font-size:clamp(1.4rem, 4.6vw, 1.9rem);letter-spacing:-0.03em;margin-top:12px}
+.offer p{font-size:16px;color:var(--ink-2);margin-top:8px}
+.months{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px}
+.months span{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--ink-3)}
+.months i{display:block;width:100%;height:28px;border-radius:6px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.months .free{color:var(--brand)}
+.months .free i{background:var(--brand);box-shadow:none}
+.months-legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:13px;color:var(--ink-2)}
+.months-legend span{display:inline-flex;align-items:center;gap:7px}
+.months-legend i{width:12px;height:12px;border-radius:3px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.months-legend .free i{background:var(--brand);box-shadow:none}
+.prices{display:grid;gap:14px}
+.price{padding:22px 20px;display:flex;flex-direction:column}
+.price h3{font-size:17px;letter-spacing:-0.01em}
+.price-sub{font-size:14px;color:var(--ink-3);margin-top:2px}
+.price-amount{display:flex;align-items:baseline;gap:6px;margin-top:14px}
+.price-amount b{font-family:var(--font-display);font-size:50px;font-weight:700;letter-spacing:-0.04em;line-height:1}
+.price-amount span{font-size:15px;color:var(--ink-2);font-weight:500}
+.ledger{margin-top:16px;border-radius:var(--r-sm);background:var(--surface-2);padding:4px 14px;font-size:14px}
+.ledger div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;color:var(--ink-2)}
+.ledger div + div{border-top:1px solid var(--line)}
+.ledger b{color:var(--ink);font-weight:600;white-space:nowrap}
+.ledger .minus b{color:var(--brand)}
+.ledger .total{color:var(--ink);font-weight:600}
+.ledger .total b{font-size:16px}
+.price ul{list-style:none;display:grid;gap:9px;margin:18px 0 20px;flex:1;align-content:start}
+.price li{display:flex;gap:8px;align-items:flex-start;font-size:15px;color:var(--ink-2)}
+.price li .ic{width:17px;height:17px;color:var(--brand);margin-top:2px}
+.price .btn{width:100%}
+.network{display:flex;flex-direction:column;gap:12px;margin-top:14px;padding:18px 20px}
+.network b{font-size:17px;font-family:var(--font-display);letter-spacing:-0.01em}
+.network p{font-size:15px;color:var(--ink-2);margin-top:2px}
+.price-note{text-align:center;font-size:14px;color:var(--ink-3);margin-top:16px}
+
+/* FAQ */
+.faq{display:grid;gap:10px}
+.faq details{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md)}
+.faq summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:58px;padding:14px 18px;font-weight:600;font-size:16px;cursor:pointer;border-radius:var(--r-md)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary .ic{color:var(--ink-3);transition:transform .25s ease}
+.faq details[open] summary .ic{transform:rotate(45deg);color:var(--brand)}
+.faq .answer{padding:0 18px 18px;font-size:15px;color:var(--ink-2)}
+.faq .answer b{color:var(--ink);font-weight:600}
+.faq details[open] .answer{animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* Contact */
+.final{padding:8px 0 48px}
+.deep{background:var(--deep);color:var(--on-brand);border-radius:28px;padding:28px 20px;display:grid;gap:24px}
+.deep h2{font-size:clamp(1.9rem, 6.6vw, 3rem);letter-spacing:-0.04em}
+.deep .sub{color:var(--deep-2)}
+.contact-alt{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:20px;font-size:14px;color:var(--deep-2)}
+.lead-card{background:var(--surface);color:var(--ink);border-radius:var(--r-lg);padding:22px 20px;box-shadow:var(--shadow-lg)}
+.lead-card h3{font-size:19px;letter-spacing:-0.02em;margin-bottom:16px}
+.lead-form{display:grid;gap:14px}
+.field label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+.field input{width:100%;min-height:50px;padding:0 14px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font:400 16px var(--font);caret-color:var(--brand);transition:border-color .2s ease, box-shadow .2s ease}
+.field input::placeholder{color:var(--ink-3)}
+.field input:focus-visible{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+.field input[aria-invalid="true"]{border-color:var(--no)}
+.lead-form .btn{width:100%}
+.lead-error{color:var(--warn);background:var(--warn-soft);border-radius:12px;padding:12px 14px;font-size:14px;font-weight:600;margin-top:12px}
+.lead-error:empty{display:none}
+.lead-success{background:var(--ok-soft);color:var(--ok);border-radius:12px;padding:14px;font-weight:600}
+.lead-note{font-size:13px;color:var(--ink-3);text-align:center;margin-top:12px}
+
+footer{border-top:1px solid var(--line);background:var(--surface);padding:20px 0 96px}
+.foot{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink-3)}
+.foot-brand{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)}
+.foot-brand .logo{width:22px;height:22px;border-radius:6px}
+.foot nav{display:flex;flex-wrap:wrap;column-gap:18px}
+.foot a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;text-underline-offset:3px}
+
+/* Curseur personnalisé (souris uniquement) */
+.cursor-dot,.cursor-ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;opacity:0;will-change:transform}
+.cursor-dot{width:8px;height:8px;margin:-4px 0 0 -4px;background:var(--brand);box-shadow:0 0 0 2px rgba(255,255,255,0.85);z-index:999}
+.cursor-ring{width:32px;height:32px;margin:-16px 0 0 -16px;border:1.5px solid var(--brand);z-index:998;transition:scale .2s,background-color .2s,opacity .2s}
+.cursor-ring.grow{scale:1.75;background:rgba(75,59,245,0.1)}
+html.has-custom-cursor .cursor-dot,html.has-custom-cursor .cursor-ring{opacity:1}
+html.has-custom-cursor,html.has-custom-cursor a,html.has-custom-cursor button,html.has-custom-cursor summary{cursor:none}
+
+/* Barre d'action mobile */
+.mbar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:grid;grid-template-columns:48px 48px 1fr;gap:8px;padding:8px var(--gutter) calc(8px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(11,13,18,0.06);transform:translateY(110%);transition:transform .35s var(--ease)}
+.mbar.show{transform:none}
+.mbar .btn{min-height:48px;padding:0}
+.mbar .btn-line{width:48px}
+
+@media (max-width:719px){
+  .snap{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;margin:0 calc(-1 * var(--gutter));padding:4px var(--gutter) 10px;scroll-padding:0 var(--gutter);scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:stretch}
+  .snap::-webkit-scrollbar{display:none}
+  .snap > *{flex:0 0 86%;scroll-snap-align:start}
+  .snap:focus-visible{outline-offset:-3px}
 }
-.bg-glow{
-  position:fixed;top:0;left:0;width:520px;height:520px;border-radius:50%;
-  background:radial-gradient(circle, rgba(108,92,231,0.16), transparent 70%);
-  pointer-events:none;z-index:0;transform:translate(-50%,-50%);
-  filter:blur(10px);
+/* Apparition au défilement : visible par défaut, masqué seulement si le JS tourne */
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .55s ease, transform .7s var(--ease)}
+.js .reveal.in{opacity:1;transform:none}
+@media (hover:hover){
+  .step{transition:transform .3s var(--ease), box-shadow .3s var(--ease)}
+  .step:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
 }
 
-.cursor-dot{position:fixed;top:0;left:0;width:8px;height:8px;border-radius:50%;background:var(--cyan);pointer-events:none;z-index:999;transform:translate(-50%,-50%)}
-.cursor-ring{position:fixed;top:0;left:0;width:32px;height:32px;border-radius:50%;border:1.5px solid var(--indigo);pointer-events:none;z-index:998;transform:translate(-50%,-50%);transition:width .2s,height .2s,opacity .2s,border-color .2s}
-.cursor-ring.grow{width:56px;height:56px;background:rgba(108,92,231,0.1)}
-html.has-custom-cursor, html.has-custom-cursor a, html.has-custom-cursor button{cursor:none}
-
-/* ---------- NAV ---------- */
-.nav{position:sticky;top:0;z-index:50;background:rgba(10,12,17,0.75);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;max-width:1140px;margin:0 auto;gap:20px}
-.brand{display:flex;align-items:center;gap:9px;font-family:'Space Grotesk';font-weight:700;font-size:18px}
-.brand-mark{width:26px;height:26px;border-radius:8px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#0A0C11}
-.nav-links{display:flex;gap:22px;font-size:13.5px;color:var(--text-dim)}
-.nav-links a:hover{color:var(--text)}
-.nav-links{display:none}
-@media (min-width:900px){.nav-links{display:flex}}
-.nav-cta{background:var(--grad);color:#0A0C11;padding:9px 18px;border-radius:8px;font-weight:700;font-size:13px;border:none;cursor:pointer;white-space:nowrap}
-.nav-phone{display:none;color:var(--text-dim);font-size:13px;font-weight:600;white-space:nowrap;text-decoration:none;margin-left:14px}
-@media(min-width:1080px){.nav-phone{display:inline-block}}
-
-/* ---------- BUTTONS ---------- */
-.btn-primary{
-  display:inline-flex;align-items:center;gap:9px;background:var(--grad);color:#0A0C11;
-  padding:14px 26px;border-radius:10px;font-weight:700;font-size:14.5px;border:none;cursor:pointer;
-  box-shadow:0 0 0 1px rgba(255,255,255,0.06), 0 8px 24px rgba(108,92,231,0.28);
+/* ---------- Grands écrans ---------- */
+@media (min-width:480px){
+  .hero-ctas{flex-direction:row;flex-wrap:wrap}
 }
-.btn-ghost{
-  display:inline-flex;align-items:center;gap:8px;background:var(--bg-elev);color:var(--text);
-  padding:13px 24px;border-radius:10px;font-weight:600;font-size:14px;border:1px solid var(--line-strong);cursor:pointer;
+@media (min-width:720px){
+  :root{--gutter:24px}
+  .section{padding:64px 0}
+  .versus{grid-template-columns:1fr 1fr}
+  .vs-col{padding:26px}
+  .vs-col + .vs-col{border-top:none;border-left:1px solid var(--line)}
+  .steps{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .callout{flex-direction:row;align-items:center;justify-content:space-between;gap:20px}
+  .screens{grid-template-columns:1fr 1fr}
+  .reviews{grid-template-columns:1fr 1fr}
+  .feat{grid-template-columns:minmax(0,1fr) minmax(0,320px);align-items:center;gap:24px;padding:20px 24px}
+  .faq{grid-template-columns:1fr 1fr;align-items:start}
+  .install{padding:32px}
+  .deep{padding:40px}
+  .lead-card{padding:28px}
+  .kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .kpi:nth-child(2n){border-right:1px solid var(--line)}
+  .kpi:nth-child(4n){border-right:none}
+  .offer{grid-template-columns:1fr 1fr;align-items:center;gap:32px;padding:28px}
+  .prices{grid-template-columns:1fr 1fr}
+  .price{padding:26px}
+  .addon-grid{grid-template-columns:1fr 1fr}
+  .addon-card{padding:26px}
+  .addon-foot{flex-direction:row;align-items:center;justify-content:space-between}
+  .option{grid-template-columns:1fr auto auto;align-items:center;gap:24px;padding:22px 26px}
+  .network{flex-direction:row;align-items:center;justify-content:space-between;padding:20px 26px}
+  .foot{flex-direction:row;justify-content:space-between;align-items:center}
+  .mbar{display:none}
+  footer{padding-bottom:28px}
 }
-.btn-ghost:hover{border-color:var(--cyan)}
-
-/* ---------- SECTION HELPERS ---------- */
-.section{position:relative;z-index:1;padding:88px 0}
-.section-tight{padding:56px 0}
-.section-tag{font-family:'JetBrains Mono';font-size:12px;color:var(--cyan);margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.section-tag::before{content:'//';opacity:0.6}
-.section-head{max-width:640px;margin-bottom:44px}
-.section-head.center{margin:0 auto 48px;text-align:center}
-.section h2{font-size:36px;line-height:1.15;margin-bottom:14px}
-.section-sub{font-size:16px;font-weight:500;color:var(--text-dim);line-height:1.65}
-.card{background:var(--bg-elev);border:1px solid var(--line);border-radius:16px}
-.testimonial-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:920px;margin:0 auto}
-.testimonial-card{padding:32px 28px}
-.testimonial-stars{color:#F5B400;font-size:18px;letter-spacing:2px;margin-bottom:16px}
-.testimonial-quote{font-size:16px;line-height:1.65;color:var(--text);margin-bottom:20px}
-.testimonial-author{font-size:14px;color:var(--text-dimmer)}
-@media(max-width:760px){.testimonial-grid{grid-template-columns:1fr}}
-
-/* ---------- HERO ---------- */
-.hero{padding:64px 0 40px;position:relative;z-index:1}
-.hero-inner{display:grid;grid-template-columns:1.05fr 0.95fr;gap:52px;align-items:center}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono';font-size:12px;color:var(--cyan);background:rgba(34,211,238,0.08);border:1px solid rgba(34,211,238,0.25);padding:6px 12px;border-radius:99px;margin-bottom:22px}
-.eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
-.hero h1{font-size:52px;margin-bottom:20px}
-.hero h1 .word{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:0.08em;margin-bottom:-0.08em}
-.hero h1 .word-inner{display:inline-block}
-.hero h1 .grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-@media (prefers-reduced-motion:reduce){.hero h1 .word-inner{transform:none}}
-.hero p.lede{font-size:17px;font-weight:500;color:var(--text-dim);max-width:480px;margin-bottom:32px;line-height:1.6}
-.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:26px}
-.hero-note{font-family:'JetBrains Mono';font-size:13px;color:var(--text-dim);display:flex;flex-wrap:wrap;align-items:center;row-gap:8px}
-.hero-note span{white-space:nowrap}
-.hero-note b{color:var(--text)}
-.hero-trust{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:13.5px;color:var(--text-dim)}
-.hero-trust-stars{color:#F5B400;letter-spacing:1px;font-size:14px}
-.hero-trust b{color:var(--text)}
-.hero-urgency{display:inline-block;background:rgba(34,211,238,0.1);color:var(--cyan);font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:99px;margin-top:16px;width:fit-content}
-
-/* Terminal mock */
-.terminal-caption{font-size:11.5px;color:var(--text-dimmer);margin-bottom:10px;text-align:center}
-.terminal{
-  background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:14px;overflow:hidden;
-  box-shadow:0 30px 70px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+@media (min-width:1000px){
+  .section{padding:72px 0}
+  .top-links{display:flex;margin-right:6px}
+  .top-phone{display:inline-flex}
+  .hero{padding:48px 0 44px}
+  .hero-grid{grid-template-columns:1.02fr 0.98fr;gap:52px}
+  .scene{padding:124px 24px 24px}
+  .float{display:flex}
+  .float.f1{left:22px;top:24px;width:240px;transform:rotate(-3deg)}
+  .float.f2{right:16px;bottom:116px;width:230px;transform:rotate(3deg)}
+  .feat-layout{grid-template-columns:minmax(0,0.72fr) minmax(0,1.28fr);gap:48px;align-items:start}
+  .feat-side{position:sticky;top:96px}
+  .stats-layout{grid-template-columns:0.85fr 1.15fr;gap:52px}
+  .install{grid-template-columns:1fr 1fr;align-items:center;gap:40px;padding:40px 44px}
+  .deep{grid-template-columns:1.05fr 0.95fr;align-items:center;gap:48px;padding:52px}
 }
-.terminal-bar{display:flex;align-items:center;gap:7px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--bg-elev2)}
-.terminal-dot{width:10px;height:10px;border-radius:50%}
-.terminal-body{padding:20px;font-family:'JetBrains Mono';font-size:12.5px;line-height:2;min-height:220px}
-.terminal-line{opacity:0;white-space:pre-wrap}
-.terminal-prompt{color:var(--cyan)}
-.terminal-ok{color:var(--green)}
-.terminal-cursor{display:inline-block;width:7px;height:14px;background:var(--cyan);vertical-align:middle;animation:blink 1s step-end infinite}
-@keyframes blink{50%{opacity:0}}
 
-.hero-visual{position:relative}
-.seal-canvas{position:absolute;right:-30px;top:-40px;width:150px;height:150px;pointer-events:none;z-index:2}
-
-/* ---------- PROBLEM CARDS ---------- */
-.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.problem-card{padding:26px 22px;position:relative}
-.problem-icon{font-size:24px;margin-bottom:14px;display:block}
-.problem-card h3{font-size:15.5px;font-weight:700;margin-bottom:8px}
-.problem-card p{font-size:13px;color:var(--text-dim);line-height:1.55}
-.transition-line{text-align:center;font-family:'Space Grotesk';font-size:22px;font-weight:600;margin-top:44px;color:var(--text)}
-.transition-line .grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-
-/* ---------- COMPARISON TABLE ---------- */
-.compare{width:100%;border-collapse:collapse;overflow:hidden;border-radius:14px;border:1px solid var(--line)}
-.compare th,.compare td{padding:14px 18px;text-align:left;font-size:13.5px;border-bottom:1px solid var(--line)}
-.compare th{font-family:'JetBrains Mono';font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-dimmer);background:var(--bg-elev2)}
-.compare tr:last-child td{border-bottom:none}
-.compare td.old{color:var(--text-dimmer)}
-.compare td.new{color:var(--text);font-weight:600}
-.compare td.new::before{content:'✓ ';color:var(--green)}
-.compare td.old::before{content:'✕ ';color:var(--text-dimmer)}
-
-/* ---------- HOW IT WORKS ---------- */
-.howgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
-.how-step{padding:0 20px;position:relative}
-.how-step:not(:last-child)::after{content:'';position:absolute;top:24px;right:-1px;width:1px;height:calc(100% - 40px);background:repeating-linear-gradient(to bottom,var(--line) 0 6px,transparent 6px 12px)}
-.how-num{width:44px;height:44px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:17px;color:#0A0C11;margin-bottom:16px}
-.how-step h3{font-size:15.5px;margin-bottom:8px}
-.how-step p{font-size:13px;color:var(--text-dim);line-height:1.6}
-
-/* ---------- WALLET SECTION ---------- */
-.wallet-block{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
-.wallet-badges{display:flex;gap:10px;margin:20px 0}
-.wallet-badge{display:flex;align-items:center;gap:8px;background:var(--bg-elev);border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600}
-.wallet-checks{display:flex;flex-direction:column;gap:10px;margin-top:18px}
-.wallet-checks div{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text-dim)}
-.wallet-checks span{color:var(--green)}
-.phone-frame-wrap{position:relative;display:flex;justify-content:center;padding:30px 0}
-.phone-frame{
-  position:relative;z-index:1;max-width:280px;margin:0 auto;
-  padding:14px 14px 22px;background:#000;
-  border-radius:36px;border:1px solid var(--line-strong);
-}
-.phone-frame::before{
-  content:'';position:absolute;top:14px;left:50%;transform:translateX(-50%);
-  width:70px;height:6px;background:#1a1a1a;border-radius:99px;z-index:2;
-}
-.phone-mock{border-radius:22px;overflow:hidden}
-
-/* ---------- TICKETS (condensed features) ---------- */
-.tickets{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.ticket{padding:24px 20px;position:relative;transition:transform .25s ease, border-color .25s ease}
-.soon-badge{position:absolute;top:14px;right:14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#0a0a0f;font-size:10px;font-weight:800;padding:4px 10px;border-radius:99px;letter-spacing:0.3px;text-transform:uppercase}
-.new-badge{position:absolute;top:14px;right:14px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#0a0a0f;font-size:10px;font-weight:800;padding:4px 10px;border-radius:99px;letter-spacing:0.3px;text-transform:uppercase}
-.ticket:hover{transform:translateY(-4px);border-color:var(--indigo)}
-.ticket-icon{width:38px;height:38px;border-radius:10px;background:var(--bg-elev2);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px}
-.ticket h3{font-size:15px;margin-bottom:8px}
-.ticket p{font-size:13px;color:var(--text-dim);line-height:1.55;margin-bottom:12px}
-.ticket-foot{font-family:'JetBrains Mono';font-size:10.5px;color:var(--indigo)}
-
-/* ---------- SCAN DEMO (mini interactive) ---------- */
-.demo-wrap{display:flex;justify-content:center}
-.demo-card{width:100%;max-width:420px;padding:28px 26px}
-.demo-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.demo-shop{font-family:'Space Grotesk';font-weight:700;font-size:17px}
-.demo-pts{font-family:'JetBrains Mono';font-size:12px;color:var(--text-dim)}
-.demo-bar-track{height:8px;background:var(--bg-elev2);border-radius:99px;overflow:hidden;margin-bottom:22px}
-.demo-bar-fill{height:100%;width:0%;background:var(--grad);border-radius:99px;transition:width .5s ease}
-.demo-qr-zone{
-  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;
-  border:1.5px dashed var(--line-strong);border-radius:12px;padding:26px;margin-bottom:20px;position:relative;overflow:hidden;
-}
-.demo-qr-flash{position:absolute;inset:0;background:var(--cyan);opacity:0;pointer-events:none}
-.demo-qr-icon{font-size:34px}
-.demo-log{font-family:'JetBrains Mono';font-size:11.5px;color:var(--text-dimmer);min-height:18px}
-.demo-reward{display:none;text-align:center;padding:10px 0}
-.demo-reward.show{display:block}
-.demo-reward-emoji{font-size:38px;margin-bottom:8px}
-.demo-reward-text{font-family:'Space Grotesk';font-weight:700;font-size:17px}
-
-/* ---------- STATS MOCK ---------- */
-.stats-block{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
-.stats-mock{padding:22px}
-.stats-mock .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
-.stats-mock .kpi{background:var(--bg-elev2);border-radius:10px;padding:12px;text-align:center}
-.stats-mock .kpi b{display:block;font-family:'Space Grotesk';font-size:22px;font-weight:700}
-.stats-mock .kpi.g b{color:var(--green)}
-.stats-mock .kpi.o b{color:var(--amber)}
-.stats-mock .kpi.r b{color:var(--cyan)}
-.stats-mock .kpi span{font-family:'JetBrains Mono';font-size:9px;color:var(--text-dimmer);text-transform:uppercase}
-.stats-mock .note{background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--amber);margin-bottom:14px}
-.stats-mock .bars{display:flex;align-items:flex-end;gap:5px;height:44px}
-.stats-mock .bars div{flex:1;background:var(--indigo);border-radius:3px 3px 0 0;opacity:0.35}
-.stats-mock .bars div.on{opacity:1;background:var(--cyan)}
-.stats-example-tag{font-family:'JetBrains Mono';font-size:10px;color:var(--text-dimmer);text-align:center;margin-top:10px}
-.stats-example-tag-top{display:inline-block;background:rgba(245,180,0,0.12);color:#F5B400;font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:99px;margin:0 0 16px;text-align:left}
-.stats-mini-label{font-size:10px;color:var(--text-dimmer);margin-bottom:6px;font-weight:600}
-
-/* ---------- CARD MOCK SECTION ---------- */
-.cardinfo-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
-.cardinfo-list{display:flex;flex-direction:column;gap:12px;margin-top:20px}
-.cardinfo-list div{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--text-dim)}
-
-/* ---------- SIMPLICITY ---------- */
-.simplicity-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.simple-card{padding:26px}
-.simple-card h3{font-size:15px;margin-bottom:14px;font-family:'JetBrains Mono';color:var(--text-dimmer);text-transform:uppercase;letter-spacing:0.04em}
-.simple-list div{display:flex;align-items:center;gap:10px;font-size:13.5px;padding:7px 0}
-.simple-list .no{color:var(--text-dimmer)}
-.simple-list .no::before{content:'✕';color:var(--red);margin-right:2px}
-.simple-list .yes{color:var(--text);font-weight:600}
-.simple-list .yes::before{content:'✓';color:var(--green);margin-right:2px}
-
-/* ---------- BENEFITS 3 AXES ---------- */
-.axes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.axis-card{padding:28px 24px;text-align:center}
-.axis-icon{font-size:30px;margin-bottom:14px}
-.axis-card h3{font-family:'JetBrains Mono';font-size:13px;color:var(--cyan);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px}
-.axis-card p{font-size:13.5px;color:var(--text-dim);line-height:1.6}
-
-/* ---------- INSTALLATION STEPS ---------- */
-.install-steps{display:flex;flex-direction:column;gap:0}
-.install-step{display:flex;gap:20px;padding:22px 0;border-bottom:1px solid var(--line)}
-.install-step:last-child{border-bottom:none}
-.install-num{font-family:'JetBrains Mono';font-size:13px;color:var(--indigo);flex-shrink:0;width:60px}
-.install-step h3{font-size:15.5px;margin-bottom:6px}
-.install-step p{font-size:13.5px;color:var(--text-dim);line-height:1.6}
-
-/* ---------- PRICING ---------- */
-.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.price-card{padding:28px 24px;display:flex;flex-direction:column;position:relative;transition:transform .25s ease}
-.price-card:hover{transform:translateY(-5px)}
-.price-card.featured{border-color:var(--indigo);box-shadow:0 0 0 1px var(--indigo), 0 20px 50px rgba(108,92,231,0.18)}
-.price-badge{position:absolute;top:-12px;left:24px;background:var(--grad);color:#0A0C11;font-family:'JetBrains Mono';font-size:10px;font-weight:700;text-transform:uppercase;padding:5px 12px;border-radius:99px}
-.price-name{font-size:13px;color:var(--text-dim);font-weight:600;margin-bottom:16px}
-.price-step{background:var(--bg-elev2);border-radius:10px;padding:13px 15px;margin-bottom:9px}
-.price-step-label{font-family:'JetBrains Mono';font-size:10px;color:var(--text-dimmer);text-transform:uppercase;margin-bottom:4px}
-.price-step-amount{font-family:'Space Grotesk';font-weight:700;font-size:23px}
-.price-step-amount span{font-family:'Inter';font-size:11.5px;font-weight:500;color:var(--text-dim)}
-.price-step-recurring{background:rgba(108,92,231,0.1);border:1px solid rgba(108,92,231,0.25);margin-bottom:18px}
-.price-step-recurring .price-step-amount{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.price-list{list-style:none;margin-bottom:22px;flex:1}
-.price-list li{font-size:13px;color:var(--text-dim);padding:7px 0;padding-left:20px;position:relative}
-.price-list li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700}
-.price-custom{font-family:'Space Grotesk';font-weight:700;font-size:26px;margin-bottom:16px}
-.price-footnote{text-align:center;font-family:'JetBrains Mono';font-size:11.5px;color:var(--text-dimmer);margin-top:24px}
-
-/* ---------- FAQ ACCORDION ---------- */
-.faq-list{display:flex;flex-direction:column;gap:10px}
-.faq-item{border-radius:12px;overflow:hidden}
-.faq-q{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;cursor:pointer;font-size:14.5px;font-weight:600}
-.faq-q .plus{font-family:'JetBrains Mono';color:var(--indigo);font-size:16px;transition:transform .25s ease;flex-shrink:0;margin-left:16px}
-.faq-item.open .plus{transform:rotate(45deg)}
-.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
-.faq-a-inner{padding:0 20px 18px;font-size:13.5px;color:var(--text-dim);line-height:1.6}
-
-/* ---------- FINAL CTA ---------- */
-.final{text-align:center;padding:90px 0 50px}
-.lead-form{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:560px;margin:0 auto 14px}
-.lead-form input{
-  flex:1;min-width:180px;background:var(--bg-elev);border:1px solid var(--line-strong);border-radius:10px;
-  padding:14px 16px;font-size:14px;color:var(--text);font-family:'Inter';
-}
-.lead-form input::placeholder{color:var(--text-dimmer)}
-.lead-form input:focus{outline:none;border-color:var(--indigo)}
-.lead-form .btn-primary{white-space:nowrap}
-.lead-success{color:var(--green);font-weight:600;font-size:14.5px;margin-bottom:14px}
-.final h2{font-size:38px;margin-bottom:14px}
-.final p{color:var(--text-dim);font-size:15.5px;margin-bottom:30px;max-width:520px;margin-left:auto;margin-right:auto}
-.final-note{font-family:'JetBrains Mono';font-size:12px;color:var(--text-dimmer);margin-top:18px}
-.contact-alt{margin-top:14px;font-size:13.5px;color:var(--text-dim);display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
-.contact-alt a{color:var(--cyan);text-decoration:none;font-weight:600}
-.contact-alt a:hover{text-decoration:underline}
-
-footer{border-top:1px solid var(--line);padding:32px 0;position:relative;z-index:1}
-.foot-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;font-size:12.5px;color:var(--text-dimmer)}
-.foot-inner a{text-decoration:underline;text-underline-offset:2px}
-
-.reveal-init{opacity:0;transform:translateY(18px);transition:opacity .55s ease, transform .55s ease}
-.reveal-init.in{opacity:1;transform:none}
-@media (prefers-reduced-motion:reduce){.reveal-init{opacity:1;transform:none;transition:none}}
-
-@media (max-width:900px){
-  .hero-note span:nth-child(2), .hero-note span:nth-child(4) { display: none; }
-  .hero-note { flex-direction: column; align-items: flex-start; }
-  .hero-inner{grid-template-columns:1fr;gap:36px}
-  .hero h1{font-size:36px}
-  .grid-4{grid-template-columns:1fr 1fr}
-  .howgrid{grid-template-columns:1fr 1fr;gap:28px 20px}
-  .how-step:nth-child(2)::after{display:none}
-  .how-step::after{display:none}
-  .wallet-block, .stats-block, .cardinfo-grid, .simplicity-grid{grid-template-columns:1fr;gap:28px}
-  .tickets{grid-template-columns:1fr}
-  .axes{grid-template-columns:1fr}
-  .pricing-grid{grid-template-columns:1fr}
-  .price-card.featured{order:-1}
-  .seal-canvas{display:none}
-  .compare{font-size:12px}
-  .compare th,.compare td{padding:10px 10px}
-  .final h2{font-size:28px}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .js .reveal,.js .rise{opacity:1 !important;transform:none !important;transition:none !important}
+  .js .dash.reveal .bars span{transform:none !important;transition:none !important}
+  .pop,.faq details[open] .answer{animation:none}
+  .demo-notif{transition:opacity .2s ease;transform:none}
+  .bar i{transition:none}
+  .btn,.step,.faq summary .ic,.field input,.mbar{transition:none}
 }
 </style>
 </head>
 <body>
 
-<div class="bg-grid"></div>
-<div class="bg-glow" id="bg-glow"></div>
-<div class="cursor-ring" id="cursor-ring"></div>
-<div class="cursor-dot" id="cursor-dot"></div>
+<a class="skip-link" href="#main">Aller au contenu</a>
 
-<nav class="nav">
-  <div class="nav-inner">
-    <div class="brand"><span class="brand-mark">F</span>FidélyPass</div>
-    <div class="nav-links">
-      <a href="#probleme">Le problème</a>
+<svg width="0" height="0" class="sr-only" aria-hidden="true" focusable="false">
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-euro" viewBox="0 0 24 24"><path d="M4 10h12M4 14h9M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12c0 4.4 3.5 8 7.8 8 2 0 3.8-.8 5.2-2"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.770l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 21 21"><path d="M0 0h7v1h-7zM8 0h2v1h-2zM11 0h1v1h-1zM14 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM8 1h2v1h-2zM11 1h2v1h-2zM14 1h1v1h-1zM20 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM8 2h3v1h-3zM12 2h1v1h-1zM14 2h1v1h-1zM16 2h3v1h-3zM20 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM16 3h3v1h-3zM20 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM9 4h1v1h-1zM11 4h2v1h-2zM14 4h1v1h-1zM16 4h3v1h-3zM20 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h2v1h-2zM11 5h1v1h-1zM14 5h1v1h-1zM20 5h1v1h-1zM0 6h7v1h-7zM9 6h1v1h-1zM11 6h2v1h-2zM14 6h7v1h-7zM8 7h1v1h-1zM10 7h2v1h-2zM0 8h2v1h-2zM4 8h1v1h-1zM9 8h1v1h-1zM11 8h2v1h-2zM14 8h3v1h-3zM0 9h1v1h-1zM4 9h1v1h-1zM7 9h1v1h-1zM9 9h1v1h-1zM14 9h2v1h-2zM17 9h4v1h-4zM0 10h1v1h-1zM2 10h3v1h-3zM6 10h2v1h-2zM12 10h3v1h-3zM17 10h4v1h-4zM0 11h1v1h-1zM2 11h4v1h-4zM12 11h1v1h-1zM17 11h3v1h-3zM0 12h11v1h-11zM13 12h5v1h-5zM20 12h1v1h-1zM8 13h5v1h-5zM14 13h2v1h-2zM18 13h1v1h-1zM20 13h1v1h-1zM0 14h7v1h-7zM12 14h3v1h-3zM18 14h2v1h-2zM0 15h1v1h-1zM6 15h1v1h-1zM13 15h1v1h-1zM15 15h5v1h-5zM0 16h1v1h-1zM2 16h3v1h-3zM6 16h1v1h-1zM9 16h1v1h-1zM13 16h5v1h-5zM0 17h1v1h-1zM2 17h3v1h-3zM6 17h1v1h-1zM8 17h1v1h-1zM11 17h1v1h-1zM16 17h2v1h-2zM19 17h1v1h-1zM0 18h1v1h-1zM2 18h3v1h-3zM6 18h1v1h-1zM9 18h2v1h-2zM13 18h3v1h-3zM18 18h1v1h-1zM0 19h1v1h-1zM6 19h1v1h-1zM9 19h1v1h-1zM11 19h2v1h-2zM17 19h1v1h-1zM20 19h1v1h-1zM0 20h7v1h-7zM8 20h3v1h-3zM12 20h3v1h-3zM16 20h2v1h-2zM20 20h1v1h-1z"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap top-inner">
+    <a class="brand" href="#main"><span class="logo" aria-hidden="true"></span>FidélyPass</a>
+    <nav class="top-links" aria-label="Navigation principale">
       <a href="#comment">Comment ça marche</a>
       <a href="#fonctionnalites">Fonctionnalités</a>
       <a href="#tarifs">Tarifs</a>
       <a href="#faq">FAQ</a>
-    </div>
-    <button class="nav-cta" onclick="location.href='#contact'">Créer ma carte</button>
-    <a href="tel:+33645421187" class="nav-phone">📞 06 45 42 11 87</a>
+    </nav>
+    <a href="tel:+33645421187" class="top-phone" aria-label="Appeler le 06 45 42 11 87"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>06&nbsp;45&nbsp;42&nbsp;11&nbsp;87</a>
+    <a class="btn btn-brand btn-sm" href="#contact">Créer ma carte</a>
   </div>
-</nav>
+</header>
+
+<main id="main">
 
 <!-- HERO -->
 <section class="hero">
-  <div class="wrap hero-inner">
+  <div class="wrap hero-grid">
     <div>
-      <div class="eyebrow">Carte de fidélité digitale</div>
-      <h1 class="hero-h1"><span class="word"><span class="word-inner">La</span></span> <span class="word"><span class="word-inner">carte</span></span> <span class="word"><span class="word-inner">de</span></span> <span class="word"><span class="word-inner">fidélité</span></span> <span class="word"><span class="word-inner">qui</span></span> <span class="word"><span class="word-inner">remplace</span></span> <span class="word"><span class="word-inner grad-text">le&nbsp;papier</span></span><span class="word"><span class="word-inner">.</span></span></h1>
-      <p class="lede">Transformez votre carte de fidélité papier en carte digitale, directement dans le téléphone de vos clients — récompenses automatiques, notifications, parrainage et statistiques pour les faire revenir.</p>
-      <div class="hero-ctas">
-        <button class="btn-primary" onclick="location.href='#contact'">Créer ma carte de fidélité →</button>
-        <button class="btn-ghost" onclick="location.href='#comment'">Voir comment ça marche</button>
+      <h1>La carte de fidélité qui remplace <em>le papier.</em></h1>
+      <p class="lede">Pour les boulangeries, snacks, coiffeurs et restaurants. Votre carte à vos couleurs, dans le téléphone de vos clients. <b>Les points s’ajoutent à chaque passage, et vous voyez enfin qui revient.</b></p>
+      <div class="hero-ctas" id="hero-cta">
+        <a class="btn btn-brand btn-lg" href="#contact">Créer ma carte <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-line btn-lg" href="#comment">Voir comment ça marche</a>
       </div>
-      <div class="hero-urgency">⚡ Installée chez vous sous 7 jours</div>
-      <div class="hero-note"><span><b>2 min</b> d'installation</span><span>&nbsp;·&nbsp;</span><span><b>0€</b> pour vos clients</span></div>
-      <div class="hero-trust"><span class="hero-trust-stars">★★★★★</span><span>Déjà adopté par <b>ZI FOOD</b> et <b>MS Barber</b></span></div>
+      <div class="hero-chips">
+        <span class="chip"><img src="/wallet-icons/apple-wallet-icon-96.png" alt="" width="16" height="16"><img src="/wallet-icons/google-wallet-icon-96.png" alt="" width="16" height="16">iPhone et Android</span>
+        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Aucune appli à installer</span>
+        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Prête en 7 jours maximum</span>
+      </div>
     </div>
-    <div class="hero-visual">
-      <canvas id="seal-canvas" class="seal-canvas" aria-hidden="true"></canvas>
-      <div class="terminal-caption mono">ce qui se passe en coulisse, à chaque scan :</div>
-      <div class="terminal reveal">
-        <div class="terminal-bar">
-          <div class="terminal-dot" style="background:#F87171"></div>
-          <div class="terminal-dot" style="background:#FBBF24"></div>
-          <div class="terminal-dot" style="background:#34D399"></div>
-          <span class="mono" style="margin-left:8px;font-size:11.5px;color:var(--text-dimmer)">fidelypass — live</span>
+
+    <div class="scene">
+      <div class="scene-dots" aria-hidden="true"></div>
+      <div class="notif float f1" aria-hidden="true">
+        <span class="shop-logo"><svg class="ic"><use href="#i-check"/></svg></span>
+        <div><div class="notif-top"><span>Votre commerce</span><span>il y a 2 min</span></div><strong>+10 points crédités</strong><p>Plus que 20 points avant votre récompense.</p></div>
+      </div>
+      <div class="notif float f2" aria-hidden="true">
+        <span class="shop-logo"><svg class="ic"><use href="#i-gift"/></svg></span>
+        <div><div class="notif-top"><span>Votre commerce</span><span>hier</span></div><strong>Vous nous manquez !</strong><p>Votre menu vous attend.</p></div>
+      </div>
+      <div class="phone rise" id="hero-phone">
+        <div class="phone-screen">
+          <span class="island" aria-hidden="true"></span>
+          <div class="statusbar" aria-hidden="true"><span>9:41</span><span class="batt"></span></div>
+          <div class="notif demo-notif" id="demo-notif" aria-hidden="true">
+            <span class="shop-logo"><svg class="ic"><use href="#i-gift"/></svg></span>
+            <div><div class="notif-top"><span>Votre commerce</span><span>maintenant</span></div><strong>Récompense débloquée !</strong><p>Montrez votre carte au comptoir pour en profiter.</p></div>
+          </div>
+          <article class="pass" aria-label="Démonstration : carte de fidélité d'exemple">
+            <div class="pass-head">
+              <div class="shop"><span class="shop-logo"><svg class="ic" aria-hidden="true"><use href="#i-gift"/></svg></span>Votre commerce</div>
+              <div class="pass-f r"><span class="label">Objectif</span><b class="num">50 pts</b></div>
+            </div>
+            <div class="pass-main">
+              <div class="pts num"><span id="demo-pts">30</span> <small>/ 50 pts</small></div>
+              <div class="bar" aria-hidden="true"><i id="demo-bar"></i></div>
+            </div>
+            <div class="pass-row">
+              <div class="pass-f"><span class="label">Client</span><b>Karim</b></div>
+              <div class="pass-f"><span class="label">Restant</span><b class="num" id="demo-left">20 pts</b></div>
+              <div class="pass-f"><span class="label">Récompense</span><b>Menu</b></div>
+            </div>
+            <div class="pass-qr"><div class="qr"><svg viewBox="0 0 21 21" aria-hidden="true" shape-rendering="crispEdges"><use href="#i-qr"/></svg></div></div>
+          </article>
         </div>
-        <div class="terminal-body" id="terminal-body"></div>
       </div>
+      <div class="demo-controls">
+        <button type="button" class="btn btn-ink" id="demo-scan-btn"><svg class="ic" aria-hidden="true"><use href="#i-scan"/></svg><span>Scanner un achat (+10 pts)</span></button>
+        <button type="button" class="btn btn-line btn-round" id="demo-pause-btn" aria-pressed="false" aria-label="Mettre la démo en pause"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg></button>
+      </div>
+      <p class="demo-caption">Démo interactive · données fictives</p>
+      <p class="sr-only" id="demo-live" aria-live="polite"></p>
     </div>
   </div>
 </section>
 
-<!-- PROBLÈME -->
-<section class="section" id="probleme">
+<!-- AVIS (tôt dans la page) -->
+<section class="section dark-soft" id="avis" aria-labelledby="avis-title">
   <div class="wrap">
-    <div class="section-head reveal">
-      <div class="section-tag">le problème</div>
-      <h2>Votre carte de fidélité fonctionne… jusqu'au moment où votre client l'oublie.</h2>
-      <p class="section-sub">Le papier a un défaut qu'aucun commerçant ne peut résoudre : il dépend du client, pas de vous.</p>
+    <div class="head center reveal">
+      <h2 id="avis-title">Ce qu’en disent les clients de nos commerçants</h2>
+      <div class="trust-line"><span>Déjà au comptoir de snacks, de barbers et de commerces de quartier, dont</span><span class="wordmark">ZI FOOD</span><span class="wordmark">MS BARBER</span></div>
     </div>
-    <div class="grid-4 reveal">
-      <div class="card problem-card">
-        <span class="problem-icon">🗑️</span>
-        <h3>Carte oubliée ou perdue</h3>
-        <p>Votre client n'a pas sa carte sur lui ? Il ne cumule pas ses points. Une carte perdue, c'est parfois un historique de fidélité perdu.</p>
-      </div>
-      <div class="card problem-card">
-        <span class="problem-icon">📄</span>
-        <h3>Des données qui disparaissent</h3>
-        <p>Impossible de savoir précisément qui sont vos meilleurs clients, qui revient régulièrement, ou qui commence à décrocher.</p>
-      </div>
-      <div class="card problem-card">
-        <span class="problem-icon">🔕</span>
-        <h3>Aucun contact entre deux visites</h3>
-        <p>Une carte papier ne peut pas rappeler à un client qu'il n'est pas venu depuis 30 jours, ni lui envoyer une offre ciblée.</p>
-      </div>
-      <div class="card problem-card">
-        <span class="problem-icon">👻</span>
-        <h3>Aucune visibilité</h3>
-        <p>Vous distribuez des cartes, mais savez-vous combien de clients les utilisent réellement ? Combien reviennent ? À quelle fréquence ?</p>
-      </div>
+    <div class="reviews snap" tabindex="0" role="region" aria-label="Avis clients">
+      <figure class="card review reveal">
+        <blockquote><p>« Un vrai snack à l'ancienne, j'ai eu l'impression de faire un bond dans les années 2000. Et avec le système de fidélité en plus, les récompenses donnent encore plus envie d'y retourner. Je recommande ZI FOOD à fond ! »</p></blockquote>
+        <figcaption><span class="avatar" aria-hidden="true">ZF</span><div><b>Client de ZI FOOD</b><span>Snack</span></div></figcaption>
+      </figure>
+      <figure class="card review reveal">
+        <blockquote><p>« J'ai pris rendez-vous directement depuis la plateforme, qui sert aussi de carte de fidélité : super pratique, sans prise de tête, et plus besoin d'attendre sur place. Coupe au top, et en plus je suis reparti avec ma récompense. Ça donne vraiment envie de revenir chez le coiffeur ! »</p></blockquote>
+        <figcaption><span class="avatar" aria-hidden="true">MS</span><div><b>Client de MS Barber</b><span>Barber</span></div></figcaption>
+      </figure>
     </div>
-    <div class="transition-line reveal">Le problème n'est pas la fidélité. <span class="grad-text">Le problème, c'est l'outil.</span></div>
   </div>
 </section>
 
-<!-- SOLUTION + COMPARATIF -->
-<section class="section">
+<!-- POURQUOI -->
+<section class="section" id="pourquoi" aria-labelledby="pourquoi-title">
   <div class="wrap">
-    <div class="section-head reveal">
-      <div class="section-tag">la solution</div>
-      <h2>FidélyPass transforme votre carte en véritable outil de fidélisation.</h2>
-      <p class="section-sub">Une carte digitale installée directement dans Apple Wallet ou Google Wallet, associée à un système de points, de récompenses, de notifications et de suivi client. Le client garde sa carte dans son téléphone — vous gardez le contrôle depuis une interface simple.</p>
+    <div class="head reveal">
+      <h2 id="pourquoi-title">Le problème n’est pas la fidélité. C’est l’outil.</h2>
+      <p class="sub">Une carte papier dépend de votre client : il l’oublie, la perd, et vous ne savez jamais qui revient vraiment.</p>
     </div>
-    <div class="card reveal" style="overflow:hidden">
-      <table class="compare">
-        <tr><th>Carte papier</th><th>FidélyPass</th></tr>
-        <tr><td class="old">Peut être oubliée</td><td class="new">Toujours dans le téléphone</td></tr>
-        <tr><td class="old">Peut être perdue</td><td class="new">Carte digitale, incassable</td></tr>
-        <tr><td class="old">Pas de données exploitables</td><td class="new">Statistiques clients complètes</td></tr>
-        <tr><td class="old">Pas de relance possible</td><td class="new">Notifications push</td></tr>
-        <tr><td class="old">Pas de parrainage intégré</td><td class="new">Parrainage automatique</td></tr>
-        <tr><td class="old">Récompense au jugé</td><td class="new">Récompenses configurables</td></tr>
-        <tr><td class="old">Aucun suivi des clients inactifs</td><td class="new">Clients à risque identifiés</td></tr>
-      </table>
+    <div class="card versus reveal">
+      <div class="vs-col paper">
+        <h3>Avec une carte papier</h3>
+        <ul class="vs-list">
+          <li><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Oubliée à la maison ou perdue, avec ses points</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Aucune idée de qui sont vos meilleurs clients</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Un client qui ne revient plus, vous le perdez de vue</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Des comptes faits à la main, au jugé</li>
+        </ul>
+      </div>
+      <div class="vs-col fp">
+        <h3><span class="logo" aria-hidden="true"></span>Avec FidélyPass</h3>
+        <ul class="vs-list">
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Toujours dans son téléphone</b>, même sans connexion</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Vous savez qui revient</b>, et à quelle fréquence</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Relance automatique</b> après 30 jours sans visite</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Points et récompenses automatiques</b>, selon vos règles</span></li>
+        </ul>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- COMMENT ÇA MARCHE -->
-<section class="section" id="comment">
+<section class="section white" id="comment" aria-labelledby="comment-title">
   <div class="wrap">
-    <div class="section-head reveal">
-      <div class="section-tag">comment ça marche</div>
-      <h2>4 étapes. Aucune usine à gaz.</h2>
-      <p class="section-sub">Ni terminal, ni lecteur QR, ni application à installer pour le client.</p>
+    <div class="head reveal">
+      <h2 id="comment-title">3 gestes. Aucune usine à gaz.</h2>
+      <p class="sub">Votre client n’installe rien. Vous n’achetez aucun matériel. Tout passe par le téléphone.</p>
     </div>
-    <div class="howgrid reveal">
-      <div class="how-step">
-        <div class="how-num">01</div>
-        <h3>Le client scanne</h3>
-        <p>Un QR code au comptoir. Il le scanne avec l'appareil photo de son téléphone, entre son prénom. Carte créée en 10 secondes.</p>
+    <ol class="steps snap reveal" tabindex="0" aria-label="Les 3 étapes">
+      <li class="card step">
+        <div class="step-visual" aria-hidden="true">
+          <div class="v-scan"><div class="qr"><svg viewBox="0 0 21 21" shape-rendering="crispEdges"><use href="#i-qr"/></svg></div><span class="v-scan-pill">QR code au comptoir</span></div>
+        </div>
+        <div class="step-body">
+          <span class="step-n">1</span>
+          <h3>Votre client scanne le QR code</h3>
+          <p>Avec l’appareil photo de son téléphone. Il tape son prénom, et sa carte s’ajoute à Apple Wallet ou Google Wallet en 10 secondes environ.</p>
+        </div>
+      </li>
+      <li class="card step">
+        <div class="step-visual" aria-hidden="true">
+          <div class="v-stack">
+            <div class="v-toast"><span class="okdot"><svg class="ic"><use href="#i-check"/></svg></span><div><b>+12 points</b><span>Karim · achat de 12 €</span></div></div>
+            <div class="v-toast"><span class="okdot"><svg class="ic"><use href="#i-check"/></svg></span><div><b>+8 points</b><span>Sarah · achat de 8 €</span></div></div>
+          </div>
+        </div>
+        <div class="step-body">
+          <span class="step-n">2</span>
+          <h3>Vous scannez sa carte à chaque passage</h3>
+          <p>Depuis votre téléphone ou une tablette. Les points s’ajoutent selon votre règle, par exemple 1 € = 1 point.</p>
+        </div>
+      </li>
+      <li class="card step">
+        <div class="step-visual" aria-hidden="true">
+          <div class="v-notifs"><div class="notif"><span class="shop-logo"><svg class="ic"><use href="#i-gift"/></svg></span><div><div class="notif-top"><span>Votre commerce</span><span>maintenant</span></div><strong>Récompense débloquée !</strong><p>Votre menu est offert à votre prochaine visite.</p></div></div></div>
+        </div>
+        <div class="step-body">
+          <span class="step-n">3</span>
+          <h3>La récompense se débloque toute seule</h3>
+          <p>Votre client reçoit une notification dès l’objectif atteint. Il montre sa carte, vous validez, le compteur repart.</p>
+        </div>
+      </li>
+    </ol>
+    <div class="callout reveal">
+      <p><b>Ce que vous avez à faire : scanner la carte.</b> C’est tout.</p>
+      <div class="callout-chips">
+        <span><img src="/wallet-icons/apple-wallet-icon-96.png" alt="" width="16" height="16"><img src="/wallet-icons/google-wallet-icon-96.png" alt="" width="16" height="16">iPhone et Android</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Pas de terminal</span>
+        <span><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Pas d’appli pour le client</span>
       </div>
-      <div class="how-step">
-        <div class="how-num">02</div>
-        <h3>Sa carte arrive dans son téléphone</h3>
-        <p>Elle s'ajoute à Apple Wallet ou Google Wallet — votre logo, vos couleurs, toujours accessible, même hors connexion.</p>
+    </div>
+    <div class="screens">
+      <figure class="card screen-card reveal">
+        <div class="mini-phone"><div class="scr wallet"><img src="/screenshot-card.webp" alt="Une vraie carte de fidélité FidélyPass dans le Wallet d'un iPhone : 10 points sur 50, avec le QR code à scanner" width="560" height="778" loading="lazy" decoding="async"></div></div>
+        <figcaption><span class="label">Côté client</span><h3>Sa carte, dans son Wallet</h3><p>Ses points, sa progression et le QR code à présenter. Capture d’une vraie carte.</p></figcaption>
+      </figure>
+      <figure class="card screen-card reveal">
+        <div class="mini-phone"><div class="scr gerant"><img src="/screenshot-gerant.webp" alt="L'espace gérant FidélyPass : bouton pour scanner une carte, liste des clients, statistiques, paliers de récompense et envoi de notification" width="560" height="1070" loading="lazy" decoding="async"></div></div>
+        <figcaption><span class="label">Côté commerçant</span><h3>Votre espace au comptoir</h3><p>Scanner une carte, voir vos clients, envoyer une notification. Capture du vrai outil.</p></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- FONCTIONNALITÉS -->
+<section class="section" id="fonctionnalites" aria-labelledby="feat-title">
+  <div class="wrap feat-layout">
+    <div class="feat-side reveal">
+      <h2 id="feat-title">Tout ce qu’il faut pour faire revenir vos clients.</h2>
+      <p class="sub">Chaque fonctionnalité fait à votre place une tâche que personne n’a le temps de faire pendant le service.</p>
+      <a class="btn btn-brand" href="#contact">Créer ma carte <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    </div>
+    <div>
+      <div class="card feats">
+        <article class="feat reveal">
+          <div class="feat-text">
+            <span class="step-n">1</span>
+            <h3>Relance automatique des clients absents</h3>
+            <p>Un client n’est pas revenu depuis 30 jours ? La notification part toute seule, avec ses points restants.</p>
+          </div>
+          <div class="feat-visual" aria-hidden="true">
+            <div class="notif"><span class="shop-logo"><svg class="ic"><use href="#i-gift"/></svg></span><div><div class="notif-top"><span>Votre commerce</span><span>automatique</span></div><strong>On ne vous a pas vu depuis 30 jours</strong><p>Il vous reste 34/50 points pour : un menu offert.</p></div></div>
+          </div>
+        </article>
+        <article class="feat reveal">
+          <div class="feat-text">
+            <span class="step-n">2</span>
+            <h3>Notifications gratuites et illimitées</h3>
+            <p>Offre du midi, nouveau produit : vous l’écrivez, tous vos clients abonnés la reçoivent. Sans payer de SMS.</p>
+          </div>
+          <div class="feat-visual" aria-hidden="true">
+            <div class="notif"><span class="shop-logo"><svg class="ic"><use href="#i-gift"/></svg></span><div><div class="notif-top"><span>Votre commerce</span><span>11:30</span></div><strong>Ce midi seulement</strong><p>Votre boisson est offerte avec le menu, jusqu’à 14 h.</p></div></div>
+          </div>
+        </article>
+        <article class="feat reveal">
+          <div class="feat-text">
+            <span class="step-n">3</span>
+            <h3>Récompenses, paliers et grades</h3>
+            <p>Vos règles de points, plusieurs paliers pour des victoires régulières, et un statut pour vos meilleurs clients.</p>
+          </div>
+          <div class="feat-visual" aria-hidden="true">
+            <div class="panel">
+              <div class="tiers-top"><span>Karim</span><b class="num">34 pts</b></div>
+              <div class="tier-track"><i></i></div>
+              <div class="tier-marks"><span><b>10 pts</b>Café</span><span><b>50 pts</b>Menu</span></div>
+              <div class="grades"><span>Bronze</span><span>Argent</span><span class="on">Or</span><span>Platine</span><span>Diamant</span></div>
+            </div>
+          </div>
+        </article>
+        <article class="feat reveal">
+          <div class="feat-text">
+            <span class="step-n">4</span>
+            <h3>Parrainage automatique</h3>
+            <p>Chaque client a son lien à partager. Parrain et filleul gagnent des points : vos clients recrutent pour vous.</p>
+          </div>
+          <div class="feat-visual" aria-hidden="true">
+            <div class="panel">
+              <div class="share-link"><svg class="ic"><use href="#i-link"/></svg>Lien de parrainage de Karim</div>
+              <div class="share-gain"><div><b>+ points</b><span>pour le parrain</span></div><div><b>+ points</b><span>pour le filleul</span></div></div>
+            </div>
+          </div>
+        </article>
+        <article class="feat reveal">
+          <div class="feat-text">
+            <span class="step-n">5</span>
+            <h3>Votre carte, à vos couleurs</h3>
+            <p>Votre logo, votre nom, vos couleurs. Sur iPhone, elle s’affiche sur l’écran verrouillé quand votre client passe près de chez vous.</p>
+          </div>
+          <div class="feat-visual" aria-hidden="true">
+            <div class="wallet-row">
+              <span><img src="/wallet-icons/apple-wallet-icon-96.png" alt="" width="20" height="20">Apple Wallet</span>
+              <span><img src="/wallet-icons/google-wallet-icon-96.png" alt="" width="20" height="20">Google Wallet</span>
+            </div>
+          </div>
+        </article>
       </div>
-      <div class="how-step">
-        <div class="how-num">03</div>
-        <h3>Vous scannez à chaque passage</h3>
-        <p>Depuis votre téléphone ou une tablette. Les points se créditent automatiquement selon vos règles (ex : 1€ = 1 point).</p>
-      </div>
-      <div class="how-step">
-        <div class="how-num">04</div>
-        <h3>La récompense se débloque seule</h3>
-        <p>Notification automatique dès l'objectif atteint. Le client vous montre sa carte, vous validez, le compteur repart.</p>
+      <div class="also reveal">
+        <span>Et aussi :</span>
+        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-star"/></svg>Avis Google au bon moment</span>
+        <span class="chip"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Export CSV</span>
+        <a class="chip" href="#option"><svg class="ic" aria-hidden="true"><use href="#i-bag"/></svg>Commandes et rendez-vous : en option</a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- WALLET -->
-<section class="section">
+<!-- OPTION COMMANDES ET RENDEZ-VOUS -->
+<section class="section dark-soft addon" id="option" aria-labelledby="option-title">
   <div class="wrap">
-    <div class="wallet-block reveal">
-      <div>
-        <div class="section-tag">apple &amp; google wallet</div>
-        <h2>Sa carte, dans le portefeuille de son téléphone.</h2>
-        <p class="section-sub">Pas d'application supplémentaire à télécharger. Pas de mot de passe. Pas de compte compliqué.</p>
-        <div class="wallet-badges">
-          <div class="wallet-badge"><img src="/wallet-icons/apple-wallet-icon-96.png" alt="" width="18" height="18" style="border-radius:4px;vertical-align:-4px;margin-right:2px"> Apple Wallet</div>
-          <div class="wallet-badge"><img src="/wallet-icons/google-wallet-icon-96.png" alt="" width="18" height="18" style="border-radius:4px;vertical-align:-4px;margin-right:2px"> Google Wallet</div>
+    <div class="head reveal">
+      <span class="opt-badge">Option · +10 € / mois</span>
+      <h2 id="option-title">Commandes et rendez-vous, depuis la même carte.</h2>
+      <p class="sub">Vous prenez des commandes ou des rendez-vous ? Ajoutez l’option. Vos clients passent par la carte qu’ils ont déjà, et tout arrive dans votre espace gérant.</p>
+    </div>
+    <div class="addon-grid">
+      <article class="addon-card reveal">
+        <div>
+          <h3><svg class="ic" aria-hidden="true"><use href="#i-bag"/></svg>Commande en ligne <span class="new">Nouveau</span></h3>
+          <p>Votre menu en ligne, avec les options de chaque produit. Vos clients commandent sur place ou à emporter, tout de suite ou pour plus tard. Vous suivez chaque commande depuis votre espace.</p>
         </div>
-        <div class="wallet-checks">
-          <div><span>✓</span> Votre logo, vos couleurs, le nom de votre commerce</div>
-          <div><span>✓</span> Accessible même sans connexion internet</div>
-          <div><span>✓</span> Apparaît sur l'écran verrouillé à proximité de votre boutique (iPhone)</div>
+        <div class="addon-visual" aria-hidden="true">
+          <div class="ticket">
+            <div class="ticket-top"><b>Nouvelle commande</b><span class="mode">À emporter · 12:30</span></div>
+            <div class="ticket-row"><span>1 × Menu burger<small>Boisson : citron</small></span><span class="num">9,50 €</span></div>
+            <div class="ticket-row"><span>1 × Frites</span><span class="num">3,00 €</span></div>
+            <div class="ticket-total"><span>Total</span><span class="num">12,50 €</span></div>
+          </div>
         </div>
-      </div>
-      <div class="phone-frame-wrap"><div class="phone-frame"><div class="phone-mock"><img src="/screenshot-card.png" alt="Carte de fidélité FidélyPass sur smartphone"></div></div></div>
+      </article>
+      <article class="addon-card reveal">
+        <div>
+          <h3><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>Prise de rendez-vous</h3>
+          <p>Vos clients choisissent un créneau en ligne, sans vous appeler. Les rendez-vous arrivent dans votre espace, et vous pouvez aussi en ajouter à la main.</p>
+        </div>
+        <div class="addon-visual" aria-hidden="true">
+          <div class="ticket">
+            <div class="slots-day"><span>Lun<b>13</b></span><span class="on">Mar<b>14</b></span><span>Mer<b>15</b></span><span>Jeu<b>16</b></span></div>
+            <div class="slots"><span class="off">9:00</span><span>9:30</span><span class="off">10:00</span><span>10:30</span><span class="on">11:00</span><span>11:30</span></div>
+          </div>
+        </div>
+      </article>
+    </div>
+    <div class="addon-foot reveal">
+      <span><b>+10 € par mois</b>, en plus de votre abonnement. Exemples ci-dessus fictifs.</span>
+      <a class="btn btn-brand" href="#contact">Ajouter l’option <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></a>
     </div>
   </div>
 </section>
 
-<!-- FONCTIONNALITÉS CONDENSÉES -->
-<section class="section" id="fonctionnalites">
+<!-- STATISTIQUES -->
+<section class="section dark" id="statistiques" aria-labelledby="stats-title">
   <div class="wrap">
-    <div class="section-head reveal">
-      <div class="section-tag">les outils qui font revenir vos clients</div>
-      <h2>Pas une carte digitale. Un outil marketing.</h2>
-      <p class="section-sub">Chaque fonctionnalité automatise une tâche qu'aucun commerçant n'a le temps de faire à la main.</p>
-    </div>
-    <div class="tickets reveal">
-      <div class="card ticket">
-        <div class="ticket-icon">🔔</div>
-        <h3>Notifications push</h3>
-        <p>Offre flash, nouveau produit, rappel après une absence — envoyé à tous vos abonnés, gratuitement et sans limite.</p>
-        <div class="ticket-foot">$ contrairement au SMS</div>
+    <div class="stats-layout">
+      <div class="reveal">
+        <h2 id="stats-title">Vous savez enfin ce qui se passe dans votre clientèle.</h2>
+        <p class="sub">Des chiffres simples, sur votre téléphone, pour savoir où agir.</p>
+        <ul class="stats-points">
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Clients actifs et à risque :</b> ceux qui viennent, et ceux qui espacent leurs visites.</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Rétention, panier moyen, valeur client :</b> pour voir si la fidélité rapporte.</span></li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span><b>Heures de pointe et alertes :</b> pour choisir le bon moment d’une offre.</span></li>
+        </ul>
+        <p class="stats-note">Comparaison anonyme avec les autres boutiques FidélyPass, dès que 3 boutiques comparables sont disponibles.</p>
       </div>
-      <div class="card ticket">
-        <div class="ticket-icon">📅</div>
-        <h3>Prise de rendez-vous</h3>
-        <p>Vos clients réservent un créneau directement depuis leur carte, selon vos disponibilités. Vous gardez la main sur votre planning.</p>
-        <div class="ticket-foot">$ idéal coiffeurs, instituts</div>
-      </div>
-      <div class="card ticket">
-        <div class="ticket-icon">⚠️</div>
-        <h3>Relance automatique des clients inactifs</h3>
-        <p>FidélyPass détecte qui n'est pas revenu depuis un moment et lui envoie une notification tout seul — sans que vous ayez à y penser.</p>
-        <div class="ticket-foot">$ liste nominative</div>
-      </div>
-      <div class="card ticket">
-        <div class="ticket-icon">🎯</div>
-        <h3>Récompenses &amp; paliers</h3>
-        <p>Vous choisissez vos règles de points, et plusieurs paliers (10€ → café, 50€ → menu) pour des victoires régulières.</p>
-        <div class="ticket-foot">$ configurable</div>
-      </div>
-      <div class="card ticket">
-        <div class="ticket-icon">🥇</div>
-        <h3>Grades de fidélité</h3>
-        <p>Bronze → Argent → Or → Platine → Diamant → Élite → Famille. Vos meilleurs clients construisent un statut, pas juste un solde.</p>
-        <div class="ticket-foot">$ gamification</div>
-      </div>
-      <div class="card ticket">
-        <div class="ticket-icon">🤝</div>
-        <h3>Parrainage automatique</h3>
-        <p>Chaque client a son propre lien à partager. Parrain et filleul reçoivent des points — vos clients recrutent pour vous.</p>
-        <div class="ticket-foot">$ zéro budget pub</div>
-      </div>
-      <div class="card ticket">
-        <div class="ticket-icon">⭐</div>
-        <h3>Avis Google automatiques</h3>
-        <p>Au moment où le client débloque sa récompense — le plus satisfait — FidélyPass lui propose de laisser un avis.</p>
-        <div class="ticket-foot">$ le bon moment</div>
-      </div>
-      <div class="card ticket">
-        <div class="new-badge">Nouveau</div>
-        <div class="ticket-icon">🛍️</div>
-        <h3>Commande en ligne</h3>
-        <p>Vos clients commandent depuis leur interface, vous préparez, ils récupèrent sur place — sans passer par la caisse. Points crédités automatiquement à la remise.</p>
-        <div class="ticket-foot">$ idéal snacks, boulangeries</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- MINI DEMO SCAN -->
-<section class="section" id="demo">
-  <div class="wrap">
-    <div class="section-head center reveal">
-      <div class="section-tag">essayez</div>
-      <h2>Voyez ce que vit votre client.</h2>
-      <p class="section-sub">C'est exactement ce geste-là qui se produit à chaque passage en caisse.</p>
-    </div>
-    <div class="demo-wrap reveal">
-      <div class="card demo-card">
-        <div class="demo-top">
-          <div class="demo-shop">Votre Commerce</div>
-          <div class="demo-pts"><span id="demo-pts-val">0</span>/50 pts</div>
+      <div class="dash reveal" role="img" aria-label="Exemple illustratif de tableau de bord, pas de vraies données : 62 clients actifs, 14 à risque, 78 % de rétention, panier moyen de 12,50 €, pic de fréquentation le vendredi">
+        <div class="dash-example"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>Exemple illustratif, pas vos vraies données</div>
+        <div class="stats-top"><span>Tableau de bord</span><span>Cette semaine</span></div>
+        <div class="kpis">
+          <div class="kpi ok"><b class="num" data-count="62">62</b><span class="label">Actifs</span></div>
+          <div class="kpi warn"><b class="num" data-count="14">14</b><span class="label">À risque</span></div>
+          <div class="kpi violet"><b class="num"><span data-count="78">78</span> %</b><span class="label">Rétention</span></div>
+          <div class="kpi"><b class="num">12,50 €</b><span class="label">Panier moyen</span></div>
         </div>
-        <div class="demo-bar-track"><div class="demo-bar-fill" id="demo-bar"></div></div>
-        <div class="demo-qr-zone" id="demo-qr-zone">
-          <div class="demo-qr-flash" id="demo-flash"></div>
-          <div class="demo-qr-icon">▦</div>
-          <div class="demo-log mono" id="demo-log">$ en attente de scan…</div>
+        <div class="chart">
+          <div class="chart-top"><span>Fréquentation de la semaine</span></div>
+          <div class="bars"><span></span><span class="on"></span><span></span><span class="on"></span><span class="peak"></span><span class="on"></span><span></span></div>
+          <div class="bars-x"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
         </div>
-        <button class="btn-primary" id="demo-scan-btn" style="width:100%;justify-content:center">Scanner un achat (+10€)</button>
-        <div class="demo-reward" id="demo-reward">
-          <div class="demo-reward-emoji">🎉</div>
-          <div class="demo-reward-text">Récompense débloquée !</div>
-          <button class="btn-ghost" id="demo-replay-btn" style="margin-top:14px">Recommencer</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- STATS -->
-<section class="section">
-  <div class="wrap">
-    <div class="stats-block reveal">
-      <div>
-        <div class="section-tag">statistiques avancées</div>
-        <h2>Vous savez enfin ce qui se passe dans votre clientèle.</h2>
-        <p class="section-sub">Vous ne distribuez plus simplement des cartes. Vous comprenez votre clientèle — et vous savez exactement où agir.</p>
-        <div class="wallet-checks">
-          <div><span>✓</span> Score de risque personnalisé, selon le rythme de chaque client</div>
-          <div><span>✓</span> Comparaison anonymisée avec les autres boutiques du réseau</div>
-          <div><span>✓</span> Panier moyen, valeur client (LTV) et projection annuelle</div>
-          <div><span>✓</span> Carte de chaleur des jours et heures de pointe</div>
-          <div><span>✓</span> Export CSV et alertes automatiques</div>
-        </div>
-      </div>
-      <div class="card stats-mock">
-        <div class="stats-example-tag stats-example-tag-top">📊 Exemple illustratif — pas vos vraies données</div>
-        <div class="row3">
-          <div class="kpi g"><b><span class="count-num" data-count="62">0</span></b><span>Actifs</span></div>
-          <div class="kpi o"><b><span class="count-num" data-count="14">0</span></b><span>À risque</span></div>
-          <div class="kpi r"><b><span class="count-num" data-count="78">0</span>%</b><span>Rétention</span></div>
-        </div>
-        <div class="note mono">$ vous : 74% · moyenne réseau : 61%</div>
-        <div class="stats-mini-label">Panier moyen · valeur client (LTV)</div>
-        <div class="row3" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
-          <div class="kpi"><b style="color:var(--text)">12,50€</b><span>Panier moyen</span></div>
-          <div class="kpi"><b style="color:var(--text)">145€</b><span>LTV estimée</span></div>
-        </div>
-        <div class="stats-mini-label">Fréquentation par créneau</div>
-        <div class="bars">
-          <div style="height:35%"></div><div style="height:55%"></div><div style="height:45%" class="on"></div>
-          <div style="height:70%" class="on"></div><div style="height:100%" class="on"></div><div style="height:80%" class="on"></div>
-          <div style="height:25%"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CARTE CLIENT -->
-<section class="section">
-  <div class="wrap">
-    <div class="cardinfo-grid reveal">
-      <div class="phone-frame-wrap"><div class="phone-frame"><div class="phone-mock"><img src="/screenshot-gerant.png" alt="Interface gérant FidélyPass"></div></div></div>
-      <div>
-        <div class="section-tag">la carte client</div>
-        <h2>Toutes les informations, au même endroit.</h2>
-        <p class="section-sub">Votre client n'a plus besoin de chercher votre Instagram, votre numéro ou votre menu.</p>
-        <div class="cardinfo-list">
-          <div>🎁 Récompenses et progression</div>
-          <div>🍔 Menu à jour</div>
-          <div>🕐 Horaires d'ouverture</div>
-          <div>📞 Téléphone en un tap</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- SIMPLICITÉ -->
-<section class="section">
-  <div class="wrap">
-    <div class="section-head center reveal">
-      <div class="section-tag">pour le commerçant</div>
-      <h2>Vous n'êtes pas là pour gérer un logiciel.</h2>
-      <p class="section-sub">Vous êtes là pour gérer votre commerce. FidélyPass s'occupe du reste.</p>
-    </div>
-    <div class="simplicity-grid reveal">
-      <div class="card simple-card">
-        <h3>Ce que FidélyPass prend en charge</h3>
-        <div class="simple-list">
-          <div class="yes">Configuration complète</div>
-          <div class="yes">Création de la carte</div>
-          <div class="yes">Génération des QR codes</div>
-          <div class="yes">Règles de points et récompenses</div>
-          <div class="yes">Mise en place initiale avec vous</div>
-        </div>
-      </div>
-      <div class="card simple-card">
-        <h3>Ce que vous devez faire</h3>
-        <div class="simple-list">
-          <div class="yes">Scanner la carte du client. C'est tout.</div>
-          <div class="no">Pas de terminal spécifique</div>
-          <div class="no">Pas de lecteur QR à acheter</div>
-          <div class="no">Pas d'app à installer pour le client</div>
-          <div class="no">Pas de matériel supplémentaire</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- BÉNÉFICES 3 AXES -->
-<section class="section">
-  <div class="wrap">
-    <div class="axes reveal">
-      <div class="card axis-card">
-        <div class="axis-icon">💰</div>
-        <h3>Fidéliser</h3>
-        <p>Faire revenir les clients existants, plus souvent, avec des récompenses qui ont du sens.</p>
-      </div>
-      <div class="card axis-card">
-        <div class="axis-icon">📣</div>
-        <h3>Relancer</h3>
-        <p>Réactivés automatiquement par notification, avant qu'ils n'aillent voir ailleurs.</p>
-      </div>
-      <div class="card axis-card">
-        <div class="axis-icon">📈</div>
-        <h3>Développer</h3>
-        <p>Parrainage, avis Google, meilleure connaissance client — un vrai canal de croissance.</p>
       </div>
     </div>
   </div>
 </section>
 
 <!-- INSTALLATION -->
-<section class="section">
+<section class="section" id="installation" aria-labelledby="install-title">
   <div class="wrap">
-    <div class="section-head reveal">
-      <div class="section-tag">installation</div>
-      <h2>On s'occupe de tout.</h2>
-    </div>
-    <div class="card reveal" style="padding:8px 28px">
-      <div class="install-steps">
-        <div class="install-step">
-          <div class="install-num mono">01</div>
-          <div><h3>Vous nous donnez vos informations</h3><p>Logo, couleurs, règles de fidélité, récompenses, informations pratiques.</p></div>
-        </div>
-        <div class="install-step">
-          <div class="install-num mono">02</div>
-          <div><h3>Nous configurons votre FidélyPass</h3><p>Carte, QR codes, système de points et récompenses — prêts à l'emploi.</p></div>
-        </div>
-        <div class="install-step">
-          <div class="install-num mono">03</div>
-          <div><h3>Vous installez votre QR code</h3><p>Comptoir, caisse, ou tablette — support fourni.</p></div>
-        </div>
-        <div class="install-step">
-          <div class="install-num mono">04</div>
-          <div><h3>Vous commencez à fidéliser</h3><p>Vos clients s'inscrivent, votre programme fonctionne dès le premier jour.</p></div>
-        </div>
+    <div class="install reveal">
+      <div>
+        <h2 id="install-title">On installe tout pour vous, en 7 jours maximum.</h2>
+        <p class="sub">Vous nous donnez votre logo, vos couleurs et vos récompenses. Nous configurons la carte, le QR code du comptoir et les règles de points.</p>
+        <span class="install-fee"><svg class="ic" aria-hidden="true"><use href="#i-euro"/></svg>Frais d’installation : 80 €, payés une seule fois</span>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- RÉSULTATS -->
-<section class="section" id="resultats">
-  <div class="wrap">
-    <div class="section-head center reveal">
-      <div class="section-tag">résultats</div>
-      <h2>Déjà en place chez de vrais commerçants</h2>
-    </div>
-    <div class="testimonial-grid">
-      <div class="card reveal testimonial-card">
-        <div class="testimonial-stars">★★★★★</div>
-        <p class="testimonial-quote">« Un vrai snack à l'ancienne — j'ai eu l'impression de faire un bond dans les années 2000. Et avec le système de fidélité en plus, les récompenses donnent encore plus envie d'y retourner. Je recommande ZI FOOD à fond ! »</p>
-        <p class="testimonial-author">— Client de <strong>ZI FOOD</strong></p>
-      </div>
-      <div class="card reveal testimonial-card">
-        <div class="testimonial-stars">★★★★★</div>
-        <p class="testimonial-quote">« J'ai pris rendez-vous directement depuis la plateforme, qui sert aussi de carte de fidélité — super pratique, sans prise de tête, et plus besoin d'attendre sur place. Coupe au top, et en plus je suis reparti avec ma récompense. Ça donne vraiment envie de revenir chez le coiffeur ! »</p>
-        <p class="testimonial-author">— Client de <strong>MS Barber</strong></p>
-      </div>
+      <ol class="install-steps">
+        <li><span class="when">Jour 0</span><span><b>Signature</b>On fait le point sur votre commerce et vos récompenses.</span></li>
+        <li><span class="when">Ensuite</span><span><b>On crée votre carte</b>Logo, couleurs, règles de points, paliers et QR code.</span></li>
+        <li class="end"><span class="when">Jour 7 max</span><span><b>Vos clients peuvent s’inscrire</b>On vous montre comment scanner et valider une récompense.</span></li>
+      </ol>
     </div>
   </div>
 </section>
 
 <!-- TARIFS -->
-<section class="section" id="tarifs">
+<section class="section white" id="tarifs" aria-labelledby="tarifs-title">
   <div class="wrap">
-    <div class="section-head center reveal">
-      <div class="section-tag">tarifs</div>
-      <h2>Simple. Clair. Sans surprise.</h2>
-      <p class="section-sub">Installation prise en charge intégralement.</p>
+    <div class="head center reveal">
+      <h2 id="tarifs-title">Simple. Clair. Sans surprise.</h2>
+      <p class="sub">Un abonnement sur 12 mois, et 80 € d’installation payés une seule fois. Tout est affiché.</p>
     </div>
-    <div class="pricing-grid reveal">
-      <div class="card price-card">
-        <div class="price-name">1 boutique</div>
-        <div class="price-step">
-          <div class="price-step-label mono">1. installation (une fois)</div>
-          <div class="price-step-amount">80 €</div>
-        </div>
-        <div class="price-step price-step-recurring">
-          <div class="price-step-label mono">2. abonnement mensuel</div>
-          <div class="price-step-amount">29 <span>€ / mois</span></div>
-        </div>
-        <ul class="price-list">
-          <li>Carte digitale illimitée</li>
-          <li>Apple &amp; Google Wallet</li>
-          <li>Notifications push</li>
-          <li>Prise de rendez-vous</li>
-          <li>Statistiques avancées</li>
-        </ul>
-        <button class="btn-primary" style="width:100%;justify-content:center" onclick="location.href='#contact'">Être rappelé sous 24h</button>
+
+    <div class="offer reveal">
+      <div>
+        <span class="offer-badge">Offre en cours</span>
+        <h3>1 mois offert sur votre année</h3>
+        <p>11 mois payés, 12 mois d’utilisation. La réduction est déjà comptée dans les totaux ci-dessous.</p>
       </div>
-      <div class="card price-card featured">
-        <div class="price-badge">le plus choisi</div>
-        <div class="price-name">Plusieurs boutiques</div>
-        <div class="price-step">
-          <div class="price-step-label mono">1. installation (1ère boutique)</div>
-          <div class="price-step-amount">80 €</div>
+      <div>
+        <div class="months" role="img" aria-label="Sur 12 mois d'utilisation, 11 mois sont payés et 1 mois est offert">
+          <span><i></i>1</span><span><i></i>2</span><span><i></i>3</span><span><i></i>4</span><span><i></i>5</span><span><i></i>6</span><span><i></i>7</span><span><i></i>8</span><span><i></i>9</span><span><i></i>10</span><span><i></i>11</span><span class="free"><i></i>12</span>
         </div>
-        <div class="price-step price-step-recurring">
-          <div class="price-step-label mono">2. abonnement, par boutique</div>
-          <div class="price-step-amount">24 <span>€ / mois</span></div>
-        </div>
-        <ul class="price-list">
-          <li>Tout ce qui est inclus à 1 boutique</li>
-          <li>Un tableau de bord par boutique</li>
-          <li>Tarif dégressif automatique</li>
-        </ul>
-        <button class="btn-primary" style="width:100%;justify-content:center" onclick="location.href='#contact'">Être rappelé sous 24h</button>
-      </div>
-      <div class="card price-card">
-        <div class="price-name">Réseau / franchise</div>
-        <div class="price-custom">Sur-mesure</div>
-        <p style="font-size:12.5px;color:var(--text-dim);margin-bottom:18px">On en discute ensemble, selon votre nombre de boutiques.</p>
-        <ul class="price-list">
-          <li>Tarif adapté au volume</li>
-          <li>Accompagnement dédié</li>
-        </ul>
-        <button class="btn-ghost" style="width:100%;justify-content:center" onclick="location.href='#contact'">Nous contacter</button>
+        <div class="months-legend" aria-hidden="true"><span><i></i>11 mois payés</span><span class="free"><i></i>1 mois offert</span></div>
       </div>
     </div>
-    <p class="price-footnote">✓ Installation prise en charge · ✓ Aucun frais caché · ✓ Résiliation quand vous voulez</p>
+
+    <div class="prices">
+      <article class="card price reveal">
+        <h3>1 boutique</h3>
+        <p class="price-sub">Pour un commerce</p>
+        <div class="price-amount"><b class="num">29 €</b><span>/ mois</span></div>
+        <div class="ledger num">
+          <div><span>12 mois × 29 €</span><b>348 €</b></div>
+          <div class="minus"><span>1 mois offert</span><b>− 29 €</b></div>
+          <div class="total"><span>Abonnement sur 12 mois</span><b>319 €</b></div>
+          <div><span>Installation, une seule fois</span><b>80 €</b></div>
+        </div>
+        <ul>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Carte digitale, clients illimités</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Apple et Google Wallet</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Notifications push et relance automatique</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Statistiques avancées</li>
+        </ul>
+        <a class="btn btn-brand" href="#contact">Créer ma carte</a>
+      </article>
+      <article class="card price reveal">
+        <h3>Plusieurs boutiques</h3>
+        <p class="price-sub">Tarif par boutique</p>
+        <div class="price-amount"><b class="num">24 €</b><span>/ mois / boutique</span></div>
+        <div class="ledger num">
+          <div><span>12 mois × 24 €</span><b>288 €</b></div>
+          <div class="minus"><span>1 mois offert</span><b>− 24 €</b></div>
+          <div class="total"><span>Abonnement sur 12 mois, par boutique</span><b>264 €</b></div>
+          <div><span>Installation (1re boutique), une seule fois</span><b>80 €</b></div>
+        </div>
+        <ul>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Tout ce qui est inclus à 1 boutique</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Un tableau de bord par boutique</li>
+          <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Tarif dégressif automatique</li>
+        </ul>
+        <a class="btn btn-brand" href="#contact">Créer mes cartes</a>
+      </article>
+    </div>
+    <div class="card option reveal">
+      <div><span class="opt-badge">Option</span><h3>Commande en ligne et prise de rendez-vous</h3><p>À ajouter à votre formule, quand vous voulez.</p></div>
+      <div class="option-price"><b class="num">+10 €</b><span>/ mois</span></div>
+      <a class="btn btn-line" href="#option">Voir l’option</a>
+    </div>
+    <div class="card network reveal">
+      <div><b>Réseau ou franchise</b><p>Un tarif sur mesure selon votre nombre de boutiques, avec un accompagnement dédié.</p></div>
+      <a class="btn btn-line" href="#contact">Nous contacter</a>
+    </div>
+    <p class="price-note">Engagement de 12 mois · Aucun frais caché</p>
   </div>
 </section>
 
 <!-- FAQ -->
-<section class="section" id="faq">
-  <div class="wrap" style="max-width:760px">
-    <div class="section-head center reveal">
-      <div class="section-tag">questions fréquentes</div>
-      <h2>Tout ce qu'il reste à savoir.</h2>
+<section class="section" id="faq" aria-labelledby="faq-title">
+  <div class="wrap">
+    <div class="head center reveal">
+      <h2 id="faq-title">Les questions qu’on nous pose</h2>
     </div>
-    <div class="faq-list reveal">
-      <div class="card faq-item">
-        <div class="faq-q">Mes clients doivent-ils télécharger une application ?<span class="plus">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Non. La carte s'ajoute directement à Apple Wallet ou Google Wallet, déjà présents sur tous les smartphones.</div></div>
-      </div>
-      <div class="card faq-item">
-        <div class="faq-q">Dois-je acheter un lecteur QR ?<span class="plus">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Non. Votre téléphone ou votre tablette suffit pour scanner les cartes de vos clients.</div></div>
-      </div>
-      <div class="card faq-item">
-        <div class="faq-q">Est-ce compliqué à installer ?<span class="plus">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Non. La configuration complète (carte, QR codes, règles de points) est prise en charge avec vous.</div></div>
-      </div>
-      <div class="card faq-item">
-        <div class="faq-q">Puis-je choisir mes propres récompenses ?<span class="plus">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Oui. Vous définissez vos règles de points et vos récompenses, y compris plusieurs paliers.</div></div>
-      </div>
-      <div class="card faq-item">
-        <div class="faq-q">Puis-je envoyer des notifications à mes clients ?<span class="plus">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Oui, les notifications push sont incluses et illimitées, sans surcoût par envoi.</div></div>
-      </div>
-      <div class="card faq-item">
-        <div class="faq-q">Puis-je avoir plusieurs boutiques ?<span class="plus">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Oui, avec un tarif dégressif automatique dès la deuxième boutique.</div></div>
-      </div>
-      <div class="card faq-item">
-        <div class="faq-q">Puis-je voir mes clients les plus fidèles ?<span class="plus">+</span></div>
-        <div class="faq-a"><div class="faq-a-inner">Oui. Les statistiques identifient vos meilleurs clients, votre rétention et vos clients à risque.</div></div>
-      </div>
+    <div class="faq reveal">
+      <details name="faq"><summary>Combien de temps dure l’engagement ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">L’abonnement se prend pour <b>12 mois</b>. Avec l’offre en cours, vous payez 11 mois et vous profitez des 12 : par exemple 319 € au lieu de 348 € pour une boutique. Les 80 € d’installation s’ajoutent une seule fois.</p></details>
+      <details name="faq"><summary>L’installation est-elle payante ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Oui, <b>80 €, payés une seule fois</b>. On crée votre carte, on configure vos règles de points et votre QR code. Tout est prêt en 7 jours maximum après la signature.</p></details>
+      <details name="faq"><summary>Mes clients doivent-ils télécharger une application ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Non. La carte s’ajoute à Apple Wallet ou Google Wallet, déjà présents sur leur téléphone.</p></details>
+      <details name="faq"><summary>Ça marche sur iPhone et sur Android ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Oui. Sur iPhone, la carte va dans Apple Wallet. Sur Android, dans Google Wallet.</p></details>
+      <details name="faq"><summary>Dois-je acheter un lecteur QR ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Non. Votre téléphone ou votre tablette suffit pour scanner les cartes de vos clients.</p></details>
+      <details name="faq"><summary>Puis-je choisir mes propres récompenses ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Oui. Vous définissez vos règles de points et vos récompenses, y compris plusieurs paliers.</p></details>
+      <details name="faq"><summary>Les notifications sont-elles payantes ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Non. Elles sont incluses et illimitées, sans surcoût par envoi.</p></details>
+      <details name="faq"><summary>Comment fonctionne l’option commandes et rendez-vous ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Elle coûte <b>10 € de plus par mois</b>. Vos clients commandent ou réservent un créneau en ligne, et vous retrouvez tout dans votre espace gérant.</p></details>
+      <details name="faq"><summary>Puis-je avoir plusieurs boutiques ?<svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></summary><p class="answer">Oui. Chaque boutique est à 24 € par mois au lieu de 29 €, avec son propre tableau de bord.</p></details>
     </div>
   </div>
 </section>
 
-<!-- CTA FINAL -->
+<!-- CONTACT -->
 <section class="final" id="contact">
   <div class="wrap">
-    <h2>Votre prochaine carte de fidélité<br>n'a pas besoin d'être en papier.</h2>
-    <p>Laissez-nous votre contact — on vous installe FidélyPass dans la semaine.</p>
-    <form id="lead-form" class="lead-form">
-      <input type="text" id="lead-name" placeholder="Nom de votre commerce" required>
-      <input type="tel" id="lead-phone" placeholder="Votre numéro" required>
-      <button type="submit" class="btn-primary" id="lead-submit">Être contacté →</button>
-    </form>
-    <div id="lead-success" class="lead-success" style="display:none">✓ Merci ! On vous rappelle très vite.</div>
-    <div class="final-note">Réponse sous 24h</div>
-    <div class="contact-alt">
-      <span>ou directement par</span>
-      <a href="https://wa.me/33645421187" target="_blank" rel="noopener">💬 WhatsApp</a>
-      <span>·</span>
-      <a href="tel:+33645421187">📞 06 45 42 11 87</a>
+    <div class="deep reveal">
+      <div>
+        <h2>Votre prochaine carte de fidélité n’a pas besoin d’être en papier.</h2>
+        <p class="sub">Laissez-nous votre contact : on vous rappelle sous 24 h pour préparer votre carte et répondre à vos questions.</p>
+        <div class="contact-alt">
+          <span>ou directement par</span>
+          <a class="btn btn-ghost-deep btn-sm" href="https://wa.me/33645421187" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg>WhatsApp</a>
+          <a class="btn btn-ghost-deep btn-sm" href="tel:+33645421187"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>06&nbsp;45&nbsp;42&nbsp;11&nbsp;87</a>
+        </div>
+      </div>
+      <div class="lead-card">
+        <h3>Être rappelé</h3>
+        <form id="lead-form" class="lead-form" novalidate>
+          <div class="field">
+            <label for="lead-name">Nom de votre commerce</label>
+            <input type="text" id="lead-name" name="business_name" placeholder="Ex : Snack du Centre" autocomplete="organization" required>
+          </div>
+          <div class="field">
+            <label for="lead-phone">Votre numéro</label>
+            <input type="tel" id="lead-phone" name="phone" placeholder="06 12 34 56 78" autocomplete="tel" inputmode="tel" required>
+          </div>
+          <button type="submit" class="btn btn-brand btn-lg" id="lead-submit">Être contacté <svg class="ic" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        </form>
+        <div id="lead-error" class="lead-error" role="alert"></div>
+        <div id="lead-success" class="lead-success" role="status" hidden>Merci ! On vous rappelle très vite.</div>
+        <p class="lead-note">Réponse sous 24 h</p>
+      </div>
     </div>
   </div>
 </section>
 
+</main>
+
 <footer>
-  <div class="wrap foot-inner">
-    <div>© 2026 FidélyPass — Tous droits réservés</div>
-    <div><a href="mailto:walyd.benaissi@icloud.com">walyd.benaissi@icloud.com</a> · <a href="tel:+33645421187">06 45 42 11 87</a> · <a href="/mentions-legales.html">Mentions légales</a> · <a href="/confidentialite.html">Confidentialité</a></div>
+  <div class="wrap foot">
+    <p class="foot-brand"><span class="logo" aria-hidden="true"></span>FidélyPass <span>· © 2026</span></p>
+    <nav aria-label="Liens légaux et contact">
+      <a href="mailto:walyd.benaissi@icloud.com">walyd.benaissi@icloud.com</a>
+      <a href="tel:+33645421187">06&nbsp;45&nbsp;42&nbsp;11&nbsp;87</a>
+      <a href="/mentions-legales.html">Mentions légales</a>
+      <a href="/cgv.html">CGV</a>
+      <a href="/confidentialite.html">Confidentialité</a>
+    </nav>
   </div>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<div class="cursor-ring" id="cursor-ring" aria-hidden="true"></div>
+<div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
+
+<nav class="mbar" id="mbar" aria-label="Actions rapides">
+  <a class="btn btn-line" href="tel:+33645421187" aria-label="Appeler le 06 45 42 11 87"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg></a>
+  <a class="btn btn-line" href="https://wa.me/33645421187" target="_blank" rel="noopener" aria-label="Écrire sur WhatsApp"><svg class="ic" aria-hidden="true"><use href="#i-chat"/></svg></a>
+  <a class="btn btn-brand" href="#contact">Créer ma carte</a>
+</nav>
+
 <script>
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const hasGSAP = typeof gsap !== 'undefined';
-const hasHover = window.matchMedia('(hover: hover)').matches;
 
-/* ---------- Curseur personnalisé ---------- */
-if (hasHover && !prefersReducedMotion && hasGSAP) {
-  document.documentElement.classList.add('has-custom-cursor');
+/* ---------- Entrée du hero ---------- */
+(function () {
+  const phone = document.getElementById('hero-phone');
+  if (phone) requestAnimationFrame(() => requestAnimationFrame(() => phone.classList.add('in')));
+})();
+
+/* ---------- Curseur personnalisé : le point suit la souris, l'anneau suit avec un léger retard ---------- */
+(function () {
+  if (prefersReducedMotion || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
   const dot = document.getElementById('cursor-dot');
   const ring = document.getElementById('cursor-ring');
-  const glow = document.getElementById('bg-glow');
-  const moveDotX = gsap.quickTo(dot, 'x', { duration: 0.05, ease: 'none' });
-  const moveDotY = gsap.quickTo(dot, 'y', { duration: 0.05, ease: 'none' });
-  const moveRingX = gsap.quickTo(ring, 'x', { duration: 0.35, ease: 'power3' });
-  const moveRingY = gsap.quickTo(ring, 'y', { duration: 0.35, ease: 'power3' });
-  const moveGlowX = gsap.quickTo(glow, 'x', { duration: 0.6, ease: 'power2' });
-  const moveGlowY = gsap.quickTo(glow, 'y', { duration: 0.6, ease: 'power2' });
+  let mx = 0, my = 0, rx = 0, ry = 0, started = false;
   window.addEventListener('mousemove', (e) => {
-    moveDotX(e.clientX); moveDotY(e.clientY);
-    moveRingX(e.clientX); moveRingY(e.clientY);
-    moveGlowX(e.clientX); moveGlowY(e.clientY);
+    mx = e.clientX; my = e.clientY;
+    dot.style.transform = 'translate(' + mx + 'px,' + my + 'px)';
+    if (!started) { started = true; rx = mx; ry = my; document.documentElement.classList.add('has-custom-cursor'); requestAnimationFrame(loop); }
   });
-  document.querySelectorAll('a, button, .ticket, .price-card, .faq-q').forEach(el => {
+  document.addEventListener('mouseleave', () => document.documentElement.classList.remove('has-custom-cursor'));
+  document.addEventListener('mouseenter', () => { if (started) document.documentElement.classList.add('has-custom-cursor'); });
+  function loop() {
+    rx += (mx - rx) * 0.18; ry += (my - ry) * 0.18;
+    ring.style.transform = 'translate(' + rx + 'px,' + ry + 'px)';
+    requestAnimationFrame(loop);
+  }
+  document.querySelectorAll('a, button, summary, .card').forEach(el => {
     el.addEventListener('mouseenter', () => ring.classList.add('grow'));
     el.addEventListener('mouseleave', () => ring.classList.remove('grow'));
   });
+})();
+
+/* ---------- Compteurs ---------- */
+function countUp(el) {
+  const target = parseInt(el.dataset.count, 10);
+  if (prefersReducedMotion || !target) { el.textContent = target; return; }
+  const start = performance.now(), dur = 900;
+  (function step(now) {
+    const t = Math.min(1, (now - start) / dur);
+    el.textContent = Math.round(target * (1 - Math.pow(1 - t, 3)));
+    if (t < 1) requestAnimationFrame(step);
+  })(start);
 }
 
-/* ---------- Terminal hero : log de scan simulé ---------- */
+/* ---------- Apparition au défilement (IntersectionObserver) ---------- */
 (function () {
-  const body = document.getElementById('terminal-body');
-  if (!body) return;
-  const lines = [
-    { html: '<span class="terminal-prompt">$</span> fidelypass --watch', cls: '' },
-    { html: 'Connexion à la boutique… <span class="terminal-ok">OK</span>', cls: '' },
-    { html: '', cls: '' },
-    { html: '<span class="terminal-prompt">→</span> scan reçu · client #248', cls: '' },
-    { html: '  +10 pts crédités <span class="terminal-ok">✓</span>', cls: '' },
-    { html: '', cls: '' },
-    { html: '<span class="terminal-prompt">→</span> scan reçu · client #391', cls: '' },
-    { html: '  objectif atteint → <span class="terminal-ok">récompense débloquée 🎁</span>', cls: '' },
-    { html: '  notification envoyée <span class="terminal-ok">✓</span>', cls: '' },
-    { html: '', cls: '' },
-    { html: '<span class="terminal-prompt">$</span> <span class="terminal-cursor"></span>', cls: '' },
-  ];
-  lines.forEach(l => {
-    const div = document.createElement('div');
-    div.className = 'terminal-line mono';
-    div.innerHTML = l.html;
-    body.appendChild(div);
-  });
-  const lineEls = body.querySelectorAll('.terminal-line');
-  if (hasGSAP) {
-    const tl = gsap.timeline({ delay: 0.5 });
-    lineEls.forEach((el, i) => {
-      tl.to(el, { opacity: 1, duration: 0.05 }, i * 0.32);
+  const items = document.querySelectorAll('.reveal');
+  function onShow(el) {
+    el.classList.add('in');
+    el.querySelectorAll('[data-count]').forEach(countUp);
+  }
+  if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+    items.forEach(onShow);
+    return;
+  }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      onShow(entry.target);
+      io.unobserve(entry.target);
     });
-  } else {
-    lineEls.forEach(el => el.style.opacity = 1);
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  items.forEach(el => io.observe(el));
+})();
+
+/* ---------- Démo : les points montent, la récompense se débloque ---------- */
+(function () {
+  const scanBtn = document.getElementById('demo-scan-btn');
+  const pauseBtn = document.getElementById('demo-pause-btn');
+  const ptsEl = document.getElementById('demo-pts');
+  const leftEl = document.getElementById('demo-left');
+  const bar = document.getElementById('demo-bar');
+  const notif = document.getElementById('demo-notif');
+  const live = document.getElementById('demo-live');
+  const pass = document.querySelector('.pass');
+  if (!scanBtn || !pass) return;
+
+  const GOAL = 50, STEP = 10;
+  const scanLabel = scanBtn.querySelector('span');
+  const SCAN_TEXT = scanLabel.textContent;
+  let pts = 30;
+  let timer = null;
+  let visible = false;
+  let paused = prefersReducedMotion; // pas de lecture automatique si l'utilisateur réduit les animations
+
+  function render() {
+    ptsEl.textContent = pts;
+    leftEl.textContent = (GOAL - pts) + ' pts';
+    bar.style.transform = 'scaleX(' + (pts / GOAL) + ')';
+  }
+
+  function reset() {
+    pts = 0;
+    render();
+    notif.classList.remove('show');
+    scanLabel.textContent = SCAN_TEXT;
+    live.textContent = '';
+  }
+
+  function scan() {
+    if (pts >= GOAL) { reset(); return; }
+    pts = Math.min(GOAL, pts + STEP);
+    render();
+    if (!prefersReducedMotion) { ptsEl.classList.remove('pop'); void ptsEl.offsetWidth; ptsEl.classList.add('pop'); }
+    if (pts >= GOAL) {
+      notif.classList.add('show');
+      live.textContent = 'Récompense débloquée ! 50 points sur 50.';
+      scanLabel.textContent = 'Recommencer';
+    } else {
+      live.textContent = pts + ' points sur 50.';
+    }
+  }
+
+  function stop() { if (timer) { clearTimeout(timer); timer = null; } }
+  function tick() {
+    if (pts >= GOAL) {
+      timer = setTimeout(() => { reset(); timer = setTimeout(tick, 800); }, 3200);
+    } else {
+      scan();
+      timer = setTimeout(tick, 1100);
+    }
+  }
+  function sync() {
+    stop();
+    if (visible && !paused) timer = setTimeout(tick, 1200);
+  }
+  function setPaused(value) {
+    paused = value;
+    pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+    pauseBtn.setAttribute('aria-label', paused ? 'Relancer la démo' : 'Mettre la démo en pause');
+    pauseBtn.querySelector('use').setAttribute('href', paused ? '#i-play' : '#i-pause');
+    sync();
+  }
+
+  // Un scan manuel met la lecture automatique en pause (évite un double rythme)
+  scanBtn.addEventListener('click', () => { setPaused(true); scan(); });
+  pauseBtn.addEventListener('click', () => setPaused(!paused));
+
+  render();
+  setPaused(paused);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+      entries.forEach(entry => { visible = entry.isIntersecting; sync(); });
+    }, { threshold: 0.5 }).observe(pass);
   }
 })();
 
-if (hasGSAP) {
-  /* ---------- Hero entrance ---------- */
-  const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-  heroTl
-    .from('.eyebrow', { opacity: 0, y: 10, duration: 0.5 })
-    .from('.hero-h1 .word-inner', { y: '115%', duration: 0.7, stagger: 0.045, ease: 'power4.out' }, '-=0.25')
-    .from('.lede', { opacity: 0, y: 14, duration: 0.6 }, '-=0.3')
-    .from('.hero-ctas .btn-primary, .hero-ctas .btn-ghost', { opacity: 0, y: 14, duration: 0.5, stagger: 0.1 }, '-=0.3')
-    .from('.hero-note', { opacity: 0, duration: 0.5 }, '-=0.2')
-    .from('.hero-visual .terminal', { opacity: 0, y: 20, scale: 0.97, duration: 0.7 }, '-=0.9');
-
-  /* ---------- Reveal en cascade au scroll — IntersectionObserver, pas ScrollTrigger ----------
-     ScrollTrigger calcule les positions de déclenchement à partir du scroll du navigateur, ce qui
-     entre en conflit avec `scroll-behavior:smooth` sur Safari réel (le scroll natif désynchronise
-     ses calculs) et peut laisser des sections bloquées invisibles indéfiniment. IntersectionObserver
-     ne dépend d'aucun calcul de position de scroll et est donc immunisé contre ce problème. */
-  if ('IntersectionObserver' in window) {
-    const STAGGER_SELECTORS = ['.grid-4', '.howgrid', '.tickets', '.pricing-grid', '.axes', '.faq-list', '.simplicity-grid'];
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        const el = entry.target;
-        const isStagger = STAGGER_SELECTORS.some(sel => el.matches(sel));
-        gsap.to(isStagger ? el.children : el, {
-          opacity: 1, y: 0, duration: 0.6, stagger: isStagger ? 0.08 : 0, ease: 'power3.out'
-        });
-        revealObserver.unobserve(el);
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
-
-    document.querySelectorAll('.reveal').forEach(el => {
-      const isStagger = STAGGER_SELECTORS.some(sel => el.matches(sel));
-      gsap.set(isStagger ? el.children : el, { opacity: 0, y: 26 });
-      revealObserver.observe(el);
-    });
-  }
-
-  /* ---------- Compteurs animés — IntersectionObserver, même raison ---------- */
-  if ('IntersectionObserver' in window) {
-    const countObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        const el = entry.target;
-        const target = parseInt(el.dataset.count, 10);
-        countObserver.unobserve(el);
-        if (prefersReducedMotion) { el.textContent = target; return; }
-        gsap.fromTo(el, { textContent: 0 }, {
-          textContent: target, duration: 1, ease: 'power2.out', snap: { textContent: 1 },
-          onUpdate: function () { el.textContent = Math.round(this.targets()[0].textContent); }
-        });
-      });
-    }, { threshold: 0.4 });
-    document.querySelectorAll('.count-num').forEach(el => countObserver.observe(el));
-  }
-}
-
-/* ---------- Sceau 3D (Three.js) ---------- */
-if (typeof THREE !== 'undefined') {
-  const canvas = document.getElementById('seal-canvas');
-  if (canvas) {
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-    camera.position.set(0, 0, 6);
-    function sizeCanvas() {
-      const size = canvas.clientWidth || 150;
-      renderer.setSize(size, size, false);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      camera.aspect = 1; camera.updateProjectionMatrix();
-    }
-    sizeCanvas();
-    window.addEventListener('resize', sizeCanvas);
-
-    const token = new THREE.Group();
-    const wireGeo = new THREE.IcosahedronGeometry(1.4, 0);
-    const wireMat = new THREE.MeshBasicMaterial({ color: 0x22D3EE, wireframe: true, transparent: true, opacity: 0.85 });
-    token.add(new THREE.Mesh(wireGeo, wireMat));
-    const coreMat = new THREE.MeshStandardMaterial({ color: 0x6C5CE7, metalness: 0.4, roughness: 0.3, transparent: true, opacity: 0.5 });
-    token.add(new THREE.Mesh(new THREE.IcosahedronGeometry(1.05, 0), coreMat));
-    scene.add(token);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const dl = new THREE.DirectionalLight(0x22D3EE, 1);
-    dl.position.set(2, 3, 4);
-    scene.add(dl);
-
-    let targetX = 0, targetY = 0;
-    if (hasHover) {
-      window.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        targetY = ((e.clientX - (rect.left + rect.width / 2)) / window.innerWidth) * 1.2;
-        targetX = ((e.clientY - (rect.top + rect.height / 2)) / window.innerHeight) * 1.2;
-      });
-    }
-    function animateToken() {
-      token.rotation.y += 0.007;
-      token.rotation.x += (targetX - token.rotation.x) * 0.05;
-      renderer.render(scene, camera);
-      requestAnimationFrame(animateToken);
-    }
-    if (prefersReducedMotion) renderer.render(scene, camera);
-    else requestAnimationFrame(animateToken);
-  }
-}
-
-/* ---------- Mini-démo : simulateur de scan (automatique, façon petit GIF) ---------- */
+/* ---------- Barre d'action mobile : visible une fois le hero passé, masquée sur le formulaire ---------- */
 (function () {
-  const btn = document.getElementById('demo-scan-btn');
-  const bar = document.getElementById('demo-bar');
-  const ptsVal = document.getElementById('demo-pts-val');
-  const flash = document.getElementById('demo-flash');
-  const log = document.getElementById('demo-log');
-  const reward = document.getElementById('demo-reward');
-  const replayBtn = document.getElementById('demo-replay-btn');
-  const card = document.querySelector('.demo-card');
-  if (!btn) return;
-
-  const GOAL = 50;
-  let pts = 0;
-  let autoTimer = null;
-
-  function scan() {
-    if (pts >= GOAL) return;
-    pts = Math.min(GOAL, pts + 10);
-    ptsVal.textContent = pts;
-    bar.style.width = (pts / GOAL * 100) + '%';
-    log.textContent = '$ scan reçu · +10 pts crédités ✓';
-    if (hasGSAP && !prefersReducedMotion) {
-      gsap.fromTo(flash, { opacity: 0.55 }, { opacity: 0, duration: 0.4 });
-      gsap.fromTo(ptsVal, { scale: 1.3 }, { scale: 1, duration: 0.3, ease: 'back.out(3)' });
-    }
-    if (pts >= GOAL) {
-      btn.disabled = true;
-      log.textContent = '$ objectif atteint → récompense débloquée';
-      setTimeout(() => {
-        reward.classList.add('show');
-        if (hasGSAP && !prefersReducedMotion) {
-          gsap.fromTo(reward, { opacity: 0 }, { opacity: 1, duration: 0.35 });
-          gsap.fromTo('.demo-reward-emoji', { scale: 0, rotate: -20 }, { scale: 1, rotate: 0, duration: 0.5, ease: 'back.out(3)' });
-        }
-      }, 400);
-    }
-  }
-
-  function resetDemo() {
-    pts = 0; ptsVal.textContent = 0; bar.style.width = '0%';
-    log.textContent = '$ en attente de scan…';
-    reward.classList.remove('show');
-    btn.disabled = false;
-  }
-
-  function stopAuto() {
-    if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
-  }
-
-  function playAutoStep() {
-    if (pts < GOAL) {
-      scan();
-      autoTimer = setTimeout(playAutoStep, 900);
-    } else {
-      // Pause sur la récompense débloquée, puis relance depuis le début — comme un GIF en boucle
-      autoTimer = setTimeout(() => {
-        resetDemo();
-        autoTimer = setTimeout(playAutoStep, 700);
-      }, 3200);
-    }
-  }
-
-  // Un clic manuel coupe l'automatique (évite un double rythme bizarre) et avance d'un coup
-  btn.addEventListener('click', () => { stopAuto(); scan(); });
-  if (replayBtn) {
-    replayBtn.addEventListener('click', () => { stopAuto(); resetDemo(); });
-  }
-
-  // Se joue automatiquement dès que la démo apparaît à l'écran — personne n'a besoin de
-  // cliquer 5 fois pour voir la récompense se débloquer. Se met en pause hors de l'écran.
-  if (card && 'IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          if (!autoTimer) autoTimer = setTimeout(playAutoStep, 500);
-        } else {
-          stopAuto();
-        }
-      });
-    }, { threshold: 0.5 });
-    io.observe(card);
-  }
+  const bar = document.getElementById('mbar');
+  const heroCta = document.getElementById('hero-cta');
+  const contact = document.getElementById('contact');
+  if (!bar || !heroCta || !contact || !('IntersectionObserver' in window)) { if (bar) bar.classList.add('show'); return; }
+  let pastHero = false, onContact = false;
+  function update() { bar.classList.toggle('show', pastHero && !onContact); }
+  new IntersectionObserver(([e]) => { pastHero = !e.isIntersecting && e.boundingClientRect.top < 0; update(); }).observe(heroCta);
+  new IntersectionObserver(([e]) => { onContact = e.isIntersecting; update(); }, { threshold: 0.2 }).observe(contact);
 })();
 
 /* ---------- Formulaire de contact ---------- */
 (function () {
   const form = document.getElementById('lead-form');
   if (!form) return;
+  const btn = document.getElementById('lead-submit');
+  const btnHTML = btn.innerHTML;
+  const errorBox = document.getElementById('lead-error');
+  const success = document.getElementById('lead-success');
+  const nameInput = document.getElementById('lead-name');
+  const phoneInput = document.getElementById('lead-phone');
+
+  function fail(message, field) {
+    errorBox.textContent = message;
+    if (field) { field.setAttribute('aria-invalid', 'true'); field.focus(); }
+  }
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    const btn = document.getElementById('lead-submit');
-    const name = document.getElementById('lead-name').value.trim();
-    const phone = document.getElementById('lead-phone').value.trim();
-    if (!name || !phone) return;
+    const name = nameInput.value.trim();
+    const phone = phoneInput.value.trim();
+    errorBox.textContent = '';
+    nameInput.removeAttribute('aria-invalid');
+    phoneInput.removeAttribute('aria-invalid');
+    if (!name) return fail('Indiquez le nom de votre commerce.', nameInput);
+    if (!phone) return fail('Indiquez votre numéro pour qu\'on puisse vous rappeler.', phoneInput);
     btn.disabled = true;
     btn.textContent = 'Envoi…';
     fetch('/api/leads', {
@@ -1207,43 +1337,21 @@ if (typeof THREE !== 'undefined') {
       .then(r => r.json())
       .then(data => {
         if (data.success) {
-          form.style.display = 'none';
-          document.getElementById('lead-success').style.display = 'block';
+          form.hidden = true;
+          success.hidden = false;
         } else {
           btn.disabled = false;
-          btn.textContent = 'Être contacté →';
-          alert(data.error || "Une erreur est survenue, réessayez.");
+          btn.innerHTML = btnHTML;
+          fail(data.error || "Une erreur est survenue, réessayez.");
         }
       })
       .catch(() => {
         btn.disabled = false;
-        btn.textContent = 'Être contacté →';
-        alert("Une erreur est survenue, réessayez.");
+        btn.innerHTML = btnHTML;
+        fail("Une erreur est survenue, réessayez.");
       });
   });
 })();
-
-/* ---------- FAQ accordéon ---------- */
-document.querySelectorAll('.faq-item').forEach(item => {
-  const q = item.querySelector('.faq-q');
-  const a = item.querySelector('.faq-a');
-  q.addEventListener('click', () => {
-    const isOpen = item.classList.contains('open');
-    document.querySelectorAll('.faq-item.open').forEach(other => {
-      if (other !== item) {
-        other.classList.remove('open');
-        other.querySelector('.faq-a').style.maxHeight = null;
-      }
-    });
-    if (isOpen) {
-      item.classList.remove('open');
-      a.style.maxHeight = null;
-    } else {
-      item.classList.add('open');
-      a.style.maxHeight = a.scrollHeight + 'px';
-    }
-  });
-});
 </script>
 
 </body>
